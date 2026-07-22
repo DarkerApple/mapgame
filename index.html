@@ -15,18 +15,18 @@
   --surface:#141519; --surface2:#1c1e24; --surface3:#24262d;
   --border:#2b2e36; --border2:#3a3e48;
   --land:#3a3d45; --land-stroke:#5a5f6a; --hover:#565b66;
-  --found:#eceef2; --found-stroke:#aab0bb;
+  --found:#f2f4f7; --found-stroke:#b3b9c4;
   --target:#ffffff;
-  --text:#eceef2; --muted:#8b909c; --faint:#5c616c;
-  --accent:#f5f6f8; --accent-ink:#0b0b0d;
-  --shadow:0 12px 40px rgba(0,0,0,.55);
+  --text:#f3f5f8; --muted:#9ba2af; --faint:#6a707b;
+  --accent:#ffffff; --accent-ink:#0b0b0d;
+  --shadow:0 16px 48px rgba(0,0,0,.6);
   --font:'Gowun Dodum',system-ui,-apple-system,'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',Segoe UI,Roboto,sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
 body{
   background:var(--bg); color:var(--text); overflow:hidden;
-  font-family:var(--font); font-size:13px; line-height:1.5;
+  font-family:var(--font); font-size:14px; line-height:1.55;
   -webkit-text-size-adjust:100%;
 }
 .ic{width:1.05em;height:1.05em;flex:0 0 auto;display:inline-block;vertical-align:-.16em}
@@ -37,35 +37,35 @@ body{
 header{background:var(--surface);position:relative;z-index:30;border-bottom:1px solid var(--border)}
 .bar{display:flex;align-items:center;gap:10px;padding:7px 14px}
 .bar-top{border-bottom:1px solid var(--border)}
-.brand{display:flex;align-items:center;gap:7px;font-weight:700;font-size:14px;white-space:nowrap;letter-spacing:-.01em}
-.brand .ic{width:17px;height:17px;opacity:.9}
-.modes{display:flex;gap:4px;flex-wrap:wrap;margin-left:4px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;white-space:nowrap;letter-spacing:-.01em}
+.brand .ic{width:19px;height:19px;opacity:.92}
+.modes{display:flex;gap:4px;flex-wrap:wrap;margin-left:6px}
 .mode{
   background:transparent;border:1px solid transparent;color:var(--muted);
-  padding:5px 11px;border-radius:999px;cursor:pointer;font:inherit;font-size:12px;
+  padding:7px 13px;border-radius:999px;cursor:pointer;font:inherit;font-size:13px;
   transition:color .16s,background .16s,transform .12s;white-space:nowrap;
 }
 .mode:hover{color:var(--text);background:var(--surface2)}
 .mode:active{transform:translateY(1px)}
 .mode.active{background:var(--accent);color:var(--accent-ink);font-weight:700}
-.tools-right{display:flex;align-items:center;gap:7px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end}
+.tools-right{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end}
 .chip{
-  display:flex;align-items:baseline;gap:6px;background:var(--surface2);border:1px solid var(--border);
-  padding:5px 11px;border-radius:9px;font-variant-numeric:tabular-nums;
+  display:flex;align-items:baseline;gap:7px;background:var(--surface2);border:1px solid var(--border);
+  padding:6px 13px;border-radius:10px;font-variant-numeric:tabular-nums;
 }
-.chip .lbl{font-size:10.5px;color:var(--muted)}
-.chip .val{font-size:13.5px;font-weight:700;letter-spacing:.01em;transition:color .2s}
+.chip .lbl{font-size:11px;color:var(--muted)}
+.chip .val{font-size:15px;font-weight:700;letter-spacing:.01em;transition:color .2s}
 #timer.low .val{animation:lowPulse 1s ease-in-out infinite}
 @keyframes lowPulse{0%,100%{opacity:1}50%{opacity:.35}}
 select#region{
   background:var(--surface2);border:1px solid var(--border);color:var(--text);
-  font:inherit;font-size:12px;padding:6px 9px;border-radius:9px;cursor:pointer;max-width:46vw;
+  font:inherit;font-size:13px;padding:7px 11px;border-radius:10px;cursor:pointer;max-width:46vw;
 }
 select#region:focus{outline:none;border-color:var(--border2)}
 .btn{
-  display:inline-flex;align-items:center;gap:6px;justify-content:center;
+  display:inline-flex;align-items:center;gap:7px;justify-content:center;
   background:var(--surface2);border:1px solid var(--border);color:var(--text);
-  padding:6px 11px;border-radius:9px;cursor:pointer;font:inherit;font-size:12px;
+  padding:8px 13px;border-radius:10px;cursor:pointer;font:inherit;font-size:13px;
   transition:background .16s,border-color .16s,transform .12s;
 }
 .btn:hover{background:var(--surface3);border-color:var(--border2)}
@@ -75,36 +75,61 @@ select#region:focus{outline:none;border-color:var(--border2)}
 
 /* ---------- prompt + input ---------- */
 #promptbar{
-  padding:9px 16px 1px;font-size:12.5px;color:var(--muted);text-align:center;
-  min-height:22px;animation:fadeSlide .3s ease;
+  padding:10px 16px 2px;font-size:13.5px;color:var(--muted);text-align:center;
+  min-height:24px;animation:fadeSlide .3s ease;
 }
 #promptbar b{color:var(--text);font-weight:700}
-#promptbar .flag{display:block;font-size:30px;line-height:1;margin:0 0 4px;animation:cardIn .3s ease}
+#promptbar .flag{display:block;font-size:34px;line-height:1;margin:0 0 5px;animation:cardIn .3s ease}
+#promptbar .cname{font-size:16px;color:var(--text);font-weight:700}
 @keyframes fadeSlide{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
 @keyframes cardIn{from{opacity:0;transform:translateY(5px) scale(.94)}to{opacity:1;transform:none}}
-#inputrow{display:flex;gap:8px;padding:7px 16px 3px;max-width:680px;margin:0 auto;width:100%;justify-content:center}
+#inputrow{display:flex;gap:8px;padding:8px 16px 4px;max-width:680px;margin:0 auto;width:100%;justify-content:center}
 #q{
-  flex:1;min-width:0;background:var(--surface2);border:1px solid var(--border2);border-radius:11px;color:var(--text);
-  font:inherit;font-size:15px;padding:10px 14px;outline:none;transition:border-color .16s,box-shadow .16s;
+  flex:1;min-width:0;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;color:var(--text);
+  font:inherit;font-size:16px;padding:12px 15px;outline:none;transition:border-color .16s,box-shadow .16s;
 }
 #q::placeholder{color:var(--faint)}
-#q:focus{border-color:#5a6070;box-shadow:0 0 0 3px rgba(255,255,255,.06)}
+#q:focus{border-color:#666d7a;box-shadow:0 0 0 3px rgba(255,255,255,.07)}
 #q.shake{animation:shake .34s}
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
-#inputrow .btn{padding:0 14px;font-size:13px}
+#inputrow .btn{padding:0 16px;font-size:14px}
 #go{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
 #go:hover{filter:brightness(.94)}
-.step{min-width:70px}
+.step{min-width:74px}
 #feedback{
-  text-align:center;min-height:20px;padding:3px 16px 7px;font-size:12.5px;font-weight:600;
-  display:flex;align-items:center;justify-content:center;gap:5px;
+  text-align:center;min-height:22px;padding:4px 16px 8px;font-size:13.5px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;gap:6px;
 }
-#feedback .ic{width:15px;height:15px}
+#feedback .ic{width:16px;height:16px}
 #feedback.bump{animation:bump .28s ease}
 @keyframes bump{from{opacity:.2;transform:translateY(2px)}to{opacity:1;transform:none}}
 #feedback.ok{color:var(--found)}
 #feedback.no{color:#cfd3da}
 #feedback.info{color:var(--muted);font-weight:500}
+
+/* ---------- stage: map + study list panel ---------- */
+#stage{display:flex;flex:1;min-height:0}
+#studypanel{flex:0 0 340px;width:340px;background:var(--surface);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;min-height:0}
+.sp-head{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:11px 14px;border-bottom:1px solid var(--border)}
+.sp-title{font-size:13.5px;font-weight:700}
+.sp-toggle{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);cursor:pointer;user-select:none}
+.sp-toggle input{accent-color:#fff;width:16px;height:16px;cursor:pointer;margin:0}
+#sp-list{flex:1;overflow-y:auto;overflow-x:hidden;padding:9px;display:flex;flex-direction:column;gap:6px}
+#sp-list::-webkit-scrollbar{width:10px}
+#sp-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:6px;border:2px solid var(--surface)}
+.sp-item{display:flex;align-items:center;gap:11px;width:100%;text-align:left;color:var(--text);
+  background:var(--surface2);border:1px solid transparent;border-radius:11px;padding:10px 12px;cursor:pointer;
+  font:inherit;transition:background .14s,border-color .14s,transform .1s}
+.sp-item:hover{background:var(--surface3)}
+.sp-item:active{transform:scale(.99)}
+.sp-item.active{border-color:var(--accent);background:#22262e}
+.sp-flag{font-size:22px;line-height:1;width:28px;text-align:center;flex:0 0 auto}
+.sp-name{font-size:14.5px;font-weight:700}
+.sp-meta{font-size:11.5px;color:var(--muted);margin-left:auto;white-space:nowrap;font-variant-numeric:tabular-nums}
+#sp-list.hide .sp-name,#sp-list.hide .sp-meta{opacity:0}
+#sp-list.hide .sp-item.active .sp-name{opacity:1}
 
 /* ---------- map ---------- */
 #mapwrap{position:relative;flex:1;min-height:0;overflow:hidden;
@@ -177,7 +202,7 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
   .brand{width:100%}
   .modes{width:100%;margin-left:0;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:1px}
   .modes::-webkit-scrollbar{display:none}
-  .mode{padding:7px 13px;font-size:12.5px}
+  .mode{padding:8px 14px;font-size:13px}
   .bar-tools{flex-wrap:wrap}
   .chip{flex:1;justify-content:center}
   .tools-right{width:100%;margin-left:0}
@@ -185,8 +210,12 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
   select#region{max-width:none;flex:1}
   #legend{display:none}
   #q{font-size:16px;padding:12px 14px}
-  #promptbar .flag{font-size:34px}
+  #promptbar .flag{font-size:32px}
   #mapctrl .btn{width:44px;height:44px}
+  #stage{flex-direction:column}
+  #studypanel{flex:0 0 46%;width:auto;border-left:none;border-top:1px solid var(--border)}
+  .sp-flag{font-size:20px;width:26px}
+  .sp-name{font-size:14px}
 }
 @media(max-width:430px){
   #inputrow .btn span.t{display:none}
@@ -235,19 +264,28 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
   </div>
   <div id="feedback"></div>
 
-  <div id="mapwrap">
-    <svg id="map" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
-    <div id="tooltip"></div>
-    <div id="legend">
-      <span><span class="sw" style="background:var(--land)"></span>기본</span>
-      <span><span class="sw" style="background:var(--found)"></span>찾음</span>
-      <span><span class="sw tgt"></span>문제</span>
+  <div id="stage">
+    <div id="mapwrap">
+      <svg id="map" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
+      <div id="tooltip"></div>
+      <div id="legend">
+        <span><span class="sw" style="background:var(--land)"></span>기본</span>
+        <span><span class="sw" style="background:var(--found)"></span>찾음</span>
+        <span><span class="sw tgt"></span>문제</span>
+      </div>
+      <div id="mapctrl">
+        <button class="btn" id="zin" data-icon="plus" title="확대"></button>
+        <button class="btn" id="zout" data-icon="minus" title="축소"></button>
+        <button class="btn" id="zfit" data-icon="fit" title="전체 보기"></button>
+      </div>
     </div>
-    <div id="mapctrl">
-      <button class="btn" id="zin" data-icon="plus" title="확대"></button>
-      <button class="btn" id="zout" data-icon="minus" title="축소"></button>
-      <button class="btn" id="zfit" data-icon="fit" title="전체 보기"></button>
-    </div>
+    <aside id="studypanel" class="hidden">
+      <div class="sp-head">
+        <span class="sp-title" id="sp-title">지역</span>
+        <label class="sp-toggle"><input type="checkbox" id="hideNames"> 이름 가리기</label>
+      </div>
+      <div id="sp-list"></div>
+    </aside>
   </div>
 
   <footer>
@@ -471,6 +509,7 @@ map.addEventListener('click',e=>{
   const entry=byEl.get(e.target); if(!entry) return;
   if(state.mode==='free') revealFree(entry);
   else if(state.mode==='findmap') handleFindClick(entry);
+  else if(state.mode==='study'){ const i=state.cards.indexOf(entry); if(i>=0) showCard(i); }
 });
 
 /* ================= highlight helpers ================= */
@@ -482,21 +521,20 @@ function markFound(entry,pop){
 }
 function clearMap(){ allEntries.forEach(e=>e.el.classList.remove('found','target','pop','wrong','sset')); }
 function clearLabels(){ while(gLabels.firstChild) gLabels.removeChild(gLabels.firstChild); }
-function renderLabels(pool,viewW){
+// In study mode only ONE label is ever shown (the current card) — always readable, never cluttered.
+function showStudyLabel(e){
   clearLabels();
-  state.studyW=viewW;
-  const cap=viewW*0.019, floor=viewW*0.0038;  // size each label to its own country
-  pool.forEach(e=>{ const b=e.b||[e.x,e.y,0,0];
-    const w=e.isMarker?0:(b[2]||1);            // micro-state markers get the smallest label
-    const fs=Math.max(floor,Math.min(cap,w*0.30));
-    const t=document.createElementNS(SVGNS,'text');
-    t.setAttribute('x',b[0]+b[2]/2); t.setAttribute('y',b[1]+b[3]/2);
-    t.setAttribute('font-size',fs.toFixed(3)); t.setAttribute('stroke-width',(fs*0.16).toFixed(3));
-    t.setAttribute('text-anchor','middle'); t.setAttribute('class','clabel');
-    t.textContent=e.ko; e._label=t; e._fs=fs; gLabels.appendChild(t);
-  });
+  if(!e) return;
+  const b=e.b||[e.x,e.y,0,0];
+  const fs=Math.max(1.1,Math.min((state.studyW||120)*0.02,3.4));
+  const t=document.createElementNS(SVGNS,'text');
+  t.setAttribute('x',b[0]+b[2]/2);
+  t.setAttribute('y',b[1]+b[3]/2-fs*0.05);
+  t.setAttribute('font-size',fs.toFixed(3));
+  t.setAttribute('stroke-width',(fs*0.16).toFixed(3));
+  t.setAttribute('text-anchor','middle'); t.setAttribute('class','clabel cur');
+  t.textContent=e.ko; gLabels.appendChild(t);
 }
-function setLabelSize(t,fs){ t.setAttribute('font-size',fs.toFixed(3)); t.setAttribute('stroke-width',(fs*0.16).toFixed(3)); }
 
 /* ================= state ================= */
 const state={mode:'free',running:false,found:new Set(),score:0,target:null,pool:[],
@@ -509,6 +547,7 @@ const el={
   timerval:$('timerval'),timer:$('timer'),scoreval:$('scoreval'),scorelbl:$('scorelbl'),
   prompt:$('promptbar'),feedback:$('feedback'),q:$('q'),go:$('go'),skip:$('skip'),
   prev:$('prev'),next:$('next'),shuffle:$('shuffle'),region:$('region'),regquiz:$('regquiz'),durrow:$('durrow'),
+  studypanel:$('studypanel'),spList:$('sp-list'),spTitle:$('sp-title'),hideNames:$('hideNames'),
 };
 function $(id){ return document.getElementById(id); }
 
@@ -617,7 +656,7 @@ function resetMode(){
   stopTicker(); hideOverlay(); clearLabels(); state.gen++;
   state.running=false; state.ended=false; state.found=new Set(); state.score=0;
   state.elapsed=0; state.target=null; state.queue=[]; state.pool=[]; state.regionIds=null; state.regionTotal=0;
-  clearMap();
+  clearMap(); el.studypanel.classList.add('hidden');
   el.q.disabled=false; el.q.value='';
   const m=state.mode, region=state.region;
 
@@ -651,15 +690,31 @@ function resetMode(){
   }
 }
 
-/* ================= study (flashcards) ================= */
+/* ================= study (map spotlight + readable list panel) ================= */
 function startStudy(){
   const pool=regionEntries(state.region).slice().sort((a,b)=>((a.b?a.b[0]:a.x)-(b.b?b.b[0]:b.x)));
-  state.cards=pool; state.cardIdx=0; state._curLabel=null;
+  state.cards=pool; state.cardIdx=0;
   clearMap(); clearLabels();
   pool.forEach(e=>{ e.el.classList.add('sset'); e.el.parentNode.appendChild(e.el); });
-  const w=fitRegion(pool); renderLabels(pool,w);
-  setFeedback(regionName(state.region)+' — '+pool.length+'개국을 카드로 넘겨 보며 외워 보세요. 준비되면 “이 지역 시험”!','info');
+  state.studyW=fitRegion(pool);
+  buildStudyList(pool);
+  el.studypanel.classList.remove('hidden');
+  el.prompt.innerHTML='<b>'+regionName(state.region)+'</b> · '+pool.length+'개국을 훑어보며 외워 보세요.';
+  setFeedback('오른쪽 목록·지도를 눌러 이동, “섞기”로 순서 바꾸기, “이름 가리기”로 자가 테스트, 준비되면 “이 지역 시험”.','info');
   showCard(0);
+}
+function buildStudyList(pool){
+  el.spTitle.textContent=regionName(state.region)+' · '+pool.length+'개국';
+  el.spList.classList.toggle('hide',el.hideNames.checked);
+  el.spList.innerHTML='';
+  pool.forEach((e,idx)=>{
+    const b=document.createElement('button'); b.className='sp-item'; b.dataset.idx=idx;
+    b.innerHTML='<span class="sp-flag">'+flagEmoji(e.i2)+'</span><span class="sp-name"></span><span class="sp-meta"></span>';
+    b.querySelector('.sp-name').textContent=e.ko;
+    b.querySelector('.sp-meta').textContent=e.en+(e.i2?' · '+e.i2:'');
+    b.onclick=()=>showCard(idx);
+    el.spList.appendChild(b);
+  });
 }
 function showCard(i){
   if(!state.cards.length) return;
@@ -667,17 +722,18 @@ function showCard(i){
   const e=state.cards[state.cardIdx];
   allEntries.forEach(x=>x.el.classList.remove('target','found'));
   e.el.classList.add('found','target'); e.el.parentNode.appendChild(e.el);
-  if(state._curLabel){ state._curLabel.classList.remove('cur'); setLabelSize(state._curLabel,state._curLabel._base); }
-  if(e._label){ const big=Math.max(e._fs,(state.studyW||100)*0.02);
-    e._label._base=e._fs; setLabelSize(e._label,big); e._label.classList.add('cur');
-    gLabels.appendChild(e._label); state._curLabel=e._label; }
-  el.prompt.innerHTML='<span class="flag">'+flagEmoji(e.i2)+'</span><b>'+e.ko+'</b> · '+e.en+(e.i2?' · '+e.i2:'');
+  showStudyLabel(e);
+  el.prompt.innerHTML='<span class="flag">'+flagEmoji(e.i2)+'</span><span class="cname">'+e.ko+'</span> · '+e.en+(e.i2?' · '+e.i2:'');
   el.scoreval.textContent=(state.cardIdx+1)+' / '+state.cards.length;
+  const items=el.spList.children;
+  for(let k=0;k<items.length;k++) items[k].classList.toggle('active',k===state.cardIdx);
+  const act=items[state.cardIdx]; if(act) act.scrollIntoView({block:'nearest'});
 }
 el.prev.onclick=()=>{ if(state.mode==='study') showCard(state.cardIdx-1); };
 el.next.onclick=()=>{ if(state.mode==='study') showCard(state.cardIdx+1); };
-el.shuffle.onclick=()=>{ if(state.mode==='study'){ shuffleArr(state.cards); showCard(0); } };
+el.shuffle.onclick=()=>{ if(state.mode==='study'){ shuffleArr(state.cards); buildStudyList(state.cards); showCard(0); } };
 el.regquiz.onclick=()=>{ if(state.mode==='study') setMode('quiz'); };
+el.hideNames.onchange=()=>{ el.spList.classList.toggle('hide',el.hideNames.checked); };
 
 /* ================= answering ================= */
 function notFound(raw){ setFeedback('“'+raw+'” — 찾을 수 없어요. 이름이나 약자를 확인해 주세요.','no','x'); shakeInput(); }
