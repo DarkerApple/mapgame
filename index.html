@@ -6,6 +6,9 @@
 <title>세계 지도 하이라이트 — 나라 찾기 게임</title>
 <meta name="description" content="나라 이름이나 약자를 입력하면 세계 지도에서 해당 나라가 하이라이트됩니다. 학습 카드, 타이머, 여러 게임 모드 포함.">
 <meta name="theme-color" content="#0b0b0d">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#0b0b0d; --ocean1:#141519; --ocean2:#0a0a0c;
@@ -17,90 +20,88 @@
   --text:#eceef2; --muted:#8b909c; --faint:#5c616c;
   --accent:#f5f6f8; --accent-ink:#0b0b0d;
   --shadow:0 12px 40px rgba(0,0,0,.55);
-  --r:12px;
+  --font:'Gowun Dodum',system-ui,-apple-system,'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',Segoe UI,Roboto,sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
 body{
   background:var(--bg); color:var(--text); overflow:hidden;
-  font-family:system-ui,-apple-system,'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',Segoe UI,Roboto,sans-serif;
-  -webkit-text-size-adjust:100%; letter-spacing:-.01em;
+  font-family:var(--font); font-size:13px; line-height:1.5;
+  -webkit-text-size-adjust:100%;
 }
 .ic{width:1.05em;height:1.05em;flex:0 0 auto;display:inline-block;vertical-align:-.16em}
 #app{display:flex;flex-direction:column;height:100%}
 .hidden{display:none!important}
 
-/* ---------- header ---------- */
-header{
-  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
-  padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);
-  position:relative;z-index:30;
-}
-.brand{display:flex;align-items:center;gap:8px;font-weight:650;font-size:16px;white-space:nowrap}
-.brand .ic{width:20px;height:20px;color:var(--text);opacity:.92}
-.modes{display:flex;gap:5px;flex-wrap:wrap}
+/* ---------- header (two rows) ---------- */
+header{background:var(--surface);position:relative;z-index:30;border-bottom:1px solid var(--border)}
+.bar{display:flex;align-items:center;gap:10px;padding:7px 14px}
+.bar-top{border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:7px;font-weight:700;font-size:14px;white-space:nowrap;letter-spacing:-.01em}
+.brand .ic{width:17px;height:17px;opacity:.9}
+.modes{display:flex;gap:4px;flex-wrap:wrap;margin-left:4px}
 .mode{
   background:transparent;border:1px solid transparent;color:var(--muted);
-  padding:7px 13px;border-radius:999px;cursor:pointer;font:inherit;font-size:13px;font-weight:550;
-  transition:color .16s,background .16s,border-color .16s,transform .12s;white-space:nowrap;
+  padding:5px 11px;border-radius:999px;cursor:pointer;font:inherit;font-size:12px;
+  transition:color .16s,background .16s,transform .12s;white-space:nowrap;
 }
 .mode:hover{color:var(--text);background:var(--surface2)}
 .mode:active{transform:translateY(1px)}
-.mode.active{background:var(--accent);color:var(--accent-ink);font-weight:650}
-.meta{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap}
+.mode.active{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.tools-right{display:flex;align-items:center;gap:7px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end}
 .chip{
-  display:flex;align-items:baseline;gap:7px;background:var(--surface2);border:1px solid var(--border);
-  padding:6px 12px;border-radius:10px;font-variant-numeric:tabular-nums;
+  display:flex;align-items:baseline;gap:6px;background:var(--surface2);border:1px solid var(--border);
+  padding:5px 11px;border-radius:9px;font-variant-numeric:tabular-nums;
 }
-.chip .lbl{font-size:11px;color:var(--muted)}
-.chip .val{font-size:15px;font-weight:700;letter-spacing:.01em;transition:color .2s}
+.chip .lbl{font-size:10.5px;color:var(--muted)}
+.chip .val{font-size:13.5px;font-weight:700;letter-spacing:.01em;transition:color .2s}
 #timer.low .val{animation:lowPulse 1s ease-in-out infinite}
 @keyframes lowPulse{0%,100%{opacity:1}50%{opacity:.35}}
 select#region{
   background:var(--surface2);border:1px solid var(--border);color:var(--text);
-  font:inherit;font-size:13px;padding:8px 10px;border-radius:10px;cursor:pointer;max-width:52vw;
+  font:inherit;font-size:12px;padding:6px 9px;border-radius:9px;cursor:pointer;max-width:46vw;
 }
 select#region:focus{outline:none;border-color:var(--border2)}
 .btn{
-  display:inline-flex;align-items:center;gap:7px;justify-content:center;
+  display:inline-flex;align-items:center;gap:6px;justify-content:center;
   background:var(--surface2);border:1px solid var(--border);color:var(--text);
-  padding:8px 13px;border-radius:10px;cursor:pointer;font:inherit;font-size:13px;font-weight:550;
-  transition:background .16s,border-color .16s,transform .12s,opacity .16s;
+  padding:6px 11px;border-radius:9px;cursor:pointer;font:inherit;font-size:12px;
+  transition:background .16s,border-color .16s,transform .12s;
 }
 .btn:hover{background:var(--surface3);border-color:var(--border2)}
 .btn:active{transform:translateY(1px)}
-.btn.solid{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:650}
+.btn.solid{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
 .btn.solid:hover{filter:brightness(.94)}
 
 /* ---------- prompt + input ---------- */
 #promptbar{
-  padding:10px 16px 2px;font-size:14px;color:var(--muted);text-align:center;
-  animation:fadeSlide .35s ease;
+  padding:9px 16px 1px;font-size:12.5px;color:var(--muted);text-align:center;
+  min-height:22px;animation:fadeSlide .3s ease;
 }
-#promptbar b{color:var(--text);font-weight:650}
-#promptbar .flag{display:block;font-size:48px;line-height:1;margin:0 0 6px;animation:cardIn .35s ease}
-@keyframes fadeSlide{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
-@keyframes cardIn{from{opacity:0;transform:translateY(6px) scale(.94)}to{opacity:1;transform:none}}
-#inputrow{display:flex;gap:8px;padding:8px 16px 4px;max-width:760px;margin:0 auto;width:100%;justify-content:center}
+#promptbar b{color:var(--text);font-weight:700}
+#promptbar .flag{display:block;font-size:30px;line-height:1;margin:0 0 4px;animation:cardIn .3s ease}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+@keyframes cardIn{from{opacity:0;transform:translateY(5px) scale(.94)}to{opacity:1;transform:none}}
+#inputrow{display:flex;gap:8px;padding:7px 16px 3px;max-width:680px;margin:0 auto;width:100%;justify-content:center}
 #q{
-  flex:1;min-width:0;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;color:var(--text);
-  font:inherit;font-size:17px;padding:13px 16px;outline:none;transition:border-color .16s,box-shadow .16s;
+  flex:1;min-width:0;background:var(--surface2);border:1px solid var(--border2);border-radius:11px;color:var(--text);
+  font:inherit;font-size:15px;padding:10px 14px;outline:none;transition:border-color .16s,box-shadow .16s;
 }
 #q::placeholder{color:var(--faint)}
 #q:focus{border-color:#5a6070;box-shadow:0 0 0 3px rgba(255,255,255,.06)}
 #q.shake{animation:shake .34s}
-@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
-#inputrow .btn{padding:0 16px;font-size:14px}
-#go{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:650}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+#inputrow .btn{padding:0 14px;font-size:13px}
+#go{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
 #go:hover{filter:brightness(.94)}
-.step{min-width:80px}
+.step{min-width:70px}
 #feedback{
-  text-align:center;min-height:24px;padding:4px 16px 8px;font-size:14px;font-weight:600;
-  display:flex;align-items:center;justify-content:center;gap:6px;
+  text-align:center;min-height:20px;padding:3px 16px 7px;font-size:12.5px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;gap:5px;
 }
-#feedback .ic{width:16px;height:16px}
-#feedback.bump{animation:bump .3s ease}
-@keyframes bump{from{opacity:.2;transform:translateY(3px)}to{opacity:1;transform:none}}
+#feedback .ic{width:15px;height:15px}
+#feedback.bump{animation:bump .28s ease}
+@keyframes bump{from{opacity:.2;transform:translateY(2px)}to{opacity:1;transform:none}}
 #feedback.ok{color:var(--found)}
 #feedback.no{color:#cfd3da}
 #feedback.info{color:var(--muted);font-weight:500}
@@ -131,38 +132,38 @@ select#region:focus{outline:none;border-color:var(--border2)}
 
 #tooltip{
   position:absolute;pointer-events:none;background:rgba(10,11,14,.96);border:1px solid var(--border2);
-  color:var(--text);padding:5px 10px;border-radius:8px;font-size:13px;font-weight:600;
+  color:var(--text);padding:4px 9px;border-radius:8px;font-size:12px;font-weight:600;
   transform:translate(-50%,-145%);white-space:nowrap;opacity:0;transition:opacity .12s;z-index:8}
-#mapctrl{position:absolute;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:7px;z-index:6}
-#mapctrl .btn{width:42px;height:42px;padding:0;border-radius:11px;background:rgba(20,21,25,.86);backdrop-filter:blur(6px)}
-#mapctrl .btn .ic{width:20px;height:20px}
+#mapctrl{position:absolute;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:6px;z-index:6}
+#mapctrl .btn{width:38px;height:38px;padding:0;border-radius:10px;background:rgba(20,21,25,.86);backdrop-filter:blur(6px)}
+#mapctrl .btn .ic{width:18px;height:18px}
 #legend{
-  position:absolute;left:12px;bottom:calc(12px + env(safe-area-inset-bottom));display:flex;gap:14px;flex-wrap:wrap;
-  background:rgba(20,21,25,.86);backdrop-filter:blur(6px);border:1px solid var(--border);border-radius:11px;
-  padding:8px 13px;font-size:12px;color:var(--muted);z-index:6}
-#legend .sw{display:inline-block;width:13px;height:13px;border-radius:4px;vertical-align:-2px;margin-right:6px}
-#legend .sw.tgt{background:transparent;border:2px solid var(--target);width:11px;height:11px}
+  position:absolute;left:12px;bottom:calc(12px + env(safe-area-inset-bottom));display:flex;gap:13px;flex-wrap:wrap;
+  background:rgba(20,21,25,.86);backdrop-filter:blur(6px);border:1px solid var(--border);border-radius:10px;
+  padding:7px 12px;font-size:11.5px;color:var(--muted);z-index:6}
+#legend .sw{display:inline-block;width:12px;height:12px;border-radius:4px;vertical-align:-2px;margin-right:5px}
+#legend .sw.tgt{background:transparent;border:2px solid var(--target);width:10px;height:10px}
 
 footer{
-  padding:9px 16px calc(9px + env(safe-area-inset-bottom));font-size:12px;color:var(--muted);text-align:center;
+  padding:8px 16px calc(8px + env(safe-area-inset-bottom));font-size:11px;color:var(--muted);text-align:center;
   border-top:1px solid var(--border);background:var(--surface)}
-footer kbd{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:1px 6px;font-size:11px;font-family:ui-monospace,monospace}
+footer kbd{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:1px 5px;font-size:10.5px;font-family:ui-monospace,monospace}
 
 /* ---------- result overlay ---------- */
 #overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:20;
   background:rgba(6,6,8,.72);backdrop-filter:blur(4px);animation:fade .25s ease}
 #overlay.show{display:flex}
 @keyframes fade{from{opacity:0}to{opacity:1}}
-.card{background:var(--surface);border:1px solid var(--border2);border-radius:18px;padding:30px 34px;
-  text-align:center;max-width:min(440px,92vw);box-shadow:var(--shadow);animation:cardPop .32s cubic-bezier(.2,.9,.3,1.2)}
+.card{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:26px 30px;
+  text-align:center;max-width:min(420px,92vw);box-shadow:var(--shadow);animation:cardPop .32s cubic-bezier(.2,.9,.3,1.2)}
 @keyframes cardPop{from{opacity:0;transform:translateY(10px) scale(.94)}to{opacity:1;transform:none}}
-.card h2{font-size:20px;margin-bottom:4px;font-weight:650}
-.card .big{font-size:52px;font-weight:800;margin:12px 0;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-.card p{color:var(--muted);font-size:14px;margin-bottom:18px}
-.card .btn{padding:12px 26px;font-size:15px}
-#durrow{display:flex;gap:6px;flex-wrap:wrap}
-#durrow button{background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:9px;
-  padding:7px 12px;font:inherit;font-size:12px;cursor:pointer;transition:all .14s}
+.card h2{font-size:17px;margin-bottom:3px;font-weight:700}
+.card .big{font-size:42px;font-weight:800;margin:10px 0;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.card p{color:var(--muted);font-size:13px;margin-bottom:16px}
+.card .btn{padding:11px 24px;font-size:14px}
+#durrow{display:flex;gap:5px;flex-wrap:wrap}
+#durrow button{background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:8px;
+  padding:6px 11px;font:inherit;font-size:11.5px;cursor:pointer;transition:all .14s}
 #durrow button:hover{color:var(--text)}
 #durrow button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
 
@@ -170,45 +171,53 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 
 /* ---------- mobile ---------- */
 @media(max-width:720px){
-  header{gap:8px;padding:9px 12px}
-  .brand{font-size:15px;width:100%}
-  .modes{width:100%;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
+  .bar{padding:7px 12px;gap:8px}
+  .bar-top{flex-wrap:wrap}
+  .brand{width:100%}
+  .modes{width:100%;margin-left:0;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:1px}
   .modes::-webkit-scrollbar{display:none}
-  .meta{width:100%;margin-left:0}
-  .meta .chip{flex:1;justify-content:center}
+  .mode{padding:7px 13px;font-size:12.5px}
+  .bar-tools{flex-wrap:wrap}
+  .chip{flex:1;justify-content:center}
+  .tools-right{width:100%;margin-left:0}
+  .tools-right .btn{flex:1}
   select#region{max-width:none;flex:1}
   #legend{display:none}
   #q{font-size:16px;padding:12px 14px}
-  #promptbar .flag{font-size:40px}
-  #mapctrl .btn{width:46px;height:46px}
-  .mode{padding:8px 14px}
+  #promptbar .flag{font-size:34px}
+  #mapctrl .btn{width:44px;height:44px}
 }
-@media(max-width:420px){
+@media(max-width:430px){
   #inputrow .btn span.t{display:none}
-  .step{min-width:52px}
+  .tools-right .btn span.t{display:none}
+  .step{min-width:46px}
 }
 </style>
 </head>
 <body>
 <div id="app">
   <header>
-    <div class="brand"><span data-icon="globe"></span> 세계 지도 하이라이트</div>
-    <div class="modes">
-      <button class="mode active" data-mode="free">자유 탐색</button>
-      <button class="mode" data-mode="study">학습 카드</button>
-      <button class="mode" data-mode="quiz">이름 맞히기</button>
-      <button class="mode" data-mode="findmap">지도에서 찾기</button>
-      <button class="mode" data-mode="flag">국기 퀴즈</button>
-      <button class="mode" data-mode="region">지역별 도전</button>
-      <button class="mode" data-mode="countdown">전세계 도전</button>
+    <div class="bar bar-top">
+      <div class="brand"><span data-icon="globe"></span> 세계 지도 하이라이트</div>
+      <nav class="modes">
+        <button class="mode active" data-mode="free">자유 탐색</button>
+        <button class="mode" data-mode="study">학습 카드</button>
+        <button class="mode" data-mode="quiz">이름 맞히기</button>
+        <button class="mode" data-mode="findmap">지도에서 찾기</button>
+        <button class="mode" data-mode="flag">국기 퀴즈</button>
+        <button class="mode" data-mode="region">지역별 도전</button>
+        <button class="mode" data-mode="countdown">전세계 도전</button>
+      </nav>
     </div>
-    <div class="meta">
+    <div class="bar bar-tools">
       <div class="chip" id="timer"><span class="lbl">시간</span><span class="val" id="timerval">0:00</span></div>
       <div class="chip" id="scorechip"><span class="lbl" id="scorelbl">찾은 나라</span><span class="val" id="scoreval">0</span></div>
-      <select id="region" class="hidden" title="지역 선택"></select>
-      <div id="durrow" class="hidden"></div>
-      <button class="btn" id="regquiz" data-icon="search"><span class="t">이 지역 시험</span></button>
-      <button class="btn" id="reset" data-icon="reset"><span class="t">초기화</span></button>
+      <div class="tools-right">
+        <select id="region" class="hidden" title="지역 선택"></select>
+        <div id="durrow" class="hidden"></div>
+        <button class="btn" id="regquiz" data-icon="search"><span class="t">이 지역 시험</span></button>
+        <button class="btn" id="reset" data-icon="reset"><span class="t">초기화</span></button>
+      </div>
     </div>
   </header>
 
@@ -474,7 +483,7 @@ function clearMap(){ allEntries.forEach(e=>e.el.classList.remove('found','target
 function clearLabels(){ while(gLabels.firstChild) gLabels.removeChild(gLabels.firstChild); }
 function renderLabels(pool,viewW){
   clearLabels();
-  const fs=Math.max(1.0,viewW*0.021);
+  const fs=Math.max(0.85,viewW*0.017);
   pool.forEach(e=>{ const b=e.b||[e.x,e.y,0,0];
     const t=document.createElementNS(SVGNS,'text');
     t.setAttribute('x',b[0]+b[2]/2); t.setAttribute('y',b[1]+b[3]/2);
@@ -486,8 +495,10 @@ function renderLabels(pool,viewW){
 /* ================= state ================= */
 const state={mode:'free',running:false,found:new Set(),score:0,target:null,pool:[],
   t0:0,elapsed:0,duration:0,ended:false,queue:[],countUp:true,region:'전세계',
-  regionIds:null,regionTotal:0,cards:[],cardIdx:0};
+  regionIds:null,regionTotal:0,cards:[],cardIdx:0,gen:0};
 let ticker=null;
+// run fn after ms, but skip if the round/mode changed meanwhile (avoids stale-target crashes)
+function later(fn,ms){ const g=state.gen; setTimeout(()=>{ if(!state.ended && state.gen===g) fn(); },ms); }
 const el={
   timerval:$('timerval'),timer:$('timer'),scoreval:$('scoreval'),scorelbl:$('scorelbl'),
   prompt:$('promptbar'),feedback:$('feedback'),q:$('q'),go:$('go'),skip:$('skip'),
@@ -531,19 +542,19 @@ function updateScore(){
 /* ================= target pickers ================= */
 function pickFromPool(pool){ if(!state.queue.length) state.queue=shuffleArr(pool.slice()); return state.queue.pop(); }
 function nextQuizTarget(){
-  state.target=pickFromPool(state.pool);
+  state.target=pickFromPool(state.pool); if(!state.target) return;
   allEntries.forEach(e=>e.el.classList.remove('target'));
   if(!state.target.el.classList.contains('found')) state.target.el.classList.add('target');
   focusEntry(state.target,1.6);
   el.prompt.innerHTML='흰색 테두리로 표시된 나라의 이름을 입력하세요.';
 }
 function nextFindTarget(){
-  state.target=pickFromPool(state.pool);
+  state.target=pickFromPool(state.pool); if(!state.target) return;
   allEntries.forEach(e=>e.el.classList.remove('target'));
   el.prompt.innerHTML='지도에서 <b>'+state.target.ko+'</b> 을(를) 찾아 누르세요.';
 }
 function nextFlagTarget(){
-  state.target=pickFromPool(state.pool);
+  state.target=pickFromPool(state.pool); if(!state.target) return;
   el.prompt.innerHTML='<span class="flag">'+flagEmoji(state.target.i2)+'</span>이 국기의 나라 이름을 입력하세요.';
 }
 
@@ -597,7 +608,7 @@ function setMode(mode){
 }
 
 function resetMode(){
-  stopTicker(); hideOverlay(); clearLabels();
+  stopTicker(); hideOverlay(); clearLabels(); state.gen++;
   state.running=false; state.ended=false; state.found=new Set(); state.score=0;
   state.elapsed=0; state.target=null; state.queue=[]; state.pool=[]; state.regionIds=null; state.regionTotal=0;
   clearMap();
@@ -672,7 +683,7 @@ function handleFindClick(entry){
   if(entry.id===state.target.id){
     state.score++; state.found.add(entry.id); updateScore(); markFound(entry,true);
     setFeedback('정답! '+entry.ko,'ok','check');
-    setTimeout(()=>{ if(!state.ended) nextFindTarget(); },550);
+    later(nextFindTarget,550);
   } else { flashWrong(entry); setFeedback('여기는 '+entry.ko+' 예요. 다시 찾아보세요.','no','x'); }
 }
 function submit(){
@@ -685,7 +696,7 @@ function submit(){
     if(entry.id===state.target.id){
       state.score++; state.found.add(entry.id); updateScore(); markFound(entry,true);
       setFeedback('정답! '+entry.ko+' · '+entry.en,'ok','check'); el.q.value='';
-      setTimeout(()=>{ if(!state.ended) nextQuizTarget(); },500);
+      later(nextQuizTarget,500);
     } else { setFeedback(entry.ko+' 이(가) 아니에요. 표시된 나라를 보세요.','no','x'); shakeInput(); }
   }
   else if(m==='flag'){
@@ -693,7 +704,7 @@ function submit(){
     if(entry.id===state.target.id){
       state.score++; state.found.add(entry.id); updateScore();
       setFeedback('정답! '+flagEmoji(entry.i2)+' '+entry.ko,'ok','check'); el.q.value='';
-      setTimeout(()=>{ if(!state.ended) nextFlagTarget(); },450);
+      later(nextFlagTarget,450);
     } else { setFeedback(entry.ko+' 이(가) 아니에요.','no','x'); shakeInput(); }
   }
   else if(m==='region'){
@@ -715,11 +726,11 @@ function submit(){
 }
 el.skip.onclick=()=>{
   if(state.ended) return; const m=state.mode;
-  if(m==='quiz'){ setFeedback('정답은 '+state.target.ko+' 였어요.','info'); el.q.value=''; setTimeout(()=>{ if(!state.ended) nextQuizTarget(); },700); }
+  if(m==='quiz'){ setFeedback('정답은 '+state.target.ko+' 였어요.','info'); el.q.value=''; later(nextQuizTarget,700); }
   else if(m==='findmap'){ const t=state.target; setFeedback('정답은 '+t.ko+' 였어요.','info');
     if(!t.el.classList.contains('found')){ t.el.classList.add('target'); focusEntry(t,2); }
-    setTimeout(()=>{ if(!state.ended){ t.el.classList.remove('target'); resetView(); nextFindTarget(); } },1100); }
-  else if(m==='flag'){ setFeedback('정답은 '+flagEmoji(state.target.i2)+' '+state.target.ko+' 였어요.','info'); el.q.value=''; setTimeout(()=>{ if(!state.ended) nextFlagTarget(); },700); }
+    later(()=>{ t.el.classList.remove('target'); resetView(); nextFindTarget(); },1100); }
+  else if(m==='flag'){ setFeedback('정답은 '+flagEmoji(state.target.i2)+' '+state.target.ko+' 였어요.','info'); el.q.value=''; later(nextFlagTarget,700); }
 };
 
 /* ================= end / overlay ================= */
