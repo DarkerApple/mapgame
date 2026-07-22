@@ -567,7 +567,8 @@ map.addEventListener('pointermove',e=>{
 map.addEventListener('pointerleave',()=>tooltip.style.opacity=0);
 map.addEventListener('click',e=>{
   if(gestureMoved) return;
-  const entry=byEl.get(e.target); if(!entry) return;
+  // pointer capture (used for pan/zoom) retargets the click to the <svg>, so hit-test by point
+  const entry=byEl.get(document.elementFromPoint(e.clientX,e.clientY)); if(!entry) return;
   if(state.mode==='free') revealFree(entry);
   else if(state.mode==='findmap') handleFindClick(entry);
   else if(state.mode==='study'){ const i=state.cards.indexOf(entry); if(i>=0) showCard(i); }
@@ -753,6 +754,7 @@ function resetMode(){
     nextQuizTarget(); startTicker(); state.running=true; el.q.focus();
   } else if(m==='findmap'){
     state.pool=regionEntries(region).filter(e=>!e.isMarker); if(!state.pool.length) state.pool=allEntries.filter(e=>e.sov&&!e.isMarker);
+    if(region!=='전세계') fitRegion(regionEntries(region));   // zoom to the region so small countries are clickable
     setFeedback(regionName(region)+' · 90초! 이름을 보고 지도에서 누르세요.','info');
     nextFindTarget(); startTicker(); state.running=true;
   } else if(m==='flag'){
