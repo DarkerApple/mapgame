@@ -548,6 +548,12 @@ MAPDATA.markers.forEach(entry=>{
 const idMap=new Map(allEntries.map(e=>[e.id,e]));
 const TOTAL_SOV=allEntries.filter(e=>e.sov).length;
 allEntries.forEach(e=>{ e.st = (e.i2 && MAPSTATS[e.i2]) || null; });
+// global area ranking (for the "top N by area" hint)
+const AREA_RANKED=allEntries.filter(e=>e.st&&e.st.area!=null).sort((a,b)=>b.st.area-a.st.area);
+AREA_RANKED.forEach((e,i)=>{ e.areaRank=i+1; });
+const AREA_TOTAL=AREA_RANKED.length;
+// curated historical-fact / current-dispute clues (bilingual), keyed by iso2
+const HISTFACTS={"JP":{"hist":{"ko":"제2차 세계대전 말, 이 나라의 두 도시에 원자폭탄이 투하되었어요.","en":"Near the end of WWII, two of this country's cities were struck by atomic bombs."},"dispute":{"ko":"이웃 나라들과 여러 섬(쿠릴열도 등)을 두고 영유권 갈등이 있어요.","en":"It has island sovereignty disputes with neighbors (e.g., the Kuril Islands)."}},"KR":{"hist":{"ko":"1945년 광복 후 남북으로 분단되었고, 1950년 전쟁을 겪었어요.","en":"After liberation in 1945 it was divided into North and South, and a war broke out in 1950."}},"KP":{"hist":{"ko":"20세기 중반 한 반도가 둘로 갈라지며 세워진 사회주의 국가예요.","en":"A socialist state formed when a peninsula was split in two in the mid-20th century."},"dispute":{"ko":"핵·미사일 개발로 국제 제재를 받고 있어요.","en":"It faces international sanctions over its nuclear and missile programs."}},"CN":{"hist":{"ko":"수천 년의 왕조 역사를 가졌고, 1949년 공산주의 혁명으로 현재 체제가 세워졌어요.","en":"It has millennia of dynastic history; its current system arose from a 1949 communist revolution."},"dispute":{"ko":"이웃 섬나라의 독립적 지위와 남중국해 영유권을 둘러싼 갈등이 있어요.","en":"It disputes the status of a neighboring island and claims much of the South China Sea."}},"TW":{"hist":{"ko":"1949년 내전 후 본토에서 옮겨 온 정부가 통치하는 섬이에요.","en":"An island governed by a administration that relocated from the mainland after a 1949 civil war."},"dispute":{"ko":"이웃 대륙 국가가 자국 영토라고 주장해요.","en":"A neighboring mainland state claims it as its own territory."}},"MN":{"hist":{"ko":"13세기에 세계 최대의 제국을 세운 유목 민족의 후예예요.","en":"Heirs of the nomads who built the largest empire in history in the 13th century."}},"IN":{"hist":{"ko":"1947년 영국에서 독립하며 종교를 기준으로 이웃 나라와 분리되었어요.","en":"It gained independence from Britain in 1947 and was partitioned from a neighbor along religious lines."},"dispute":{"ko":"북부 카슈미르 지역을 두고 이웃 나라와 오랜 분쟁이 있어요.","en":"It has a long-running dispute with a neighbor over the northern Kashmir region."}},"PK":{"hist":{"ko":"1947년 종교를 기준으로 큰 이웃 나라에서 갈라져 세워졌어요.","en":"It was created in 1947, split from a large neighbor along religious lines."},"dispute":{"ko":"카슈미르 지역을 두고 이웃 나라와 오랜 분쟁이 있어요.","en":"It has a long-running Kashmir dispute with a neighbor."}},"VN":{"hist":{"ko":"20세기에 남북으로 갈라져 큰 전쟁을 치른 뒤 통일되었어요.","en":"Divided into north and south in the 20th century, it reunified after a major war."}},"TH":{"hist":{"ko":"동남아시아에서 유럽 열강의 식민 지배를 받지 않은 드문 나라예요.","en":"One of the few Southeast Asian countries never colonized by a European power."}},"KH":{"hist":{"ko":"고대에 거대한 사원 도시를 남긴 제국의 후예이고, 1970년대 잔혹한 정권을 겪었어요.","en":"Heir to an empire that left a vast temple-city; it endured a brutal regime in the 1970s."}},"ID":{"hist":{"ko":"수천 개의 섬으로 이루어졌고, 20세기 중반 네덜란드에서 독립했어요.","en":"Made of thousands of islands, it won independence from the Dutch in the mid-20th century."}},"US":{"hist":{"ko":"1776년 영국으로부터 독립을 선언했고, 1860년대 내전을 겪었어요.","en":"It declared independence from Britain in 1776 and fought a civil war in the 1860s."}},"MX":{"hist":{"ko":"아즈텍 문명의 땅이었고 뒤에 스페인의 식민 지배를 받았어요.","en":"Once home to the Aztec civilization, it was later colonized by Spain."}},"CU":{"hist":{"ko":"1959년 혁명 이후 사회주의 국가가 되었고, 냉전기 미사일 위기의 무대였어요.","en":"It became socialist after a 1959 revolution and was the stage of a Cold War missile crisis."}},"BR":{"hist":{"ko":"포르투갈의 식민지였던, 남아메리카에서 가장 큰 나라예요.","en":"A former Portuguese colony and the largest country in South America."}},"AR":{"hist":{"ko":"20세기 후반 이웃 섬을 두고 영국과 짧은 전쟁을 치렀어요.","en":"It fought a brief war with Britain over nearby islands in the late 20th century."},"dispute":{"ko":"인근 섬(포클랜드/말비나스)의 영유권을 영국과 다퉈요.","en":"It disputes the sovereignty of nearby islands (the Falklands/Malvinas) with Britain."}},"GB":{"hist":{"ko":"한때 세계에서 가장 넓은 제국을 거느렸고, 산업혁명이 시작된 곳이에요.","en":"It once ruled the world's largest empire and was where the Industrial Revolution began."}},"FR":{"hist":{"ko":"1789년 혁명으로 왕정을 무너뜨린 역사로 유명해요.","en":"Famous for the 1789 revolution that overthrew its monarchy."}},"DE":{"hist":{"ko":"두 차례 세계대전을 일으킨 뒤 분단되었다가 1990년 다시 통일되었어요.","en":"After starting two world wars it was divided, then reunified in 1990."}},"IT":{"hist":{"ko":"고대에 지중해를 지배한 대제국의 심장부였어요.","en":"The heartland of an ancient empire that dominated the Mediterranean."}},"ES":{"hist":{"ko":"대항해 시대에 아메리카 대부분을 식민지로 삼은 나라예요.","en":"A country that colonized much of the Americas during the Age of Exploration."}},"PT":{"hist":{"ko":"대항해 시대를 연 항해가들의 나라로, 브라질을 식민지로 두었어요.","en":"Home of the navigators who launched the Age of Exploration; it once ruled Brazil."}},"GR":{"hist":{"ko":"민주주의와 서양 철학이 태어난 고대 문명의 땅이에요.","en":"The land of the ancient civilization that birthed democracy and Western philosophy."}},"RU":{"hist":{"ko":"1917년 혁명으로 사회주의 연방(소련)의 중심이 되었다가 1991년 해체되었어요.","en":"After a 1917 revolution it led a socialist union (the USSR), which dissolved in 1991."},"dispute":{"ko":"이웃 나라의 영토(크림반도 등)를 둘러싼 국제적 갈등이 있어요.","en":"It is involved in international disputes over a neighbor's territory (e.g., Crimea)."}},"UA":{"hist":{"ko":"1991년 소련 해체와 함께 독립한 동유럽의 큰 나라예요.","en":"A large Eastern European country that became independent when the USSR dissolved in 1991."},"dispute":{"ko":"이웃 강대국과 동부·크림반도를 두고 무력 분쟁을 겪고 있어요.","en":"It is in armed conflict with a powerful neighbor over its east and Crimea."}},"PL":{"hist":{"ko":"제2차 세계대전이 이 나라 침공으로 시작되었어요.","en":"World War II began with the invasion of this country."}},"TR":{"hist":{"ko":"수백 년간 유럽·중동을 아우른 대제국의 후예로, 두 대륙에 걸쳐 있어요.","en":"Heir to an empire that spanned Europe and the Middle East, straddling two continents."},"dispute":{"ko":"이웃 섬나라와 바다·영공을 두고 갈등이 있고, 한 섬은 분단되어 있어요.","en":"It disputes seas and airspace with a neighbor, and a nearby island is divided."}},"EG":{"hist":{"ko":"피라미드를 남긴 고대 문명의 땅이고, 큰 운하가 있어요.","en":"Land of an ancient pyramid-building civilization, home to a major canal."}},"IL":{"hist":{"ko":"1948년에 건국된, 오랜 지역 분쟁의 한가운데 있는 나라예요.","en":"Founded in 1948, it sits at the center of a long regional conflict."},"dispute":{"ko":"이웃 민족·나라들과 영토를 둘러싼 오랜 분쟁이 있어요.","en":"It has a long-running territorial conflict with neighboring peoples and states."}},"SA":{"hist":{"ko":"이슬람교의 두 성지가 있는, 사막의 왕국이에요.","en":"A desert kingdom home to Islam's two holiest cities."}},"IR":{"hist":{"ko":"고대 페르시아 제국의 후예로, 1979년 이슬람 혁명을 겪었어요.","en":"Heir to the ancient Persian Empire; it underwent an Islamic revolution in 1979."}},"ZA":{"hist":{"ko":"20세기에 인종 분리 정책(아파르트헤이트)이 있었고 1990년대에 폐지되었어요.","en":"It had a racial segregation policy (apartheid) that ended in the 1990s."}},"ET":{"hist":{"ko":"아프리카에서 유럽 식민 지배를 거의 받지 않은, 아주 오래된 독립국이에요.","en":"An ancient independent state that largely escaped European colonization in Africa."}},"NG":{"hist":{"ko":"아프리카에서 인구가 가장 많은 나라로, 영국의 식민지였어요.","en":"Africa's most populous country and a former British colony."}},"AU":{"hist":{"ko":"영국의 유형지로 시작한, 한 대륙 전체를 차지한 나라예요.","en":"A country that occupies an entire continent, founded as a British penal colony."}},"CA":{"hist":{"ko":"영국·프랑스의 식민 역사를 가진, 세계에서 둘째로 넓은 나라예요.","en":"The world's second-largest country, with British and French colonial roots."}},"CH":{"hist":{"ko":"오랜 중립 정책으로 유명한 알프스의 나라예요.","en":"An Alpine country famous for its long tradition of neutrality."}},"CY":{"hist":{"ko":"1974년 이후 섬이 둘로 나뉘어 분단된 상태예요.","en":"An island divided into two parts since 1974."},"dispute":{"ko":"섬 북부의 지위를 두고 국제적 분쟁이 이어지고 있어요.","en":"The status of the island's north remains internationally disputed."}}};
 
 /* ================= regions ================= */
 const CONT_LIST=["아시아","유럽","아프리카","북아메리카","남아메리카","오세아니아"];
@@ -1205,34 +1211,45 @@ function sizeBucket(a){
   if(a>=30000) return '작은 편인';
   return '아주 작은';
 }
-// Returns {normal:[...clues...], fever:[...strong clues...]} — normal clues are
-// shuffled so the order changes every round; fever clues are very revealing.
+// area rank expressed as a "top N in the world" bracket — more identifiable than a vague bucket
+function areaRankClue(e){
+  const r=e.areaRank; if(!r) return null; const en=EN();
+  let br=0; for(const b of [10,25,50,75,100,150]){ if(r<=b){ br=b; break; } }
+  if(br) return en?('By land area it ranks in the world’s <b>top '+br+'</b>.'):('영토 크기가 세계 <b>상위 '+br+'위</b> 안에 들어요.');
+  return en?('By land area it is <b>outside the top 150</b> (one of the smaller countries).'):('영토 크기는 세계 <b>150위권 밖</b>(작은 나라 축)이에요.');
+}
+// Returns {normal:[...clues...], fever:[...strong clues...]}. Strong identifying clues
+// (history / dispute) lead; the generic clues are shuffled so the order still varies.
 function buildHints(e){
-  const s=e.st||{}, en=EN(), N=[], F=[];
+  const s=e.st||{}, en=EN(), lead=[], gen=[], F=[];
   const nbs=en?(s.nbe||[]):(s.nb||[]);
-  // ---------- normal clues (shuffled) ----------
-  N.push(en?('This country is in <b>'+regionOf(e)+'</b>.'):('이 나라는 <b>'+regionOf(e)+'</b>에 있어요.'));
-  if(s.area) N.push(en?('By area it is a <b>'+sizeBucket(s.area)+'</b> country.'):('면적으로 보면 <b>'+sizeBucket(s.area)+'</b> 나라예요.'));
+  // ---------- strong identifying clues (shown first) ----------
+  const HF=(e.i2&&HISTFACTS[e.i2])||null;
+  if(HF&&HF.hist) lead.push('📜 '+(en?HF.hist.en:HF.hist.ko));
+  if(HF&&HF.dispute) lead.push('⚔️ '+(en?HF.dispute.en:HF.dispute.ko));
+  // ---------- generic clues (shuffled) ----------
+  gen.push(en?('This country is in <b>'+regionOf(e)+'</b>.'):('이 나라는 <b>'+regionOf(e)+'</b>에 있어요.'));
+  { const ar=areaRankClue(e); if(ar) gen.push(ar); }
   { const loc=[];
     if(s.lat!=null) loc.push(en?(s.lat>=0?'Northern Hemisphere':'Southern Hemisphere'):(s.lat>=0?'북반구':'남반구'));
     if(s.land!=null) loc.push(en?(s.land?'landlocked':'has a coastline'):(s.land?'내륙국(바다에 접하지 않음)':'바다에 접한 나라'));
-    if(loc.length) N.push(en?('Location: <b>'+loc.join('</b>, <b>')+'</b>.'):('위치: <b>'+loc.join('</b>, <b>')+'</b>.')); }
-  if(s.temp!=null) N.push(en?('Its average yearly temperature is about <b>'+s.temp+'℃</b>.'):('연평균 기온은 약 <b>'+s.temp+'℃</b>예요.'));
-  if(s.pop) N.push(en?('Its population is about <b>'+fmtPop(s.pop)+'</b>.'):('인구는 약 <b>'+fmtPop(s.pop)+'</b>이에요.'));
-  if(s.dens) N.push(en?('Its population density is about <b>'+fmtInt(s.dens)+' /km²</b>.'):('인구 밀도는 약 <b>'+fmtInt(s.dens)+' 명/km²</b>이에요.'));
-  if(en?s.gove:s.gov) N.push(en?('Its government is a <b>'+s.gove+'</b>.'):('정부 형태는 <b>'+s.gov+'</b>이에요.'));
+    if(loc.length) gen.push(en?('Location: <b>'+loc.join('</b>, <b>')+'</b>.'):('위치: <b>'+loc.join('</b>, <b>')+'</b>.')); }
+  if(s.temp!=null) gen.push(en?('Its average yearly temperature is about <b>'+s.temp+'℃</b>.'):('연평균 기온은 약 <b>'+s.temp+'℃</b>예요.'));
+  if(s.pop) gen.push(en?('Its population is about <b>'+fmtPop(s.pop)+'</b>.'):('인구는 약 <b>'+fmtPop(s.pop)+'</b>이에요.'));
+  if(s.dens) gen.push(en?('Its population density is about <b>'+fmtInt(s.dens)+' /km²</b>.'):('인구 밀도는 약 <b>'+fmtInt(s.dens)+' 명/km²</b>이에요.'));
+  if(en?s.gove:s.gov) gen.push(en?('Its government is a <b>'+s.gove+'</b>.'):('정부 형태는 <b>'+s.gov+'</b>이에요.'));
   if(s.gdp||s.gpc){ const t=[]; if(s.gdp)t.push(en?('GDP about '+fmtUSD(s.gdp)):('GDP 약 '+fmtUSD(s.gdp))); if(s.gpc)t.push(en?('GDP per capita about $'+fmtInt(s.gpc)):('1인당 GDP 약 $'+fmtInt(s.gpc)));
-    N.push(en?('Economy: <b>'+t.join('</b>, <b>')+'</b>.'):('경제: <b>'+t.join('</b>, <b>')+'</b>.')); }
-  if(s.elev!=null) N.push(en?('Its average elevation is about <b>'+fmtInt(s.elev)+' m</b>.'):('평균 고도는 약 <b>'+fmtInt(s.elev)+' m</b>예요.'));
-  if(nbs.length) N.push(en?('It shares land borders with <b>'+nbs.length+'</b> countries.'):('육지 국경을 맞댄 나라가 <b>'+nbs.length+'</b>개예요.'));
-  else if(s.land===0) N.push(en?('It is an <b>island nation</b> with no land borders.'):('육지 국경이 없는 <b>섬나라</b>예요.'));
+    gen.push(en?('Economy: <b>'+t.join('</b>, <b>')+'</b>.'):('경제: <b>'+t.join('</b>, <b>')+'</b>.')); }
+  if(s.elev!=null) gen.push(en?('Its average elevation is about <b>'+fmtInt(s.elev)+' m</b>.'):('평균 고도는 약 <b>'+fmtInt(s.elev)+' m</b>예요.'));
+  if(nbs.length) gen.push(en?('It shares land borders with <b>'+nbs.length+'</b> countries.'):('육지 국경을 맞댄 나라가 <b>'+nbs.length+'</b>개예요.'));
+  else if(s.land===0) gen.push(en?('It is an <b>island nation</b> with no land borders.'):('육지 국경이 없는 <b>섬나라</b>예요.'));
   // ---------- fever clues (very revealing, cost more points) ----------
   if(en && e.en) F.push('Its English name starts with <b>'+e.en.charAt(0).toUpperCase()+'</b>.');
   else if(!en && e.ko) F.push('이름은 <b>'+e.ko.charAt(0)+'</b>(으)로 시작해요.');
   if(nbs.length) F.push(en?('It borders <b>'+nbs.join(', ')+'</b>.'):('<b>'+(s.nb||[]).join('·')+'</b> 와(과) 국경을 맞대고 있어요.'));
   if(en?s.cape:s.cap) F.push(en?('Its capital is <b>'+s.cape+'</b>.'):('수도는 <b>'+s.cap+'</b>이에요.'));
   if(e.i2) F.push((en?'This is its flag: ':'이 나라의 국기예요: ')+'<span style="font-size:1.55em;vertical-align:-3px">'+flagEmoji(e.i2)+'</span>');
-  return {normal:shuffleArr(N), fever:shuffleArr(F)};
+  return {normal:shuffleArr(lead).concat(shuffleArr(gen)), fever:shuffleArr(F)};
 }
 function hintPotential(){ return Math.max(1, (state.roundBase||10) - (state.hintCost||0)); }
 function startHint(){
