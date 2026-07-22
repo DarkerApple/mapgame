@@ -127,8 +127,9 @@ select#region:focus{outline:none;border-color:var(--border2)}
 @keyframes popIn{0%{transform:scale(.35);opacity:.3}55%{transform:scale(1.14)}100%{transform:scale(1)}}
 #map .wrong{stroke:#fff!important;stroke-width:1!important;animation:wrongPulse .5s}
 @keyframes wrongPulse{0%,100%{filter:none}50%{filter:drop-shadow(0 0 5px rgba(255,255,255,.95))}}
-#map text.clabel{fill:#0b0b0d;paint-order:stroke;stroke:rgba(255,255,255,.9);stroke-width:.42;
-  font-weight:700;pointer-events:none;dominant-baseline:middle;font-family:inherit;letter-spacing:-.03em}
+#map text.clabel{fill:#0b0b0d;paint-order:stroke;stroke:rgba(255,255,255,.92);
+  font-weight:700;pointer-events:none;dominant-baseline:middle;font-family:inherit;letter-spacing:-.04em}
+#map text.clabel.cur{fill:#000;stroke:#fff}
 
 #tooltip{
   position:absolute;pointer-events:none;background:rgba(10,11,14,.96);border:1px solid var(--border2);
@@ -483,14 +484,19 @@ function clearMap(){ allEntries.forEach(e=>e.el.classList.remove('found','target
 function clearLabels(){ while(gLabels.firstChild) gLabels.removeChild(gLabels.firstChild); }
 function renderLabels(pool,viewW){
   clearLabels();
-  const fs=Math.max(0.85,viewW*0.017);
+  state.studyW=viewW;
+  const cap=viewW*0.019, floor=viewW*0.0038;  // size each label to its own country
   pool.forEach(e=>{ const b=e.b||[e.x,e.y,0,0];
+    const w=e.isMarker?0:(b[2]||1);            // micro-state markers get the smallest label
+    const fs=Math.max(floor,Math.min(cap,w*0.30));
     const t=document.createElementNS(SVGNS,'text');
     t.setAttribute('x',b[0]+b[2]/2); t.setAttribute('y',b[1]+b[3]/2);
-    t.setAttribute('font-size',fs); t.setAttribute('text-anchor','middle'); t.setAttribute('class','clabel');
-    t.textContent=e.ko; gLabels.appendChild(t);
+    t.setAttribute('font-size',fs.toFixed(3)); t.setAttribute('stroke-width',(fs*0.16).toFixed(3));
+    t.setAttribute('text-anchor','middle'); t.setAttribute('class','clabel');
+    t.textContent=e.ko; e._label=t; e._fs=fs; gLabels.appendChild(t);
   });
 }
+function setLabelSize(t,fs){ t.setAttribute('font-size',fs.toFixed(3)); t.setAttribute('stroke-width',(fs*0.16).toFixed(3)); }
 
 /* ================= state ================= */
 const state={mode:'free',running:false,found:new Set(),score:0,target:null,pool:[],
@@ -648,7 +654,7 @@ function resetMode(){
 /* ================= study (flashcards) ================= */
 function startStudy(){
   const pool=regionEntries(state.region).slice().sort((a,b)=>((a.b?a.b[0]:a.x)-(b.b?b.b[0]:b.x)));
-  state.cards=pool; state.cardIdx=0;
+  state.cards=pool; state.cardIdx=0; state._curLabel=null;
   clearMap(); clearLabels();
   pool.forEach(e=>{ e.el.classList.add('sset'); e.el.parentNode.appendChild(e.el); });
   const w=fitRegion(pool); renderLabels(pool,w);
@@ -661,6 +667,10 @@ function showCard(i){
   const e=state.cards[state.cardIdx];
   allEntries.forEach(x=>x.el.classList.remove('target','found'));
   e.el.classList.add('found','target'); e.el.parentNode.appendChild(e.el);
+  if(state._curLabel){ state._curLabel.classList.remove('cur'); setLabelSize(state._curLabel,state._curLabel._base); }
+  if(e._label){ const big=Math.max(e._fs,(state.studyW||100)*0.02);
+    e._label._base=e._fs; setLabelSize(e._label,big); e._label.classList.add('cur');
+    gLabels.appendChild(e._label); state._curLabel=e._label; }
   el.prompt.innerHTML='<span class="flag">'+flagEmoji(e.i2)+'</span><b>'+e.ko+'</b> · '+e.en+(e.i2?' · '+e.i2:'');
   el.scoreval.textContent=(state.cardIdx+1)+' / '+state.cards.length;
 }
