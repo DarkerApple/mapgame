@@ -233,22 +233,45 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 .home-title .ic{width:32px;height:32px}
 .home-sub{color:var(--muted);font-size:15px;margin:6px 0 26px}
 .home-sec{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.04em;margin:26px 2px 12px;text-transform:uppercase}
-.home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
+.home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
 .gcard{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);
   border-radius:16px;overflow:hidden;cursor:pointer;text-align:left;color:var(--text);font:inherit;
-  transition:transform .16s cubic-bezier(.2,.8,.3,1.2),border-color .16s,background .16s}
-.gcard:hover{transform:translateY(-4px);border-color:var(--border2);background:var(--surface2)}
+  transition:transform .16s cubic-bezier(.2,.8,.3,1.2),border-color .16s,background .16s,box-shadow .16s}
+.gcard:hover{transform:translateY(-5px);border-color:var(--border2);background:var(--surface2);box-shadow:var(--shadow)}
 .gcard:active{transform:translateY(-1px)}
-.gcard .thumb{aspect-ratio:16/9;background:linear-gradient(150deg,#1c1f26,#101216);
-  display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--border);position:relative}
-.gcard .thumb svg{width:64px;height:64px;color:#e9ecf2;stroke-width:1.6;opacity:.95}
-.gcard:hover .thumb svg{transform:scale(1.06);transition:transform .2s}
-.gcard .cbody{padding:13px 15px 15px}
-.gcard .ctitle{font-size:16px;font-weight:800;letter-spacing:-.01em}
-.gcard .cdesc{font-size:12.5px;color:var(--muted);line-height:1.45;margin-top:4px}
-.gcard .cbadge{position:absolute;top:9px;left:9px;background:rgba(10,11,14,.7);border:1px solid var(--border2);
-  color:var(--muted);font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:999px}
+.gcard .thumb{aspect-ratio:4/3;overflow:hidden;border-bottom:1px solid var(--border);position:relative;
+  background:linear-gradient(160deg,#191c22,#0d0f13)}
+.gcard .thumb svg{width:100%;height:100%;display:block;transition:transform .25s}
+.gcard:hover .thumb svg{transform:scale(1.05)}
+.gcard .cbody{padding:14px 16px 16px}
+.gcard .ctitle{font-size:16.5px;font-weight:800;letter-spacing:-.01em}
+.gcard .cdesc{font-size:12.5px;color:var(--muted);line-height:1.45;margin-top:5px}
 #homebtn .ic{width:16px;height:16px}
+
+/* ---------- pre-game setup screen ---------- */
+#setup{position:fixed;inset:0;z-index:41;display:none;align-items:center;justify-content:center;padding:20px;
+  overflow-y:auto;background:radial-gradient(120% 80% at 50% -10%,#16181d,var(--bg) 70%)}
+#setup.show{display:flex}
+.setup-card{width:min(560px,100%);background:var(--surface);border:1px solid var(--border2);border-radius:20px;
+  padding:22px 24px calc(24px + env(safe-area-inset-bottom));box-shadow:var(--shadow);position:relative;
+  animation:cardPop .3s cubic-bezier(.2,.9,.3,1.2);max-height:92vh;overflow-y:auto}
+.setup-back{position:absolute;top:16px;right:16px}
+.setup-hd{display:flex;align-items:center;gap:14px;margin:2px 0 18px}
+.setup-ic{flex:0 0 auto;width:64px;height:64px;border-radius:14px;overflow:hidden;border:1px solid var(--border)}
+.setup-ic svg{width:100%;height:100%;display:block}
+.setup-title{font-size:21px;font-weight:800;letter-spacing:-.01em}
+.setup-desc{font-size:13px;color:var(--muted);margin-top:3px;max-width:380px}
+.su-row{margin:14px 0}
+.su-label{font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:8px}
+.su-row select{width:100%;background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+  font:inherit;font-size:15px;padding:11px 12px;border-radius:11px;cursor:pointer}
+.su-row select:focus{outline:none;border-color:#666d7a}
+.su-chips{display:flex;flex-wrap:wrap;gap:8px}
+.su-chip{background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:10px;
+  padding:9px 14px;font:inherit;font-size:13.5px;cursor:pointer;transition:all .14s}
+.su-chip:hover{color:var(--text)}
+.su-chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+.setup-start{width:100%;padding:14px;font-size:16px;margin-top:20px;border-radius:13px}
 
 /* ---------- war trivia (kahoot-style) ---------- */
 #trivia{position:absolute;inset:0;z-index:7;background:var(--bg);display:none;flex-direction:column;
@@ -387,6 +410,18 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
     <div class="home-title"><span data-icon="globe"></span> 세계 지도 하이라이트</div>
     <div class="home-sub">지도로 배우고 겨루는 지리 게임 모음 · 원하는 놀이를 골라 보세요</div>
     <div id="home-content"></div>
+  </div>
+</div>
+
+<div id="setup">
+  <div class="setup-card">
+    <button class="btn setup-back" id="setup-back" data-icon="home"><span class="t">홈</span></button>
+    <div class="setup-hd">
+      <span class="setup-ic" id="setup-ic"></span>
+      <div><div class="setup-title" id="setup-title"></div><div class="setup-desc" id="setup-desc"></div></div>
+    </div>
+    <div id="setup-body"></div>
+    <button class="btn solid setup-start" id="setup-start">시작하기</button>
   </div>
 </div>
 
@@ -694,6 +729,7 @@ const el={
   studypanel:$('studypanel'),spList:$('sp-list'),spTitle:$('sp-title'),spToggle:$('sp-toggle'),hideNames:$('hideNames'),
   inputrow:$('inputrow'),metric:$('metric'),orderbtn:$('orderbtn'),hintbtn:$('hintbtn'),
   home:$('home'),homeContent:$('home-content'),homebtn:$('homebtn'),brand:$('brand'),modetitle:$('modetitle'),
+  setup:$('setup'),setupIc:$('setup-ic'),setupTitle:$('setup-title'),setupDesc:$('setup-desc'),setupBody:$('setup-body'),setupStart:$('setup-start'),setupBack:$('setup-back'),
   warsel:$('warsel'),trivia:$('trivia'),tvWar:$('tv-war'),tvProg:$('tv-prog'),tvBar:$('tv-barfill'),tvQ:$('tv-q'),tvOpts:$('tv-opts'),tvFact:$('tv-fact'),
 };
 function $(id){ return document.getElementById(id); }
@@ -764,13 +800,14 @@ function buildDurRow(sel){
   DURATIONS.forEach(d=>{ const b=document.createElement('button'); b.textContent=d.t; if(d.s===sel)b.className='on';
     b.onclick=()=>{ state.duration=d.s; resetMode(); }; el.durrow.appendChild(b); });
 }
-function buildRegionSelect(){
-  el.region.innerHTML='';
+function fillRegionOptions(sel){
+  sel.innerHTML='';
   REGION_UI.forEach(g=>{ const og=document.createElement('optgroup'); og.label=g.group;
     g.items.forEach(([val,txt])=>{ const o=document.createElement('option'); o.value=val;
       o.textContent=txt+' ('+regionEntries(val).length+')'; og.appendChild(o); });
-    el.region.appendChild(og); });
+    sel.appendChild(og); });
 }
+function buildRegionSelect(){ fillRegionOptions(el.region); }
 buildRegionSelect();
 el.region.onchange=()=>{ state.region=el.region.value; resetMode(); };
 
@@ -800,10 +837,7 @@ function setMode(mode){
   el.warsel.classList.toggle('hidden',mode!=='trivia');
   el.durrow.classList.toggle('hidden',mode!=='countdown');
   const meta=MODES_META.find(x=>x.m===mode); el.modetitle.textContent=meta?meta.t:'';
-  if(scoped){
-    if((mode==='study'||mode==='place'||mode==='region'||mode==='hint'||mode==='conquer') && state.region==='전세계') state.region='동아시아';
-    el.region.value=state.region;
-  }
+  if(scoped) el.region.value=state.region;
   if(mode==='free'){ state.countUp=true; setInputMode('text'); el.scorelbl.textContent='찾은 나라'; }
   else if(mode==='study'){ state.countUp=true; setInputMode('study'); el.scorelbl.textContent='카드'; }
   else if(mode==='place'){ state.countUp=true; setInputMode('place'); el.scorelbl.textContent='놓음'; }
@@ -841,17 +875,17 @@ function resetMode(){
     setFeedback('전 세계 '+allEntries.length+'개 나라·지역을 찾을 수 있어요.','info'); el.q.focus();
   } else if(m==='quiz'){
     state.pool=regionEntries(region).filter(e=>!e.isMarker); if(!state.pool.length) state.pool=allEntries.filter(e=>e.sov&&!e.isMarker);
-    setFeedback(regionName(region)+' · 90초 안에 최대한 많이 맞혀 보세요!','info');
-    nextQuizTarget(); startTicker(); state.running=true; el.q.focus();
+    setFeedback(regionName(region)+' · 첫 답을 입력하면 90초 타이머가 시작돼요.','info');
+    nextQuizTarget(); el.q.focus();
   } else if(m==='findmap'){
     state.pool=regionEntries(region).filter(e=>!e.isMarker); if(!state.pool.length) state.pool=allEntries.filter(e=>e.sov&&!e.isMarker);
     if(region!=='전세계') fitRegion(regionEntries(region));   // zoom to the region so small countries are clickable
-    setFeedback(regionName(region)+' · 90초! 이름을 보고 지도에서 누르세요.','info');
-    nextFindTarget(); startTicker(); state.running=true;
+    setFeedback(regionName(region)+' · 첫 클릭에 90초 타이머가 시작돼요. 이름을 보고 지도에서 누르세요.','info');
+    nextFindTarget();
   } else if(m==='flag'){
     state.pool=regionEntries(region).filter(e=>e.i2); if(!state.pool.length) state.pool=allEntries.filter(e=>e.sov&&e.i2);
-    setFeedback(regionName(region)+' · 90초 안에 국기를 보고 맞혀 보세요!','info');
-    nextFlagTarget(); startTicker(); state.running=true; el.q.focus();
+    setFeedback(regionName(region)+' · 첫 답을 입력하면 90초 타이머가 시작돼요.','info');
+    nextFlagTarget(); el.q.focus();
   } else if(m==='region'){
     const pool=regionEntries(region); state.regionIds=new Set(pool.map(e=>e.id)); state.regionTotal=pool.length;
     updateScore();
@@ -1065,11 +1099,8 @@ function revealHintAnswer(t){ clearMap(); t.el.classList.add('found'); t.el.pare
 el.hintbtn.onclick=()=>{ if(state.mode==='hint') revealHint(); };
 
 /* ================= rankings board ================= */
-function buildMetricSelect(){
-  if(el.metric.children.length) return;
-  METRICS.forEach(m=>{ const o=document.createElement('option'); o.value=m.k; o.textContent=m.t; el.metric.appendChild(o); });
-  el.metric.value=state.metric;
-}
+function fillMetricOptions(sel){ sel.innerHTML=''; METRICS.forEach(m=>{ const o=document.createElement('option'); o.value=m.k; o.textContent=m.t; sel.appendChild(o); }); }
+function buildMetricSelect(){ if(!el.metric.children.length){ fillMetricOptions(el.metric); el.metric.value=state.metric; } }
 function rankShade(t){ const lo=72,hi=238,v=Math.round(lo+(hi-lo)*t); return 'rgb('+v+','+(v+4)+','+(v+10)+')'; }
 function startRank(){
   el.spToggle.classList.add('hidden'); el.studypanel.classList.remove('hidden'); el.spList.classList.remove('hide');
@@ -1198,16 +1229,17 @@ const TRIVIA={wars:[
    {q:'전쟁의 전환점으로 꼽히는 1863년 전투는?',o:['게티즈버그 전투','벙커힐 전투','요크타운 전투','앨러모 전투'],a:0},
    {q:'북부(연방)와 맞선 남부의 국가명은?',o:['아메리카 연합국(남부연합)','텍사스 공화국','캘리포니아 공화국','뉴잉글랜드'],a:0}]}
 ]};
-function buildWarSelect(){
-  if(el.warsel.children.length) return;
-  const all=document.createElement('option'); all.value='all'; all.textContent='전체 (랜덤)'; el.warsel.appendChild(all);
+function fillWarOptions(sel){
+  sel.innerHTML='';
+  const all=document.createElement('option'); all.value='all'; all.textContent='전체 (랜덤)'; sel.appendChild(all);
   [...new Set(TRIVIA.wars.map(w=>w.cat))].forEach(cat=>{
     const og=document.createElement('optgroup'); og.label=cat;
     const co=document.createElement('option'); co.value='cat:'+cat; co.textContent=cat+' 전체'; og.appendChild(co);
     TRIVIA.wars.filter(w=>w.cat===cat).forEach(w=>{ const o=document.createElement('option'); o.value='war:'+w.id; o.textContent=w.name; og.appendChild(o); });
-    el.warsel.appendChild(og);
+    sel.appendChild(og);
   });
 }
+function buildWarSelect(){ if(!el.warsel.children.length) fillWarOptions(el.warsel); }
 function triviaQuestions(sel){
   let wars=TRIVIA.wars;
   if(sel.indexOf('war:')===0) wars=wars.filter(w=>w.id===sel.slice(4));
@@ -1275,6 +1307,61 @@ const MODES_META=[
  {m:'countdown',t:'전세계 도전',d:'제한 시간 안에 최대한 많이',ic:'clock',g:'게임'},
  {m:'trivia',t:'전쟁 트리비아',d:'전쟁·주제별 4지선다 퀴즈(Kahoot 스타일)',ic:'shield',g:'트리비아'},
 ];
+/* mini game-preview thumbnails (monochrome scenes, not icons) */
+function scn(inner){ return '<svg viewBox="0 0 200 150" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="150" fill="#0f1116"/>'+inner+'</svg>'; }
+const _L='#363b45';
+const MM='<ellipse cx="52" cy="58" rx="40" ry="28" fill="'+_L+'"/><ellipse cx="150" cy="50" rx="33" ry="24" fill="'+_L+'"/><ellipse cx="98" cy="112" rx="34" ry="21" fill="'+_L+'"/>';
+function studyRows(){ let s=''; for(let i=0;i<4;i++){ const y=22+i*30, on=i===0;
+  s+='<rect x="18" y="'+y+'" width="164" height="24" rx="6" fill="'+(on?'#20242c':'#171a20')+'" stroke="'+(on?'#fff':'#262b33')+'"/>';
+  s+='<rect x="26" y="'+(y+5)+'" width="18" height="14" rx="3" fill="#8b909c"/>';
+  s+='<rect x="52" y="'+(y+8)+'" width="72" height="8" rx="4" fill="#c9ced8"/>'; } return s; }
+function hintLines(){ let s=''; for(let i=0;i<3;i++){ const y=34+i*20;
+  s+='<circle cx="42" cy="'+(y+7)+'" r="7" fill="#2d323b"/><text x="42" y="'+(y+10.5)+'" font-size="9" fill="#8b909c" text-anchor="middle" font-weight="800">'+(i+1)+'</text>';
+  s+='<rect x="56" y="'+(y+2)+'" width="'+(98-i*16)+'" height="9" rx="4" fill="#c9ced8"/>'; } return s; }
+function rankBars(){ const h=[86,68,54,42,30]; let s='<line x1="22" y1="126" x2="178" y2="126" stroke="#3a3f49" stroke-width="2"/>';
+  h.forEach((hh,i)=>{ s+='<rect x="'+(30+i*30)+'" y="'+(126-hh)+'" width="22" height="'+hh+'" rx="3" fill="'+(i===0?'#eef1f5':'#7f8590')+'"/>'; }); return s; }
+function triviaScene(){ let s='<rect x="26" y="22" width="148" height="16" rx="4" fill="#737b88"/>';
+  [[26,58],[104,58],[26,92],[104,92]].forEach((p,i)=>{ s+='<rect x="'+p[0]+'" y="'+p[1]+'" width="70" height="26" rx="7" fill="'+(i===2?'#eef1f5':'#20242c')+'" stroke="'+(i===2?'#fff':'#2d323b')+'"/>'; }); return s; }
+const THUMBS={
+ free:scn(MM+'<ellipse cx="150" cy="50" rx="33" ry="24" fill="#eef1f5"/>'),
+ study:scn(studyRows()),
+ rank:scn(rankBars()),
+ quiz:scn(MM+'<ellipse cx="150" cy="50" rx="33" ry="24" fill="none" stroke="#fff" stroke-width="3.5"/><text x="150" y="59" font-size="28" fill="#fff" text-anchor="middle" font-weight="900">?</text>'),
+ findmap:scn(MM+'<circle cx="150" cy="50" r="19" fill="none" stroke="#fff" stroke-width="3.5"/><line x1="163" y1="63" x2="180" y2="80" stroke="#fff" stroke-width="4.5" stroke-linecap="round"/>'),
+ flag:scn('<rect x="56" y="32" width="6" height="88" rx="2" fill="#737b88"/><path d="M62 38 q22 -9 44 0 t44 0 v42 q-22 9 -44 0 t-44 0Z" fill="#eef1f5"/><text x="150" y="118" font-size="36" fill="#fff" text-anchor="middle" font-weight="900">?</text>'),
+ hint:scn('<rect x="22" y="20" width="156" height="110" rx="12" fill="#1b1f27" stroke="#2d323b"/>'+hintLines()+'<text x="150" y="120" font-size="30" fill="#fff" text-anchor="middle" font-weight="900">?</text>'),
+ place:scn(MM+'<ellipse cx="150" cy="50" rx="33" ry="24" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="5 5"/><rect x="118" y="12" width="64" height="22" rx="6" fill="#eef1f5"/><path d="M150 34 L150 44" stroke="#fff" stroke-width="3"/><path d="M150 50 l-5 -8 h10 z" fill="#fff"/>'),
+ conquer:scn('<ellipse cx="52" cy="58" rx="40" ry="28" fill="#eef1f5"/><ellipse cx="150" cy="50" rx="33" ry="24" fill="#7f8590"/><ellipse cx="98" cy="112" rx="34" ry="21" fill="#363b45"/>'),
+ region:scn('<ellipse cx="52" cy="58" rx="40" ry="28" fill="#575d68"/><ellipse cx="150" cy="50" rx="33" ry="24" fill="#3d434d"/><ellipse cx="98" cy="112" rx="34" ry="21" fill="#6a7180"/>'),
+ countdown:scn(MM+'<circle cx="162" cy="116" r="20" fill="#0f1116" stroke="#eef1f5" stroke-width="3"/><path d="M162 116 V104 M162 116 l9 5" stroke="#eef1f5" stroke-width="3" stroke-linecap="round"/>'),
+ trivia:scn(triviaScene()),
+};
+
+/* ---- pre-game setup (choose place/criteria before the timer starts) ---- */
+const SETUP_CFG={ study:['region'],place:['region'],quiz:['region'],findmap:['region'],flag:['region'],hint:['region'],conquer:['region'],region:['region'],countdown:['dur'],rank:['metric','region'],trivia:['war'] };
+function setupControl(kind){
+  const row=document.createElement('div'); row.className='su-row';
+  const lab=document.createElement('div'); lab.className='su-label'; row.appendChild(lab);
+  if(kind==='region'){ lab.textContent='지역 선택'; const s=document.createElement('select'); fillRegionOptions(s); s.value=state.region; s.onchange=()=>state.region=s.value; row.appendChild(s); }
+  else if(kind==='war'){ lab.textContent='전쟁 · 카테고리 선택'; const s=document.createElement('select'); fillWarOptions(s); s.value=state.triviaSel; s.onchange=()=>state.triviaSel=s.value; row.appendChild(s); }
+  else if(kind==='metric'){ lab.textContent='지표 선택'; const s=document.createElement('select'); fillMetricOptions(s); s.value=state.metric; s.onchange=()=>state.metric=s.value; row.appendChild(s); }
+  else if(kind==='dur'){ lab.textContent='제한 시간'; const wrap=document.createElement('div'); wrap.className='su-chips';
+    if(![60,180,300].includes(state.duration)) state.duration=180;
+    DURATIONS.forEach(d=>{ const b=document.createElement('button'); b.className='su-chip'+(d.s===state.duration?' on':''); b.textContent=d.t;
+      b.onclick=()=>{ state.duration=d.s; [...wrap.children].forEach(c=>c.classList.remove('on')); b.classList.add('on'); }; wrap.appendChild(b); });
+    row.appendChild(wrap); }
+  return row;
+}
+function showSetup(mode){
+  state.pendingMode=mode;
+  if(['study','place','region','hint','conquer'].includes(mode) && state.region==='전세계') state.region='동아시아';
+  const meta=MODES_META.find(x=>x.m===mode);
+  el.setupIc.innerHTML=THUMBS[mode]||ICONS[meta.ic]||'';
+  el.setupTitle.textContent=meta.t; el.setupDesc.textContent=meta.d;
+  el.setupBody.innerHTML='';
+  (SETUP_CFG[mode]||[]).forEach(c=>el.setupBody.appendChild(setupControl(c)));
+  el.home.classList.remove('show'); el.setup.classList.add('show');
+}
 function buildHome(){
   el.homeContent.innerHTML='';
   [...new Set(MODES_META.map(x=>x.g))].forEach(g=>{
@@ -1282,21 +1369,24 @@ function buildHome(){
     const grid=document.createElement('div'); grid.className='home-grid';
     MODES_META.filter(x=>x.g===g).forEach(x=>{
       const c=document.createElement('button'); c.className='gcard';
-      c.innerHTML='<div class="thumb">'+(ICONS[x.ic]||'')+'</div><div class="cbody"><div class="ctitle"></div><div class="cdesc"></div></div>';
+      c.innerHTML='<div class="thumb">'+(THUMBS[x.m]||ICONS[x.ic]||'')+'</div><div class="cbody"><div class="ctitle"></div><div class="cdesc"></div></div>';
       c.querySelector('.ctitle').textContent=x.t; c.querySelector('.cdesc').textContent=x.d;
       c.onclick=()=>enterMode(x.m); grid.appendChild(c);
     });
     el.homeContent.appendChild(grid);
   });
 }
-function enterMode(m){ el.home.classList.remove('show'); el.homebtn.classList.remove('hidden'); setMode(m); }
+function enterMode(m){ if(m==='free') startGame('free'); else showSetup(m); }
+function startGame(m){ el.setup.classList.remove('show'); el.home.classList.remove('show'); el.homebtn.classList.remove('hidden'); setMode(m); }
 function showHome(){
   stopTicker(); stopTrivia(); cancelDrag(); state.gen++; state.ended=true; state.running=false;
   el.trivia.classList.remove('show'); el.studypanel.classList.add('hidden'); el.inputrow.classList.add('hidden');
-  hideOverlay(); clearMap(); clearLabels(); resetView();
+  el.setup.classList.remove('show'); hideOverlay(); clearMap(); clearLabels(); resetView();
   el.modetitle.textContent=''; el.homebtn.classList.add('hidden'); el.home.classList.add('show');
 }
 el.homebtn.onclick=showHome; el.brand.onclick=showHome;
+el.setupStart.onclick=()=>startGame(state.pendingMode);
+el.setupBack.onclick=showHome;
 
 /* ================= answering ================= */
 function notFound(raw){ setFeedback('“'+raw+'” — 찾을 수 없어요. 이름이나 약자를 확인해 주세요.','no','x'); shakeInput(); }
@@ -1309,6 +1399,7 @@ function revealFree(entry){
 function flashWrong(entry){ entry.el.classList.remove('wrong'); void entry.el.offsetWidth; entry.el.classList.add('wrong'); setTimeout(()=>entry.el.classList.remove('wrong'),500); }
 function handleFindClick(entry){
   if(state.ended) return;
+  if(!state.running){ state.running=true; startTicker(); }   // timer starts on first click
   if(entry.id===state.target.id){
     state.score++; state.found.add(entry.id); updateScore(); markFound(entry,true);
     setFeedback('정답! '+entry.ko,'ok','check');
@@ -1322,6 +1413,7 @@ function submit(){
   if(m==='free'){ if(!entry){notFound(raw);return;} revealFree(entry); el.q.value=''; }
   else if(m==='quiz'){
     if(!entry){notFound(raw);return;}
+    if(!state.running){ state.running=true; startTicker(); }   // timer starts on first answer
     if(entry.id===state.target.id){
       state.score++; state.found.add(entry.id); updateScore(); markFound(entry,true);
       setFeedback('정답! '+entry.ko+' · '+entry.en,'ok','check'); el.q.value='';
@@ -1330,6 +1422,7 @@ function submit(){
   }
   else if(m==='flag'){
     if(!entry){notFound(raw);return;}
+    if(!state.running){ state.running=true; startTicker(); }   // timer starts on first answer
     if(entry.id===state.target.id){
       state.score++; state.found.add(entry.id); updateScore();
       setFeedback('정답! '+flagEmoji(entry.i2)+' '+entry.ko,'ok','check'); el.q.value='';
