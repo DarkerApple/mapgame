@@ -130,6 +130,16 @@ select#region:focus{outline:none;border-color:var(--border2)}
 .sp-meta{font-size:11.5px;color:var(--muted);margin-left:auto;white-space:nowrap;font-variant-numeric:tabular-nums}
 #sp-list.hide .sp-name,#sp-list.hide .sp-meta{opacity:0}
 #sp-list.hide .sp-item.active .sp-name{opacity:1}
+/* place mode: draggable label chips */
+.sp-item.chip{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.sp-item.chip:active{cursor:grabbing}
+.sp-item.chip.dragging{opacity:.35}
+.sp-item.chip.shake{animation:shake .34s}
+#dragghost{position:fixed;z-index:50;pointer-events:none;transform:translate(-50%,-150%);
+  background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:14px;
+  padding:8px 13px;border-radius:11px;box-shadow:var(--shadow);white-space:nowrap;
+  display:flex;align-items:center;gap:7px}
+#map .dragover{stroke:#fff!important;stroke-width:1.1!important;filter:drop-shadow(0 0 6px rgba(255,255,255,.95))}
 
 /* ---------- map ---------- */
 #mapwrap{position:relative;flex:1;min-height:0;overflow:hidden;
@@ -232,6 +242,7 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
       <nav class="modes">
         <button class="mode active" data-mode="free">자유 탐색</button>
         <button class="mode" data-mode="study">학습 카드</button>
+        <button class="mode" data-mode="place">이름표 놓기</button>
         <button class="mode" data-mode="quiz">이름 맞히기</button>
         <button class="mode" data-mode="findmap">지도에서 찾기</button>
         <button class="mode" data-mode="flag">국기 퀴즈</button>
@@ -282,11 +293,12 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
     <aside id="studypanel" class="hidden">
       <div class="sp-head">
         <span class="sp-title" id="sp-title">지역</span>
-        <label class="sp-toggle"><input type="checkbox" id="hideNames"> 이름 가리기</label>
+        <label class="sp-toggle" id="sp-toggle"><input type="checkbox" id="hideNames"> 이름 가리기</label>
       </div>
       <div id="sp-list"></div>
     </aside>
   </div>
+  <div id="dragghost" class="hidden"></div>
 
   <footer>
     한글·영문 이름 또는 약자(<kbd>KR</kbd> <kbd>US</kbd> <kbd>JP</kbd> <kbd>UK</kbd>) 입력 ·
@@ -547,9 +559,12 @@ const el={
   timerval:$('timerval'),timer:$('timer'),scoreval:$('scoreval'),scorelbl:$('scorelbl'),
   prompt:$('promptbar'),feedback:$('feedback'),q:$('q'),go:$('go'),skip:$('skip'),
   prev:$('prev'),next:$('next'),shuffle:$('shuffle'),region:$('region'),regquiz:$('regquiz'),durrow:$('durrow'),
-  studypanel:$('studypanel'),spList:$('sp-list'),spTitle:$('sp-title'),hideNames:$('hideNames'),
+  studypanel:$('studypanel'),spList:$('sp-list'),spTitle:$('sp-title'),spToggle:$('sp-toggle'),hideNames:$('hideNames'),
+  inputrow:$('inputrow'),
 };
 function $(id){ return document.getElementById(id); }
+const ghost=$('dragghost');
+let dragEntry=null, dragChip=null, dragHover=null, dragStartX=0, dragStartY=0;
 
 function fmtTime(s){ s=Math.max(0,Math.round(s)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
 function updateTimerDisplay(){
@@ -582,6 +597,7 @@ function updateScore(){
   else if(m==='quiz'||m==='findmap'||m==='flag') el.scoreval.textContent=state.score;
   else if(m==='countdown') el.scoreval.textContent=sovFoundCount()+' / '+TOTAL_SOV;
   else if(m==='region') el.scoreval.textContent=regionFoundCount()+' / '+(state.regionTotal||0);
+  else if(m==='place') el.scoreval.textContent=(state.placeTotal-state.cards.length)+' / '+state.placeTotal;
 }
 
 /* ================= target pickers ================= */
@@ -621,8 +637,9 @@ buildRegionSelect();
 el.region.onchange=()=>{ state.region=el.region.value; resetMode(); };
 
 /* ================= input layout ================= */
-function setInputMode(kind){ // text | quiz | flag | click | study
-  const showText=(kind!=='click'&&kind!=='study');
+function setInputMode(kind){ // text | quiz | flag | click | study | place
+  el.inputrow.classList.toggle('hidden',kind==='place');   // place mode is pure drag&drop
+  const showText=(kind!=='click'&&kind!=='study'&&kind!=='place');
   el.q.classList.toggle('hidden',!showText);
   el.go.classList.toggle('hidden',!showText);
   el.skip.classList.toggle('hidden',!(kind==='quiz'||kind==='flag'||kind==='click'));
@@ -634,16 +651,18 @@ function setInputMode(kind){ // text | quiz | flag | click | study
 function setMode(mode){
   state.mode=mode;
   document.querySelectorAll('.mode').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
-  const scoped=['study','region','quiz','findmap','flag'].includes(mode);
+  const scoped=['study','place','region','quiz','findmap','flag'].includes(mode);
   el.region.classList.toggle('hidden',!scoped);
   el.regquiz.classList.toggle('hidden',mode!=='study');
+  el.spToggle.classList.toggle('hidden',mode!=='study');
   el.durrow.classList.toggle('hidden',mode!=='countdown');
   if(scoped){
-    if((mode==='study'||mode==='region') && state.region==='전세계') state.region='동아시아';
+    if((mode==='study'||mode==='place'||mode==='region') && state.region==='전세계') state.region='동아시아';
     el.region.value=state.region;
   }
   if(mode==='free'){ state.countUp=true; setInputMode('text'); el.scorelbl.textContent='찾은 나라'; }
   else if(mode==='study'){ state.countUp=true; setInputMode('study'); el.scorelbl.textContent='카드'; }
+  else if(mode==='place'){ state.countUp=true; setInputMode('place'); el.scorelbl.textContent='놓음'; }
   else if(mode==='quiz'){ state.countUp=false; state.duration=90; setInputMode('quiz'); el.scorelbl.textContent='점수'; }
   else if(mode==='findmap'){ state.countUp=false; state.duration=90; setInputMode('click'); el.scorelbl.textContent='점수'; }
   else if(mode==='flag'){ state.countUp=false; state.duration=90; setInputMode('flag'); el.scorelbl.textContent='점수'; }
@@ -653,7 +672,7 @@ function setMode(mode){
 }
 
 function resetMode(){
-  stopTicker(); hideOverlay(); clearLabels(); state.gen++;
+  stopTicker(); hideOverlay(); clearLabels(); state.gen++; cancelDrag();
   state.running=false; state.ended=false; state.found=new Set(); state.score=0;
   state.elapsed=0; state.target=null; state.queue=[]; state.pool=[]; state.regionIds=null; state.regionTotal=0;
   clearMap(); el.studypanel.classList.add('hidden');
@@ -661,6 +680,7 @@ function resetMode(){
   const m=state.mode, region=state.region;
 
   if(m==='study'){ startStudy(); updateTimerDisplay(); return; }
+  if(m==='place'){ startPlace(); updateTimerDisplay(); return; }
 
   resetView(); updateScore(); updateTimerDisplay();
 
@@ -734,6 +754,104 @@ el.next.onclick=()=>{ if(state.mode==='study') showCard(state.cardIdx+1); };
 el.shuffle.onclick=()=>{ if(state.mode==='study'){ shuffleArr(state.cards); buildStudyList(state.cards); showCard(0); } };
 el.regquiz.onclick=()=>{ if(state.mode==='study') setMode('quiz'); };
 el.hideNames.onchange=()=>{ el.spList.classList.toggle('hide',el.hideNames.checked); };
+
+/* ================= place mode (drag labels onto the land) ================= */
+function startPlace(){
+  let pool=regionEntries(state.region).filter(e=>!e.isMarker);
+  if(!pool.length) pool=allEntries.filter(e=>e.sov&&!e.isMarker);
+  state.cards=shuffleArr(pool.slice()); state.placeTotal=pool.length;
+  clearMap(); clearLabels();
+  pool.forEach(e=>{ e.el.classList.add('sset'); e.el.parentNode.appendChild(e.el); }); // the play area
+  state.studyW=fitRegion(pool);
+  buildTray();
+  el.studypanel.classList.remove('hidden');
+  el.prompt.innerHTML='<b>'+regionName(state.region)+'</b> · 이름표를 알맞은 나라 땅 위로 끌어다 놓으세요.';
+  setFeedback('맞는 나라에 놓으면 붙고, 틀리면 돌아옵니다. 다 붙이면 완성!','info');
+  updateScore();
+}
+function buildTray(){
+  el.spTitle.textContent='남은 이름표 · '+state.cards.length+'개';
+  el.spList.classList.remove('hide'); el.spList.innerHTML='';
+  state.cards.forEach(e=>{
+    const c=document.createElement('div'); c.className='sp-item chip'; c.dataset.id=e.id;
+    c.innerHTML='<span class="sp-flag">'+flagEmoji(e.i2)+'</span><span class="sp-name"></span>';
+    c.querySelector('.sp-name').textContent=e.ko;
+    c.addEventListener('pointerdown',ev=>beginDrag(ev,e,c));
+    el.spList.appendChild(c);
+  });
+}
+function moveGhost(x,y){ ghost.style.left=x+'px'; ghost.style.top=y+'px'; }
+function entryAtPoint(x,y){ const t=document.elementFromPoint(x,y); return t?byEl.get(t):null; }
+function beginDrag(ev,e,chip){
+  if(state.ended||dragEntry) return;
+  ev.preventDefault();
+  dragEntry=e; dragChip=chip; dragStartX=ev.clientX; dragStartY=ev.clientY; chip.classList.add('dragging');
+  ghost.innerHTML='<span class="sp-flag">'+flagEmoji(e.i2)+'</span><span></span>';
+  ghost.lastChild.textContent=e.ko;
+  ghost.classList.remove('hidden'); moveGhost(ev.clientX,ev.clientY);
+  window.addEventListener('pointermove',onDragMove);
+  window.addEventListener('pointerup',onDragUp);
+  window.addEventListener('pointercancel',cancelDrag);
+}
+function onDragMove(ev){
+  if(!dragEntry) return;
+  moveGhost(ev.clientX,ev.clientY);
+  const e=entryAtPoint(ev.clientX,ev.clientY);
+  if(e!==dragHover){
+    if(dragHover) dragHover.el.classList.remove('dragover');
+    dragHover=e||null;
+    if(dragHover && dragHover.el.classList.contains('sset')) dragHover.el.classList.add('dragover');
+    else dragHover=null;
+  }
+}
+function endDragListeners(){
+  window.removeEventListener('pointermove',onDragMove);
+  window.removeEventListener('pointerup',onDragUp);
+  window.removeEventListener('pointercancel',cancelDrag);
+}
+function cancelDrag(){
+  endDragListeners(); ghost.classList.add('hidden');
+  if(dragHover){ dragHover.el.classList.remove('dragover'); dragHover=null; }
+  if(dragChip) dragChip.classList.remove('dragging');
+  dragEntry=null; dragChip=null;
+}
+function onDragUp(ev){
+  const e=dragEntry, chip=dragChip;
+  const moved=Math.abs(ev.clientX-dragStartX)+Math.abs(ev.clientY-dragStartY)>6;
+  const target=entryAtPoint(ev.clientX,ev.clientY);
+  cancelDrag();
+  if(!e||!moved) return;   // a tap without dragging isn't a drop
+  if(target && target.id===e.id) placeLabel(e,chip);
+  else failDrop(e,chip,target);
+}
+function placeLabel(e,chip){
+  e.el.classList.remove('sset','dragover'); e.el.classList.add('found');
+  e.el.classList.remove('pop'); void e.el.offsetWidth; e.el.classList.add('pop');
+  e.el.parentNode.appendChild(e.el);
+  addPlacedLabel(e);
+  state.cards=state.cards.filter(x=>x.id!==e.id);
+  if(chip&&chip.parentNode) chip.parentNode.removeChild(chip);
+  el.spTitle.textContent='남은 이름표 · '+state.cards.length+'개';
+  if(!state.running){ state.running=true; startTicker(); }
+  updateScore();
+  setFeedback('붙었어요! '+e.ko,'ok','check');
+  if(state.cards.length===0) endGame();
+}
+function failDrop(e,chip,target){
+  if(target){ target.el.classList.remove('wrong'); void target.el.offsetWidth; target.el.classList.add('wrong'); setTimeout(()=>target.el.classList.remove('wrong'),500); }
+  if(chip){ chip.classList.remove('shake'); void chip.offsetWidth; chip.classList.add('shake'); }
+  setFeedback(target?(e.ko+' 은(는) 여기가 아니에요. 다시 놓아 보세요.'):('나라 땅 위에 놓아 주세요.'),'no','x');
+}
+function addPlacedLabel(e){
+  const b=e.b||[e.x,e.y,0,0];
+  const w=e.isMarker?0:(b[2]||1);
+  const fs=Math.max((state.studyW||120)*0.006,Math.min((state.studyW||120)*0.02,w*0.3));
+  const t=document.createElementNS(SVGNS,'text');
+  t.setAttribute('x',b[0]+b[2]/2); t.setAttribute('y',b[1]+b[3]/2);
+  t.setAttribute('font-size',fs.toFixed(3)); t.setAttribute('stroke-width',(fs*0.16).toFixed(3));
+  t.setAttribute('text-anchor','middle'); t.setAttribute('class','clabel');
+  t.textContent=e.ko; gLabels.appendChild(t);
+}
 
 /* ================= answering ================= */
 function notFound(raw){ setFeedback('“'+raw+'” — 찾을 수 없어요. 이름이나 약자를 확인해 주세요.','no','x'); shakeInput(); }
@@ -810,6 +928,7 @@ function endGame(){
   else if(m==='flag') showOverlay('시간 종료!',state.score,'국기 '+state.score+'개를 맞혔어요.');
   else if(m==='region'){ const n=regionFoundCount(),tot=state.regionTotal,done=n>=tot;
     showOverlay(done?'완성! 🎉':'종료',n+' / '+tot, done? regionName(state.region)+' 전체를 '+fmtTime(state.elapsed)+' 만에 완성!' : regionName(state.region)+' '+tot+'개 중 '+n+'개.'); }
+  else if(m==='place'){ showOverlay('완성! 🎉',state.placeTotal+'개', regionName(state.region)+'의 모든 이름표를 '+fmtTime(state.elapsed)+' 만에 붙였어요!'); }
   else { const sov=sovFoundCount(); showOverlay('시간 종료!',sov+' / '+TOTAL_SOV,'주권국 '+TOTAL_SOV+'개 중 '+sov+'개를 찾았어요!'); }
 }
 function showOverlay(title,big,sub){ $('ovtitle').textContent=title; $('ovbig').textContent=big; $('ovsub').textContent=sub; overlay.classList.add('show'); }
