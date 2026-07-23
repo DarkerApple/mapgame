@@ -7883,8 +7883,9 @@ function handleFindClick(entry){
     state.found.add(entry.id); markFound(entry,true); tagCapture(entry); celebrate(true,LT('정답!','Correct!'));
     setFeedback(LT('정답! ','Correct! ')+NM(entry),'ok','check');
     if(state.vs){ state.findLock=true; setTimeout(()=>state.findLock=false,950); vsAfterAnswer(true); } else later(nextFindTarget,650);
-  } else { flashWrong(entry); celebrate(false,LT('아니에요','Nope')); setFeedback(EN()?('That’s '+NM(entry)+'. Try again.'):('여기는 '+entry.ko+' 예요. 다시 찾아보세요.'),'no','x');
-    if(state.vs){ state.findLock=true; setTimeout(()=>state.findLock=false,1150); vsAfterAnswer(false); } }
+  } else { flashWrong(entry); const msg=EN()?('That’s '+NM(entry)+'. Try again.'):('여기는 '+entry.ko+' 예요. 다시 찾아보세요.');
+    if(state.vs){ vsPenalty(); celebrate(false,LT('−1점','−1')); setFeedback(vsWrongMsg(msg),'no','x'); }
+    else { celebrate(false,LT('아니에요','Nope')); setFeedback(msg,'no','x'); } }
 }
 function submit(){
   if(state.ended) return;
@@ -7899,8 +7900,9 @@ function submit(){
       state.found.add(entry.id); markFound(entry,true); tagCapture(entry); celebrate(true,LT('정답!','Correct!'));
       setFeedback(LT('정답! ','Correct! ')+entry.ko+' · '+entry.en,'ok','check'); el.q.value='';
       if(state.vs) vsAfterAnswer(true); else later(nextQuizTarget,650);
-    } else { setFeedback(EN()?('Not '+NM(entry)+'. Look at the outlined country.'):(entry.ko+' 이(가) 아니에요. 표시된 나라를 보세요.'),'no','x'); shakeInput();
-      if(state.vs){ celebrate(false,LT('오답','Miss')); el.q.value=''; vsAfterAnswer(false); } }
+    } else { shakeInput(); const msg=EN()?('Not '+NM(entry)+'. Look at the outlined country.'):(entry.ko+' 이(가) 아니에요. 표시된 나라를 보세요.');
+      if(state.vs){ vsPenalty(); celebrate(false,LT('−1점','−1')); el.q.value=''; setFeedback(vsWrongMsg(msg),'no','x'); }
+      else setFeedback(msg,'no','x'); }
   }
   else if(m==='flag'){
     if(!entry){notFound(raw);return;}
@@ -7910,8 +7912,9 @@ function submit(){
       celebrate(true,LT('정답!','Correct!'));
       setFeedback(LT('정답! ','Correct! ')+flagEmoji(entry.i2)+' '+NM(entry),'ok','check'); el.q.value='';
       if(state.vs) vsAfterAnswer(true); else later(nextFlagTarget,650);
-    } else { setFeedback(EN()?('Not '+NM(entry)+'.'):(entry.ko+' 이(가) 아니에요.'),'no','x'); shakeInput();
-      if(state.vs){ celebrate(false,LT('오답','Miss')); el.q.value=''; vsAfterAnswer(false); } }
+    } else { shakeInput(); const msg=EN()?('Not '+NM(entry)+'.'):(entry.ko+' 이(가) 아니에요.');
+      if(state.vs){ vsPenalty(); celebrate(false,LT('−1점','−1')); el.q.value=''; setFeedback(vsWrongMsg(msg),'no','x'); }
+      else setFeedback(msg,'no','x'); }
   }
   else if(m==='capital'){
     const t=state.target; if(!t) return;
@@ -7921,8 +7924,9 @@ function submit(){
       celebrate(true,LT('정답!','Correct!'));
       setFeedback(LT('정답! ','Correct! ')+NM(t)+' · '+capitalDisplay(t),'ok','check'); el.q.value='';
       if(state.vs) vsAfterAnswer(true); else later(nextCapitalTarget,650);
-    } else { setFeedback(EN()?('Not the capital of '+NM(t)+'.'):(NM(t)+'의 수도가 아니에요.'),'no','x'); shakeInput();
-      if(state.vs){ celebrate(false,LT('오답','Miss')); el.q.value=''; vsAfterAnswer(false); } }
+    } else { shakeInput(); const msg=EN()?('Not the capital of '+NM(t)+'.'):(NM(t)+'의 수도가 아니에요.');
+      if(state.vs){ vsPenalty(); celebrate(false,LT('−1점','−1')); el.q.value=''; setFeedback(vsWrongMsg(msg),'no','x'); }
+      else setFeedback(msg,'no','x'); }
   }
   else if(m==='hint'){
     if(!entry){notFound(raw);return;}
@@ -7932,8 +7936,10 @@ function submit(){
       revealHintAnswer(entry); tagCapture(entry); celebrate(true,LT('+'+gain+'점','+'+gain+' pts'));
       setFeedback(LT('정답! ','Correct! ')+entry.ko+' · '+entry.en+LT(' · +'+gain+'점 (힌트 '+used+'개)',' · +'+gain+' pts ('+used+' hints)'),'ok','check'); el.q.value='';
       if(state.vs){ vsAfterAnswer(true); } else later(nextHintTarget,1300);
-    } else if(state.vs){ setFeedback(EN()?('Not '+NM(entry)+'. Turn passes.'):(entry.ko+' 이(가) 아니에요. 차례가 넘어가요.'),'no','x'); shakeInput(); celebrate(false,LT('오답','Miss')); el.q.value=''; vsAfterAnswer(false);
-    } else { setFeedback(EN()?('Not '+NM(entry)+'. Here’s another hint.'):(entry.ko+' 이(가) 아니에요. 힌트를 하나 더 볼게요.'),'no','x'); shakeInput(); revealHint(false); el.q.value=''; }
+    } else { shakeInput(); el.q.value='';   // wrong: do NOT auto-reveal another hint (no stacking)
+      const msg=EN()?('Not '+NM(entry)+'. Try again — or reveal a hint.'):(entry.ko+' 이(가) 아니에요. 다시 도전하거나 힌트를 눌러 보세요.');
+      if(state.vs){ vsPenalty(); celebrate(false,LT('−1점','−1')); setFeedback(vsWrongMsg(msg),'no','x'); }
+      else setFeedback(msg,'no','x'); }
   }
   else if(m==='region'){
     if(!entry){notFound(raw);return;}
@@ -8007,6 +8013,9 @@ function updateVsBar(){
     +'<span class="vsp p2'+(state.turn===1?' on':'')+'">P2 · '+state.p[1]+'</span>';
 }
 function vsAward(points){ state.p[state.turn]+=(points||1); updateScore(); }
+// wrong guess in 1v1: lose a point (never below 0) but KEEP the turn and the same question
+function vsPenalty(){ state.p[state.turn]=Math.max(0,state.p[state.turn]-1); updateScore(); updateVsBar(); }
+function vsWrongMsg(base){ return base+LT(' · −1점, 계속 도전!',' · −1 pt, keep trying!'); }
 function vsAfterAnswer(correct){
   state.vsDone++; const g=state.gen;
   setTimeout(()=>{ if(state.gen!==g||state.ended||!state.vs) return;
