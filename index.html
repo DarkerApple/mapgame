@@ -923,9 +923,12 @@ function pickFromPool(pool){ if(!state.queue.length) state.queue=shuffleArr(pool
 function nextQuizTarget(){
   state.target=pickFromPool(state.pool); if(!state.target) return;
   allEntries.forEach(e=>e.el.classList.remove('target'));
-  if(!state.target.el.classList.contains('found')) state.target.el.classList.add('target');
+  // the current target is ALWAYS shown gold — even if it was already answered earlier
+  // this cycle (the pool repeats), otherwise a re-asked green country would be invisible.
+  state.target.el.classList.remove('found','pop','p1cap','p2cap');
+  state.target.el.classList.add('target');
   focusEntry(state.target,1.6);
-  el.prompt.innerHTML=EN()?'Type the name of the country outlined in white.':'흰색 테두리로 표시된 나라의 이름을 입력하세요.';
+  el.prompt.innerHTML=EN()?'Type the name of the country highlighted in gold.':'금색으로 밝게 표시된 나라의 이름을 입력하세요.';
 }
 function nextFindTarget(){
   state.target=pickFromPool(state.pool); if(!state.target) return;
