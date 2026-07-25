@@ -395,6 +395,17 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 .rh-theme{font-size:21px;line-height:1;background:var(--surface2);border:1px solid var(--border2);border-radius:11px;padding:6px 9px;cursor:pointer;transition:.13s}
 .rh-theme.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 22%,var(--surface2))}
 .rh-theme:hover{border-color:var(--accent)}
+.rh-lb-refresh{background:var(--surface2);border:1px solid var(--border2);border-radius:7px;color:var(--muted);cursor:pointer;font-size:13px;padding:1px 8px;vertical-align:2px}
+.rh-lb-refresh:hover{color:var(--accent);border-color:var(--accent)}
+.rh-lb{display:flex;flex-direction:column;gap:3px;max-height:340px;overflow-y:auto}
+.rh-lb-empty{font-size:13px;color:var(--faint);padding:6px 2px}
+.rh-lb-row{display:flex;align-items:center;gap:9px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:7px 11px}
+.rh-lb-row.me{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,var(--surface2))}
+.rh-lb-rk{min-width:26px;font-weight:800;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.rh-lb-ic{font-size:17px}
+.rh-lb-nm{flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rh-lb-lv{font-size:12px;color:var(--muted)}
+.rh-lb-elo{font-weight:800;font-variant-numeric:tabular-nums;color:var(--target)}
 .gicon{flex:0 0 auto;width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;
   background:color-mix(in srgb,var(--gc,#4ea1ff) 16%,transparent);color:var(--gc,#4ea1ff);
   border:1px solid color-mix(in srgb,var(--gc,#4ea1ff) 30%,transparent);transition:transform .16s}
@@ -10655,7 +10666,16 @@ function renderRankBanner(){
   el.rankBanner.innerHTML='<span class="rb-ic">'+t.ic+'</span><span class="rb-main"><span class="rb-t">'+LT('랭크전','Ranked')+' · '+LT(t.ko,t.en)+'</span><span class="rb-s">'+(placed?('ELO '+Math.round(elo)+' · ✨ '+shinyCount()):LT('배치고사가 필요해요','Placement needed'))+'</span></span><span class="rb-go">'+LT('입장 ›','Enter ›')+'</span>';
 }
 function resolvePendingRanked(u){ if(u&&u.stats&&u.stats.rankedPending){ if(u.stats.placed&&u.stats.elo!=null) u.stats.elo=Math.max(0,u.stats.elo-20); u.stats.rankedPending=null; accSave(); } }
-function openRankHub(){ const u=curUser(); if(u) resolvePendingRanked(u); renderRankHub(); el.home.classList.remove('show'); el.rankhub.classList.add('show'); el.rankhub.scrollTop=0; }
+function lbHTML(){ const rows=state.lbRows;
+  if(rows===undefined) return '<div class="rh-lb-empty">'+LT('불러오는 중…','Loading…')+'</div>';
+  if(!rows||!rows.length) return '<div class="rh-lb-empty">'+LT('아직 순위가 없어요 — 배치고사를 마치면 여기에 올라요!','No ranks yet — finish placement to appear here!')+'</div>';
+  const meName=((curUser()||{}).name||'').toLowerCase();
+  return rows.map(r=>{ const t=rankTierOf(r.elo), mine=meName&&(''+r.username).toLowerCase()===meName;
+    return '<div class="rh-lb-row'+(mine?' me':'')+'"><span class="rh-lb-rk">'+r.rank+'</span><span class="rh-lb-ic">'+t.ic+'</span><span class="rh-lb-nm">'+esc(r.username)+'</span><span class="rh-lb-lv">Lv '+(r.level||0)+'</span><span class="rh-lb-elo">'+r.elo+'</span></div>'; }).join('');
+}
+async function refreshLeaderboard(){ state.lbRows=undefined; const paint=()=>{ const b=el.rhBody&&el.rhBody.querySelector('#rh-lb'); if(b) b.innerHTML=lbHTML(); }; paint();
+  const rows=await sbLeaderboard(50); state.lbRows=Array.isArray(rows)?rows:[]; paint(); }
+function openRankHub(){ const u=curUser(); if(u) resolvePendingRanked(u); renderRankHub(); el.home.classList.remove('show'); el.rankhub.classList.add('show'); el.rankhub.scrollTop=0; if(SUPA_ON) refreshLeaderboard(); }
 function closeRankHub(){ el.rankhub.classList.remove('show'); el.home.classList.add('show'); renderRankBanner(); }
 function renderRankHub(){
   const u=curUser();
@@ -10685,11 +10705,13 @@ function renderRankHub(){
             :'<button class="btn solid rh-play" id="rh-place">'+LT('배치고사 보기 · '+RANKED_N+'문제','Take placement · '+RANKED_N+'Q')+'</button>')
     +'<div class="rh-sec">'+LT('하이라이트 코스메틱 (티어 보상)','Highlight cosmetics (tier rewards)')+'</div><div class="rh-row" id="rh-cos">'+cosHtml+'</div>'
     +'<div class="rh-sec">✨ '+LT('특별 테마 컬렉션','Special themes')+' ('+myThemes.length+'/'+Object.keys(HIDDEN_THEMES).length+')</div><div class="rh-shiny" id="rh-themes">'+themeHtml+'</div>'
+    +(SUPA_ON?('<div class="rh-sec">🏆 '+LT('리더보드','Leaderboard')+' <button class="rh-lb-refresh" id="rh-lb-refresh" aria-label="'+LT('새로고침','Refresh')+'">↻</button></div><div id="rh-lb" class="rh-lb">'+lbHTML()+'</div>'):'')
     +'<p class="rh-note">'+LT('· 정확한 이름만 · 문제당 '+RANKED_QTIME+'초 · 건너뛰기 없음<br>· 중도 포기 시 ELO를 잃어요 · 붙여넣기 차단·탭 이탈 감지(부정행위 방지)<br>· ELO가 오를수록 더 어렵고 낯선 나라가 나와요','· Exact names · '+RANKED_QTIME+'s/question · no skips<br>· Quitting mid-match loses ELO · paste blocked & tab-switch forfeits (anti-cheat)<br>· Higher ELO = harder, more obscure countries')+'</p>';
   const play=el.rhBody.querySelector('#rh-play'); if(play) play.onclick=()=>{ state.rankedPlacement=false; playRanked(); };
   const place=el.rhBody.querySelector('#rh-place'); if(place) place.onclick=()=>{ state.rankedPlacement=true; playRanked(); };
   el.rhBody.querySelectorAll('#rh-cos .rh-chip').forEach(b=>b.onclick=()=>{ if(b.classList.contains('lock')) return; u.stats.cosEquip=b.dataset.hl||''; accSave(); applyCosmetics(); renderRankHub(); });
   el.rhBody.querySelectorAll('#rh-themes .rh-theme').forEach(b=>b.onclick=()=>{ u.stats.themeEquip=b.dataset.th||''; accSave(); applyCosmetics(); renderRankHub(); });
+  const lbr=el.rhBody.querySelector('#rh-lb-refresh'); if(lbr) lbr.onclick=refreshLeaderboard;
 }
 function playRanked(){ el.rankhub.classList.remove('show'); el.home.classList.remove('show'); el.homebtn.classList.remove('hidden'); setMode('ranked'); }
 el.rankBanner.onclick=openRankHub;
@@ -10730,6 +10752,10 @@ let sbSaveT=null;
 async function sbSaveStatsNow(){ if(!SUPA_ON||!SB.tok) return; if(!await sbFresh()) return; const u=curUser(); if(!u) return;
   try{ await fetch(SB.rest+'/profiles?id=eq.'+SB.uid,{method:'PATCH',headers:Object.assign(SB.hdr(true),{Prefer:'return=minimal'}),body:JSON.stringify({stats:u.stats||{}})}); }catch(e){} }
 function sbQueueSave(){ if(!SUPA_ON||!SB.tok) return; clearTimeout(sbSaveT); sbSaveT=setTimeout(sbSaveStatsNow,1200); }
+// public leaderboard (anon-readable RPC — one indexed query, no auth needed)
+async function sbLeaderboard(lim){ if(!SUPA_ON) return null;
+  try{ const r=await fetch(SB.rest+'/rpc/leaderboard_top',{method:'POST',headers:{apikey:SB.anon,'content-type':'application/json'},body:JSON.stringify({lim:lim||50})});
+    if(!r.ok) return null; return await r.json(); }catch(e){ return null; } }
 function applyCloudProfile(p){ if(!p) return null; const key=((p.username||'me').toLowerCase())||'me';
   const st=(p.stats&&typeof p.stats==='object')?p.stats:{};
   ACC.users={}; ACC.users[key]={name:p.username||'me', stats:st, email:p.email||null, email_verified:!!p.email_verified, cloud:true}; ACC.current=key; return key; }
