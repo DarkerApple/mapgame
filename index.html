@@ -382,6 +382,9 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 .rh-bar i{display:block;height:100%;background:#ff8a4c}
 .rh-sec{margin:20px 0 9px;font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 .rh-row{display:flex;flex-wrap:wrap;gap:8px}
+.rh-mixed{display:flex;flex-wrap:wrap;gap:7px}
+.rh-mix{background:var(--surface2);border:1px solid var(--border2);border-radius:999px;padding:7px 13px;font-weight:700;font-size:13px}
+.rh-note2{font-size:12.5px;color:var(--muted);margin-top:8px;line-height:1.5}
 .rh-chip{background:var(--surface2);border:1px solid var(--border2);border-radius:999px;padding:9px 15px;font:inherit;font-weight:700;font-size:13.5px;color:var(--text);cursor:pointer;transition:.13s}
 .rh-chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .rh-chip.lock{opacity:.45;cursor:not-allowed}
@@ -3471,13 +3474,26 @@ function endDaily(){
 
 /* ================= Ranked mode — chess-style ELO, placement, fever, shiny ================= */
 const ELO_START=1000, ELO_K=32, RANKED_N=12, RANKED_QTIME=15, SHINY_CHANCE=0.03;
+// full divisional ladder — 18 tiers. High tiers are far apart so climbing is a long grind.
 const RANK_TIERS=[
-  {elo:0,   ko:'브론즈',    en:'Bronze',   ic:'🥉', hl:null},
-  {elo:1000,ko:'실버',      en:'Silver',   ic:'🥈', hl:'silver'},
-  {elo:1250,ko:'골드',      en:'Gold',     ic:'🥇', hl:'gold'},
-  {elo:1500,ko:'플래티넘',  en:'Platinum', ic:'💎', hl:'plat'},
-  {elo:1750,ko:'다이아몬드',en:'Diamond',  ic:'💠', hl:'diamond'},
-  {elo:2000,ko:'마스터',    en:'Master',   ic:'👑', hl:'master'},
+  {elo:0,   ko:'브론즈 III',   en:'Bronze III',   ic:'🥉', hl:null},
+  {elo:350, ko:'브론즈 II',    en:'Bronze II',    ic:'🥉', hl:null},
+  {elo:650, ko:'브론즈 I',     en:'Bronze I',     ic:'🥉', hl:null},
+  {elo:900, ko:'실버 III',     en:'Silver III',   ic:'🥈', hl:'silver'},
+  {elo:1030,ko:'실버 II',      en:'Silver II',    ic:'🥈', hl:'silver'},
+  {elo:1160,ko:'실버 I',       en:'Silver I',     ic:'🥈', hl:'silver'},
+  {elo:1290,ko:'골드 III',     en:'Gold III',     ic:'🥇', hl:'gold'},
+  {elo:1420,ko:'골드 II',      en:'Gold II',      ic:'🥇', hl:'gold'},
+  {elo:1550,ko:'골드 I',       en:'Gold I',       ic:'🥇', hl:'gold'},
+  {elo:1680,ko:'플래티넘 III', en:'Platinum III', ic:'💎', hl:'plat'},
+  {elo:1810,ko:'플래티넘 II',  en:'Platinum II',  ic:'💎', hl:'plat'},
+  {elo:1940,ko:'플래티넘 I',   en:'Platinum I',   ic:'💎', hl:'plat'},
+  {elo:2070,ko:'다이아몬드 III',en:'Diamond III', ic:'💠', hl:'diamond'},
+  {elo:2200,ko:'다이아몬드 II', en:'Diamond II',  ic:'💠', hl:'diamond'},
+  {elo:2330,ko:'다이아몬드 I',  en:'Diamond I',   ic:'💠', hl:'diamond'},
+  {elo:2480,ko:'마스터',       en:'Master',       ic:'👑', hl:'master'},
+  {elo:2680,ko:'그랜드마스터', en:'Grandmaster',  ic:'🔱', hl:'grand'},
+  {elo:2900,ko:'챌린저',       en:'Challenger',   ic:'🏆', hl:'chal'},
 ];
 // cosmetic highlight palettes unlocked by tier.
 // found = "answered" (deeper shade), target = "current question" (bright shade) — kept clearly distinct.
@@ -3487,6 +3503,8 @@ const HL_COSMETICS={
   plat:{ko:'플래티넘 하이라이트',en:'Platinum glow', found:'#1f7d76', target:'#7ff0e8'},
   diamond:{ko:'다이아 하이라이트',en:'Diamond glow', found:'#2560b8', target:'#8fe0ff'},
   master:{ko:'마스터 하이라이트',en:'Master glow',   found:'#6a2fb8', target:'#e3b6ff'},
+  grand:{ko:'그랜드마스터 하이라이트',en:'Grandmaster glow', found:'#8a1c3a', target:'#ff9db4'},
+  chal:{ko:'챌린저 하이라이트',en:'Challenger glow',      found:'#1f6f8a', target:'#8fe8ff'},
 };
 function perfNow(){ return performance.now(); }
 function rankTierOf(elo){ let t=RANK_TIERS[0]; for(const x of RANK_TIERS){ if(elo>=x.elo) t=x; } return t; }
@@ -3540,18 +3558,19 @@ const FUN_ROUNDS=[
 ];
 function funMatch(raw, fr){ const g=norm(raw); if(!g) return false;
   return fr.ans.some(a=>{ const na=norm(a); return na.length>=2 && (g===na || (na.length>=4 && g.includes(na)) || (g.length>=4 && na.includes(g))); }); }
-function buildRankedMatch(base, elo, u, placement){
-  let pool=allEntries.filter(e=>e.sov&&!e.isMarker);
-  if(base==='flag') pool=pool.filter(e=>e.i2);
-  else if(base==='capcountry') pool=pool.filter(e=>e.st&&(e.st.cap||e.st.cape));
-  else if(base==='silhouette') pool=pool.filter(e=>e.d);
-  else pool=pool.filter(e=>e.i2);
+// which question types a country supports (you must be good at all of them to climb)
+function rankedBasesFor(e){ const b=['quiz']; if(e.i2) b.push('flag'); if(e.d) b.push('silhouette'); if(e.st&&(e.st.cap||e.st.cape)) b.push('capcountry'); return b; }
+function pickRankedBase(e){ const b=rankedBasesFor(e); return b[Math.floor(Math.random()*b.length)]; }
+// ranked is MIXED: every question is a random gamemode (name-on-map / flag / outline / capital)
+function buildRankedMatch(elo, u, placement){
+  let pool=allEntries.filter(e=>e.sov&&!e.isMarker&&e.i2);
   pool.forEach(e=>{ if(e._d==null) e._d=countryDifficulty(e); });
-  if(placement){ // spread across difficulty bands, but pick a random country in each band → a different test per person/attempt
+  const mk=(e,fever)=>({entry:e, base:pickRankedBase(e), fever:!!fever});
+  if(placement){ // spread across difficulty bands, random country per band → a different test each time
     const sorted=pool.slice().sort((a,b)=>a._d-b._d), n=sorted.length, q=[], used=new Set();
     for(let i=0;i<RANKED_N;i++){ const lo=Math.floor(i/RANKED_N*n), hi=Math.max(lo+1,Math.floor((i+1)/RANKED_N*n));
       let e=null; for(let tries=0;tries<8;tries++){ const cand=sorted[Math.min(n-1,lo+Math.floor(Math.random()*(hi-lo)))]; if(!used.has(cand.id)){ e=cand; break; } }
-      if(!e) e=sorted[Math.min(n-1,lo)]; used.add(e.id); q.push({entry:e,fever:false}); }
+      if(!e) e=sorted[Math.min(n-1,lo)]; used.add(e.id); q.push(mk(e,false)); }
     return shuffleArr(q);
   }
   // difficulty window scales with elo (obscurer countries as you climb)
@@ -3562,8 +3581,8 @@ function buildRankedMatch(base, elo, u, placement){
   const weak=pool.filter(e=>cc[e.i2]&&cc[e.i2].w>0&&cc[e.i2].w>=cc[e.i2].r)
     .sort((a,b)=>(cc[b.i2].w-cc[b.i2].r)-(cc[a.i2].w-cc[a.i2].r));
   const q=[], used=new Set();
-  weak.slice(0,4).forEach(e=>{ q.push({entry:e,fever:true}); used.add(e.id); });
-  for(const e of main){ if(q.length>=RANKED_N) break; if(!used.has(e.id)){ q.push({entry:e,fever:false}); used.add(e.id); } }
+  weak.slice(0,4).forEach(e=>{ q.push(mk(e,true)); used.add(e.id); });
+  for(const e of main){ if(q.length>=RANKED_N) break; if(!used.has(e.id)){ q.push(mk(e,false)); used.add(e.id); } }
   const out=shuffleArr(q).slice(0,RANKED_N);
   if(FUN_ROUNDS.length && Math.random()<0.15){ const fr=FUN_ROUNDS[Math.floor(Math.random()*FUN_ROUNDS.length)]; out[Math.floor(Math.random()*out.length)]={fun:fr}; }   // slim chance of a bonus round
   return out;
@@ -3586,7 +3605,7 @@ function startRankedTimer(){ stopRankedTimer();
 function startRanked(){
   const u=curUser(); state.ranked=true; state.countUp=false; state.mode='ranked'; resetView(); clearMap();
   state.rankedElo0=myElo(); state.rankedIdx=0; state.rankedDelta=0; state.rankedHit=0; state.rankedActive=true; state.rankedCheated=false; state.score=0;
-  state.rankedQueue=buildRankedMatch(state.rankedBase||'quiz', state.rankedElo0, u, state.rankedPlacement);
+  state.rankedQueue=buildRankedMatch(state.rankedElo0, u, state.rankedPlacement);
   if(u){ u.stats=u.stats||{}; u.stats.rankedPending={t:Date.now(),n:state.rankedQueue.length}; accSave(); }
   el.timer.classList.remove('hidden'); el.q.disabled=false; updateScore();
   const modeTxt=state.rankedPlacement?LT('배치고사','Placement'):(rankTierLabel(state.rankedElo0));
@@ -3601,7 +3620,7 @@ function rankedShowQuestion(){
   if(state.rankedIdx>=state.rankedQueue.length){ endRanked(false); return; }
   state.rankedItem=state.rankedQueue[state.rankedIdx]; clearMap();
   if(state.rankedItem.fun) rankedRenderFun(state.rankedItem.fun);
-  else rankedRenderQ(state.rankedBase||'quiz', state.rankedItem.entry);
+  else rankedRenderQ(state.rankedItem.base||'quiz', state.rankedItem.entry);
   el.q.value=''; state.rankedQEnd=perfNow()+RANKED_QTIME*1000; state.rankedAwaiting=true; startRankedTimer();
 }
 function rankedAnswer(correct){
@@ -3618,7 +3637,7 @@ function rankedAnswer(correct){
   state.rankedDelta += ELO_K*((correct?1:0)-exp);
   if(correct){ state.rankedHit++; state.score++; updateScore(); trackCountry(e,true); maybeUnlockTheme(); }
   else { trackCountry(e,false); noteMiss(e); }
-  const nm=NM(e)+(state.rankedBase==='capcountry'?(' · '+capitalDisplay(e)):'');
+  const nm=NM(e)+((state.rankedItem.base==='capcountry')?(' · '+capitalDisplay(e)):'');
   celebrate(correct, correct?LT('정답!','Correct!'):LT('땡!','Miss'));
   if(!(correct&&/특별 테마|Special theme/.test(el.feedback.textContent))) setFeedback(correct?(LT('정답! ','Correct! ')+nm):(LT('정답은 ','Answer: ')+nm), correct?'ok':'no', correct?'check':'x');
   el.q.value=''; state.rankedIdx++;
@@ -3633,7 +3652,7 @@ function endRanked(quit){
   let big, sub, cut=null;
   if(u){ u.stats=u.stats||{games:0,best:{},plays:{},points:0};
     let old=(u.stats.elo!=null)?u.stats.elo:state.rankedElo0, nw;
-    if(placement){ const rate=state.rankedHit/Math.max(1,state.rankedQueue.length); nw=Math.round(Math.max(700,Math.min(2200, 800+rate*1400))); u.stats.placed=true; }
+    if(placement){ const rate=state.rankedHit/Math.max(1,state.rankedQueue.length); nw=Math.round(400+Math.pow(rate,1.8)*1250); u.stats.placed=true; }   // convex: even a perfect placement caps around Platinum; Diamond+ must be earned in ranked
     else nw=Math.max(0, old+Math.round(deltaRaw));
     u.stats.elo=nw; u.stats.best=u.stats.best||{}; if(state.rankedHit>(u.stats.best.ranked||0)) u.stats.best.ranked=state.rankedHit;
     u.stats.plays=u.stats.plays||{}; u.stats.plays.ranked=(u.stats.plays.ranked||0)+1;
@@ -10647,8 +10666,6 @@ function renderRankHub(){
   const elo=myElo(), t=rankTierOf(elo), nt=rankNextTier(elo), placed=isPlaced();
   if(placed){ unlockTierCosmetics(elo); accSave(); }   // reflect cosmetics already earned by current ELO
   const prog=nt?Math.max(0,Math.min(100,Math.round((elo-t.elo)/(nt.elo-t.elo)*100))):100;
-  const bases=[{v:'quiz',ko:'이름(지도)',en:'Name (map)'},{v:'flag',ko:'국기',en:'Flag'},{v:'silhouette',ko:'실루엣',en:'Outline'},{v:'capcountry',ko:'수도',en:'Capital'}];
-  if(!state.rankedBase) state.rankedBase='quiz';
   const cos=(u.stats&&u.stats.cos)||{}, equip=(u.stats&&u.stats.cosEquip)||'';
   let cosHtml='<button class="rh-chip'+(equip?'':' on')+'" data-hl="">'+LT('기본','Default')+'</button>';
   Object.keys(HL_COSMETICS).forEach(k=>{ const owned=cos[k], c=HL_COSMETICS[k];
@@ -10661,14 +10678,14 @@ function renderRankHub(){
     '<div class="rh-hero"><span class="rh-badge">'+t.ic+'</span><div><h2>'+LT(t.ko,t.en)+'</h2>'
     +'<div class="rh-elo">ELO '+Math.round(elo)+(nt?(' · '+LT('다음 티어까지 ','to next ')+(nt.elo-Math.round(elo))):' · '+LT('최고 티어','top tier'))+'</div>'
     +'<div class="rh-bar"><i style="width:'+prog+'%"></i></div></div></div>'
-    +'<div class="rh-sec">'+LT('문제 유형','Question type')+'</div><div class="rh-row" id="rh-bases">'
-    +bases.map(b=>'<button class="rh-chip'+(state.rankedBase===b.v?' on':'')+'" data-b="'+b.v+'">'+LT(b.ko,b.en)+'</button>').join('')+'</div>'
+    +'<div class="rh-sec">'+LT('문제 유형 (혼합)','Question types (mixed)')+'</div><div class="rh-mixed">'
+    +['🗺️ '+LT('이름','Name'),'🏴 '+LT('국기','Flag'),'✏️ '+LT('실루엣','Outline'),'🏙️ '+LT('수도','Capital')].map(x=>'<span class="rh-mix">'+x+'</span>').join('')
+    +'</div><div class="rh-note2">'+LT('매 문제마다 유형이 무작위로 섞여 나와요 — 여러 종목을 다 잘해야 랭크가 올라요.','Each question is a random type — you must be good at several modes to climb.')+'</div>'
     +(placed?'<button class="btn solid rh-play" id="rh-play">'+LT('랭크 매치 시작 · '+RANKED_N+'문제','Start ranked · '+RANKED_N+'Q')+'</button>'
             :'<button class="btn solid rh-play" id="rh-place">'+LT('배치고사 보기 · '+RANKED_N+'문제','Take placement · '+RANKED_N+'Q')+'</button>')
     +'<div class="rh-sec">'+LT('하이라이트 코스메틱 (티어 보상)','Highlight cosmetics (tier rewards)')+'</div><div class="rh-row" id="rh-cos">'+cosHtml+'</div>'
     +'<div class="rh-sec">✨ '+LT('특별 테마 컬렉션','Special themes')+' ('+myThemes.length+'/'+Object.keys(HIDDEN_THEMES).length+')</div><div class="rh-shiny" id="rh-themes">'+themeHtml+'</div>'
     +'<p class="rh-note">'+LT('· 정확한 이름만 · 문제당 '+RANKED_QTIME+'초 · 건너뛰기 없음<br>· 중도 포기 시 ELO를 잃어요 · 붙여넣기 차단·탭 이탈 감지(부정행위 방지)<br>· ELO가 오를수록 더 어렵고 낯선 나라가 나와요','· Exact names · '+RANKED_QTIME+'s/question · no skips<br>· Quitting mid-match loses ELO · paste blocked & tab-switch forfeits (anti-cheat)<br>· Higher ELO = harder, more obscure countries')+'</p>';
-  el.rhBody.querySelectorAll('#rh-bases .rh-chip').forEach(b=>b.onclick=()=>{ state.rankedBase=b.dataset.b; renderRankHub(); });
   const play=el.rhBody.querySelector('#rh-play'); if(play) play.onclick=()=>{ state.rankedPlacement=false; playRanked(); };
   const place=el.rhBody.querySelector('#rh-place'); if(place) place.onclick=()=>{ state.rankedPlacement=true; playRanked(); };
   el.rhBody.querySelectorAll('#rh-cos .rh-chip').forEach(b=>b.onclick=()=>{ if(b.classList.contains('lock')) return; u.stats.cosEquip=b.dataset.hl||''; accSave(); applyCosmetics(); renderRankHub(); });
