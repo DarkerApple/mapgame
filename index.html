@@ -126,6 +126,9 @@ select#region:focus{outline:none;border-color:var(--border2)}
 #promptbar .lm-hint{display:block;color:var(--text);font-size:14.5px;font-weight:600;max-width:640px;margin:3px auto 0;line-height:1.5}
 #promptbar .sil-svg{display:block;width:clamp(150px,30vw,260px);height:clamp(110px,22vh,190px);margin:2px auto 4px;color:var(--accent);filter:drop-shadow(0 4px 12px rgba(0,0,0,.3))}
 #promptbar .cap-q{display:block;font-size:clamp(22px,5vw,34px);font-weight:800;color:var(--target);margin-bottom:2px}
+#promptbar .fun-badge{display:inline-block;font-size:12.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--accent-ink);background:var(--target);border-radius:999px;padding:3px 11px;margin-bottom:6px}
+#promptbar .fun-q{display:block;font-size:clamp(19px,4.4vw,28px);font-weight:800;color:var(--text);line-height:1.25}
+#promptbar .fun-note{font-size:12.5px;color:var(--muted);margin-top:4px}
 @keyframes fadeSlide{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
 @keyframes cardIn{from{opacity:0;transform:translateY(5px) scale(.94)}to{opacity:1;transform:none}}
 #inputrow{display:flex;gap:8px;padding:8px 16px 4px;max-width:680px;margin:0 auto;width:100%;justify-content:center}
@@ -353,6 +356,9 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 .rh-note{color:var(--faint);font-size:12px;margin-top:16px;line-height:1.6}
 .rh-shiny{display:flex;flex-wrap:wrap;gap:5px;max-height:130px;overflow-y:auto;margin-top:4px}
 .rh-shiny span{font-size:23px}
+.rh-theme{font-size:21px;line-height:1;background:var(--surface2);border:1px solid var(--border2);border-radius:11px;padding:6px 9px;cursor:pointer;transition:.13s}
+.rh-theme.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 22%,var(--surface2))}
+.rh-theme:hover{border-color:var(--accent)}
 .gicon{flex:0 0 auto;width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;
   background:color-mix(in srgb,var(--gc,#4ea1ff) 16%,transparent);color:var(--gc,#4ea1ff);
   border:1px solid color-mix(in srgb,var(--gc,#4ea1ff) 30%,transparent);transition:transform .16s}
@@ -386,6 +392,16 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 .pc-stat{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:9px 14px;min-width:76px}
 .pc-stat .n{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
 .pc-stat .l{font-size:11px;color:var(--muted);margin-top:2px}
+.pc-lv{margin-top:15px}
+.pc-lvhead{font-size:13px;font-weight:700;color:var(--muted)}
+.pc-lvhead b{color:var(--text);font-size:15px}
+.pc-lvbar{height:8px;border-radius:99px;background:var(--surface2);overflow:hidden;margin-top:6px}
+.pc-lvbar i{display:block;height:100%;background:var(--found)}
+.pc-sec{margin-top:15px;font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.pc-tiers{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pc-tier{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 9px;font-size:12px;font-weight:700}
+.pc-tier b{color:var(--target)}
+.pc-tier.max{border-color:var(--target);background:color-mix(in srgb,var(--target) 15%,var(--surface2))}
 .pc-ach{margin-top:15px}
 .pc-ach-h{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
 .pc-ach-grid{display:flex;flex-wrap:wrap;gap:7px}
@@ -411,6 +427,7 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 .set-chip.on{background:var(--accent);color:var(--accent-ink)}
 .set-seg.wrap .set-chip.on{background:color-mix(in srgb,var(--found) 22%,var(--surface2));border-color:var(--found);color:var(--text)}
 .set-seg.wrap .set-chip.off{opacity:.5;text-decoration:line-through}
+.set-seg.wrap .set-chip.lock{opacity:.5;cursor:not-allowed;letter-spacing:.02em}
 .set-desc{font-size:12.5px;color:var(--muted);margin-top:7px;line-height:1.5}
 .auth-card{position:relative;background:var(--surface);border:1px solid var(--border2);border-radius:18px;
   padding:26px 26px 20px;width:min(400px,94vw);box-shadow:var(--shadow);animation:cardPop .3s cubic-bezier(.2,.9,.3,1.2)}
@@ -3074,7 +3091,7 @@ function endLadder(){
   if(state.ended) return; state.ended=true; state.running=false; stopTicker();
   const best=state.ladderStreak;
   showOverlay(LT('연속 기록','Streak'),best,EN()?('You chained '+best+' in a row.'):(best+'개를 연속으로 맞혔어요.'));
-  const r=recordResult('ladder',best); if(r&&r.isBest&&best>0){ const s=$('ovsub'); s.textContent+=LT(' · 🏆 최고 기록!',' · 🏆 New best!'); }
+  const r=recordResult('ladder',best); const sfx=resultSuffix(r,best); if(sfx){ const s=$('ovsub'); s.textContent+=sfx; }
 }
 
 /* ---- Estimate (population / area) ---- */
@@ -3129,7 +3146,7 @@ function estSubmit(){
 function endEstimate(){
   if(state.ended) return; state.ended=true; state.running=false; stopTicker();
   showOverlay(LT('어림 점수','Estimate score'),state.score,EN()?('Over '+state.estTotal+' rounds.'):(state.estTotal+'라운드 합계.'));
-  const r=recordResult('estimate',state.score); if(r&&r.isBest&&state.score>0){ const s=$('ovsub'); s.textContent+=LT(' · 🏆 최고 기록!',' · 🏆 New best!'); }
+  const r=recordResult('estimate',state.score); const sfx=resultSuffix(r,state.score); if(sfx){ const s=$('ovsub'); s.textContent+=sfx; }
 }
 
 /* ---- Odd One Out ---- */
@@ -3253,7 +3270,7 @@ function chainGuess(raw){
 function endChain(){
   if(state.ended) return; state.ended=true; state.running=false; stopTicker(); el.q.disabled=true;
   showOverlay(LT('사슬 길이','Chain length'),state.chainLen,EN()?('You linked '+state.chainLen+' bordering countries.'):('국경을 맞댄 나라 '+state.chainLen+'개를 이었어요.'));
-  const r=recordResult('chain',state.chainLen); if(r&&r.isBest&&state.chainLen>0){ const s=$('ovsub'); s.textContent+=LT(' · 🏆 최고 기록!',' · 🏆 New best!'); }
+  const r=recordResult('chain',state.chainLen); const sfx=resultSuffix(r,state.chainLen); if(sfx){ const s=$('ovsub'); s.textContent+=sfx; }
 }
 
 /* ================= Country Codex (browsable reference) ================= */
@@ -3401,13 +3418,14 @@ const RANK_TIERS=[
   {elo:1750,ko:'다이아몬드',en:'Diamond',  ic:'💠', hl:'diamond'},
   {elo:2000,ko:'마스터',    en:'Master',   ic:'👑', hl:'master'},
 ];
-// cosmetic highlight palettes unlocked by tier (override the "found"/"target" colors)
+// cosmetic highlight palettes unlocked by tier.
+// found = "answered" (deeper shade), target = "current question" (bright shade) — kept clearly distinct.
 const HL_COSMETICS={
-  silver:{ko:'실버 하이라이트',en:'Silver glow', found:'#c7d0dc', target:'#e6edf5'},
-  gold:{ko:'골드 하이라이트',en:'Gold glow', found:'#e8b23a', target:'#ffd76a'},
-  plat:{ko:'플래티넘 하이라이트',en:'Platinum glow', found:'#3fd0c9', target:'#8ff0ea'},
-  diamond:{ko:'다이아 하이라이트',en:'Diamond glow', found:'#5ac8ff', target:'#a9e6ff'},
-  master:{ko:'마스터 하이라이트',en:'Master glow', found:'#c07cff', target:'#e6c8ff'},
+  silver:{ko:'실버 하이라이트',en:'Silver glow',   found:'#6b7787', target:'#eaf1fa'},
+  gold:{ko:'골드 하이라이트',en:'Gold glow',       found:'#9a6a12', target:'#ffdf5c'},
+  plat:{ko:'플래티넘 하이라이트',en:'Platinum glow', found:'#1f7d76', target:'#7ff0e8'},
+  diamond:{ko:'다이아 하이라이트',en:'Diamond glow', found:'#2560b8', target:'#8fe0ff'},
+  master:{ko:'마스터 하이라이트',en:'Master glow',   found:'#6a2fb8', target:'#e3b6ff'},
 };
 function perfNow(){ return performance.now(); }
 function rankTierOf(elo){ let t=RANK_TIERS[0]; for(const x of RANK_TIERS){ if(elo>=x.elo) t=x; } return t; }
@@ -3419,16 +3437,48 @@ function rankTierLabel(elo){ const t=rankTierOf(elo); return t.ic+' '+LT(t.ko,t.
 // unlock the highlight cosmetic for every tier at/below elo
 function unlockTierCosmetics(elo){ const u=curUser(); if(!u) return; u.stats.cos=u.stats.cos||{};
   RANK_TIERS.forEach(t=>{ if(t.hl && elo>=t.elo) u.stats.cos[t.hl]=true; }); }
-function applyCosmetics(){ const u=curUser(); const eq=u&&u.stats&&u.stats.cosEquip;
-  const c=eq&&HL_COSMETICS[eq]; const r=document.documentElement.style;
-  if(c){ r.setProperty('--found',c.found); r.setProperty('--target',c.target); }
-  else { r.removeProperty('--found'); r.removeProperty('--target'); } }
-function maybeShiny(e){ const u=curUser(); if(!u||!e||!e.i2) return; if(Math.random()>=SHINY_CHANCE) return;
-  u.stats.shiny=u.stats.shiny||{}; if(u.stats.shiny[e.i2]) return; u.stats.shiny[e.i2]=Date.now(); accSave();
-  const box=el.burst; // extra sparkle toast
-  setFeedback(LT('✨ 샤이니 획득! '+NM(e),'✨ Shiny obtained! '+NM(e)),'ok','check'); }
-function shinyCount(){ const u=curUser(); return u&&u.stats&&u.stats.shiny?Object.keys(u.stats.shiny).length:0; }
+/* ---- hidden/special full-palette themes (rare unlocks & secrets) ---- */
+const HIDDEN_THEMES={
+  firelord:{ko:'파이어로드',en:'Firelord',ic:'🔥',vars:{bg:'#160a08',ocean1:'#271311',ocean2:'#160a08',ocean3:'#0d0504',surface:'#251312',surface2:'#331a17',surface3:'#40211d',border:'#4d2621',border2:'#63302a',land:'#4a2a24','land-stroke':'#7c4238',hover:'#8f4c40',found:'#ff7a2e','found-stroke':'#ffd0a0',target:'#ffd24a',text:'#ffece2',muted:'#cb9c8e',accent:'#ff6a3a','accent-ink':'#160a08','home-grad1':'#2c1510','home-grad2':'#160a08','card-grad':'#1d0e0c'}},
+  forest:{ko:'포레스트',en:'Forest',ic:'🌲',vars:{bg:'#0a140d',ocean1:'#122016',ocean2:'#0a140d',ocean3:'#06100a',surface:'#122016',surface2:'#18301f',surface3:'#1f3d29',border:'#254a32',border2:'#2f5e40',land:'#1f4a30','land-stroke':'#3f7a52',hover:'#4a8a5e',found:'#4ade80','found-stroke':'#bff0cf',target:'#ffe066',text:'#e6f5ea',muted:'#9ac2a6',accent:'#4ade80','accent-ink':'#0a140d','home-grad1':'#132a1a','home-grad2':'#0a140d','card-grad':'#0e1c12'}},
+  ocean:{ko:'딥오션',en:'Deep Ocean',ic:'🌊',vars:{bg:'#08111f',ocean1:'#0f1e33',ocean2:'#08111f',ocean3:'#050c17',surface:'#0f1e33',surface2:'#152a45',surface3:'#1c3557',border:'#254a72',border2:'#2f5e8e',land:'#1f3d63','land-stroke':'#3f6a9a',hover:'#4a7aaa',found:'#38d0c0','found-stroke':'#a0f0e6',target:'#ffd54a',text:'#e2eefb',muted:'#94b0cf',accent:'#38a8ff','accent-ink':'#08111f','home-grad1':'#122a45','home-grad2':'#08111f','card-grad':'#0c1a2e'}},
+  leejun:{ko:'이준',en:'Yi Jun',ic:'👑',vars:{bg:'#120a1c',ocean1:'#1e1030',ocean2:'#120a1c',ocean3:'#0a0512',surface:'#1d1030',surface2:'#281642',surface3:'#331d54',border:'#3f2668',border2:'#4f3080',land:'#33204f','land-stroke':'#5a3f8a',hover:'#6a4a9a',found:'#c9a227','found-stroke':'#ffe9a0',target:'#ffd54a',text:'#f0e6ff',muted:'#b9a6d6',accent:'#c9a227','accent-ink':'#120a1c','home-grad1':'#241238','home-grad2':'#120a1c','card-grad':'#180d28'}},
+};
+const HIDDEN_VARS=['bg','ocean1','ocean2','ocean3','surface','surface2','surface3','border','border2','land','land-stroke','hover','found','found-stroke','target','text','muted','accent','accent-ink','home-grad1','home-grad2','card-grad'];
+function equippedHiddenTheme(){ const u=curUser(); const id=u&&u.stats&&u.stats.themeEquip; return (id&&HIDDEN_THEMES[id]&&u.stats.themes&&u.stats.themes[id])?id:null; }
+// applies the equipped hidden theme (full palette) then the highlight cosmetic on top
+function applyCosmetics(){ const r=document.documentElement.style, u=curUser();
+  HIDDEN_VARS.forEach(v=>r.removeProperty('--'+v));
+  const hid=equippedHiddenTheme(); if(hid){ const pal=HIDDEN_THEMES[hid].vars; Object.keys(pal).forEach(k=>r.setProperty('--'+k,pal[k])); }
+  const eq=u&&u.stats&&u.stats.cosEquip, c=eq&&HL_COSMETICS[eq];
+  if(c){ r.setProperty('--found',c.found); r.setProperty('--target',c.target); } }
+function themeCount(){ const u=curUser(); return u&&u.stats&&u.stats.themes?Object.keys(u.stats.themes).length:0; }
+function shinyCount(){ return themeCount(); }   // legacy name used by banner/profile
+function unlockAch(id){ const u=curUser(); if(!u) return false; u.stats.ach=u.stats.ach||{}; if(u.stats.ach[id]) return false; u.stats.ach[id]=Date.now(); accSave(); renderProfile(); return true; }
+// rare chance to unlock a hidden theme; every category at Tier X boosts the odds by +10% (relative)
+function maybeUnlockTheme(){ const u=curUser(); if(!u) return; const locked=Object.keys(HIDDEN_THEMES).filter(k=>k!=='leejun' && !(u.stats.themes&&u.stats.themes[k]));
+  if(!locked.length) return; if(Math.random()>=0.012*(1+0.1*tierXCount(u))) return;
+  const id=locked[Math.floor(Math.random()*locked.length)]; u.stats.themes=u.stats.themes||{}; u.stats.themes[id]=Date.now(); accSave(); renderProfile();
+  const th=HIDDEN_THEMES[id]; celebrate(true, th.ic+' '+LT(th.ko,th.en));
+  setFeedback(LT('✨ 특별 테마 해금: '+th.ic+' '+th.ko+' · 설정에서 적용!','✨ Special theme unlocked: '+th.ic+' '+th.en+' — equip in Settings!'),'ok','check'); }
+function secretLeejun(){ const u=curUser();
+  if(!u){ celebrate(true,'👑 이준'); setFeedback(LT('✨ 비밀을 찾았어요! 로그인하면 보상이 저장돼요.','✨ You found a secret! Log in to keep the reward.'),'ok','check'); return; }
+  u.stats.themes=u.stats.themes||{}; const fresh=!u.stats.themes.leejun; u.stats.themes.leejun=Date.now(); unlockAch('sec_leejun'); accSave(); renderProfile();
+  celebrate(true,'👑 이준');
+  setFeedback(fresh?LT('👑 비밀 발견! ‘이준’ 테마와 히든 업적 획득 · 설정에서 적용!','👑 Secret! You earned the ‘Yi Jun’ theme & a hidden badge — equip in Settings!'):LT('👑 이미 찾은 비밀이에요.','👑 Already discovered.'),'ok','check'); }
 
+/* ---- fun bonus rounds: slim chance in a ranked match; win ELO, never lose it ---- */
+const FUN_ELO=18;
+const FUN_ROUNDS=[
+  {ic:'🌎', qko:'“아메리카”라는 나라의 이름을 대세요.', qen:'Name the country called “America”.', ans:['미국','아메리카','미합중국','united states','united states of america','usa','us','america']},
+  {ic:'🍕', qko:'피자 체인점 이름을 하나만 대세요.', qen:'Name any pizza chain.', ans:['피자헛','도미노','도미노피자','파파존스','미스터피자','피자스쿨','피자알볼로','알볼로','pizza hut','dominos','domino','papa johns','papa john','little caesars','pizza school','mr pizza']},
+  {ic:'🍔', qko:'햄버거 체인점 이름을 하나만 대세요.', qen:'Name any burger chain.', ans:['맥도날드','버거킹','롯데리아','맘스터치','쉐이크쉑','인앤아웃','파이브가이즈','웬디스','mcdonalds','burger king','lotteria','moms touch','shake shack','in n out','five guys','wendys']},
+  {ic:'☕', qko:'커피 체인점 이름을 하나만 대세요.', qen:'Name any coffee chain.', ans:['스타벅스','투썸','투썸플레이스','이디야','메가커피','컴포즈','빽다방','할리스','파스쿠찌','starbucks','twosome','ediya','mega coffee','compose','hollys','pascucci']},
+  {ic:'🐧', qko:'남극에 사는 새를 하나 대세요.', qen:'Name a bird that lives in Antarctica.', ans:['펭귄','황제펭귄','penguin','emperor penguin','king penguin']},
+  {ic:'🌈', qko:'무지개 색을 아무거나 하나 대세요.', qen:'Name any color of the rainbow.', ans:['빨강','빨간색','주황','주황색','노랑','노란색','초록','초록색','파랑','파란색','남색','보라','보라색','red','orange','yellow','green','blue','indigo','violet','purple']},
+];
+function funMatch(raw, fr){ const g=norm(raw); if(!g) return false;
+  return fr.ans.some(a=>{ const na=norm(a); return na.length>=2 && (g===na || (na.length>=4 && g.includes(na)) || (g.length>=4 && na.includes(g))); }); }
 function buildRankedMatch(base, elo, u, placement){
   let pool=allEntries.filter(e=>e.sov&&!e.isMarker);
   if(base==='flag') pool=pool.filter(e=>e.i2);
@@ -3451,7 +3501,9 @@ function buildRankedMatch(base, elo, u, placement){
   const q=[], used=new Set();
   weak.slice(0,4).forEach(e=>{ q.push({entry:e,fever:true}); used.add(e.id); });
   for(const e of main){ if(q.length>=RANKED_N) break; if(!used.has(e.id)){ q.push({entry:e,fever:false}); used.add(e.id); } }
-  return shuffleArr(q).slice(0,RANKED_N);
+  const out=shuffleArr(q).slice(0,RANKED_N);
+  if(FUN_ROUNDS.length && Math.random()<0.15){ const fr=FUN_ROUNDS[Math.floor(Math.random()*FUN_ROUNDS.length)]; out[Math.floor(Math.random()*out.length)]={fun:fr}; }   // slim chance of a bonus round
+  return out;
 }
 function rankedRenderQ(base, e){
   state.target=e; allEntries.forEach(x=>x.el.classList.remove('target'));
@@ -3478,21 +3530,34 @@ function startRanked(){
   setFeedback(modeTxt+' · '+LT('정확한 이름만 · 문제당 '+RANKED_QTIME+'초 · 건너뛰기 없음','exact names · '+RANKED_QTIME+'s per question · no skips'),'info');
   rankedShowQuestion(); el.q.focus();
 }
+function rankedRenderFun(fr){ state.target=null; allEntries.forEach(x=>x.el.classList.remove('target')); resetView();
+  el.prompt.innerHTML='<div class="fun-badge">🎉 '+LT('보너스 라운드','Bonus round')+'</div>'
+    +'<div class="fun-q">'+fr.ic+' '+LT(fr.qko,fr.qen)+'</div>'
+    +'<div class="fun-note">'+LT('맞히면 ELO 획득 · 틀려도 잃지 않아요','Win ELO if right · never lose it')+'</div>'; }
 function rankedShowQuestion(){
   if(state.rankedIdx>=state.rankedQueue.length){ endRanked(false); return; }
   state.rankedItem=state.rankedQueue[state.rankedIdx]; clearMap();
-  rankedRenderQ(state.rankedBase||'quiz', state.rankedItem.entry);
+  if(state.rankedItem.fun) rankedRenderFun(state.rankedItem.fun);
+  else rankedRenderQ(state.rankedBase||'quiz', state.rankedItem.entry);
   el.q.value=''; state.rankedQEnd=perfNow()+RANKED_QTIME*1000; state.rankedAwaiting=true; startRankedTimer();
 }
 function rankedAnswer(correct){
   if(!state.rankedActive||state.ended||!state.rankedAwaiting) return; state.rankedAwaiting=false; stopRankedTimer();
+  if(state.rankedItem.fun){   // bonus round: gain ELO on a correct answer, never lose any
+    if(correct){ state.rankedDelta+=FUN_ELO; state.rankedHit++; state.score++; updateScore(); celebrate(true,'🎉 +'+FUN_ELO+' ELO');
+      setFeedback(LT('🎉 보너스 정답! +'+FUN_ELO+' ELO','🎉 Bonus! +'+FUN_ELO+' ELO'),'ok','check'); }
+    else { celebrate(false,LT('보너스 종료','Bonus over')); setFeedback(LT('보너스 라운드였어요 — ELO는 잃지 않아요.','That was a bonus round — no ELO lost.'),'info'); }
+    el.q.value=''; state.rankedIdx++;
+    const gg=state.gen; setTimeout(()=>{ if(state.gen!==gg||state.ended||state.mode!=='ranked') return; rankedShowQuestion(); }, 900);
+    return;
+  }
   const e=state.rankedItem.entry, D=countryDifficulty(e), exp=expectedScore(D,state.rankedElo0);
   state.rankedDelta += ELO_K*((correct?1:0)-exp);
-  if(correct){ state.rankedHit++; state.score++; updateScore(); trackCountry(e,true); maybeShiny(e); }
+  if(correct){ state.rankedHit++; state.score++; updateScore(); trackCountry(e,true); maybeUnlockTheme(); }
   else trackCountry(e,false);
   const nm=NM(e)+(state.rankedBase==='capcountry'?(' · '+capitalDisplay(e)):'');
   celebrate(correct, correct?LT('정답!','Correct!'):LT('땡!','Miss'));
-  if(!(correct&&/샤이니|Shiny/.test(el.feedback.textContent))) setFeedback(correct?(LT('정답! ','Correct! ')+nm):(LT('정답은 ','Answer: ')+nm), correct?'ok':'no', correct?'check':'x');
+  if(!(correct&&/특별 테마|Special theme/.test(el.feedback.textContent))) setFeedback(correct?(LT('정답! ','Correct! ')+nm):(LT('정답은 ','Answer: ')+nm), correct?'ok':'no', correct?'check':'x');
   el.q.value=''; state.rankedIdx++;
   const g=state.gen; setTimeout(()=>{ if(state.gen!==g||state.ended||state.mode!=='ranked') return; rankedShowQuestion(); }, correct?750:1250);
 }
@@ -3510,7 +3575,8 @@ function endRanked(quit){
     u.stats.elo=nw; u.stats.best=u.stats.best||{}; if(state.rankedHit>(u.stats.best.ranked||0)) u.stats.best.ranked=state.rankedHit;
     u.stats.plays=u.stats.plays||{}; u.stats.plays.ranked=(u.stats.plays.ranked||0)+1;
     u.stats.games=(u.stats.games||0)+1; u.stats.points=(u.stats.points||0)+state.rankedHit; u.stats.rankedPending=null;
-    unlockTierCosmetics(nw); accSave(); renderProfile(); if(typeof checkAchievements==='function') checkAchievements();
+    addXP(u, state.rankedHit*4 + (placement?20:0));
+    unlockTierCosmetics(nw); accSave(); renderProfile(); if(typeof checkAchievements==='function') checkAchievements(); if(typeof maybeUnlockTheme==='function') maybeUnlockTheme();
     const t=rankTierOf(nw), nt=rankNextTier(nw), promoted=(!placement && rankTierOf(old)!==t && nw>old);
     big=state.rankedHit+' / '+state.rankedQueue.length;
     if(placement){ sub=LT('배치 완료! 시작 등급: ','Placed! Starting rank: ')+t.ic+' '+LT(t.ko,t.en)+' '+nw; }
@@ -3578,7 +3644,7 @@ function fallGuess(raw){
 function endFall(){
   if(state.ended) return; state.ended=true; state.running=false; stopFall();
   showOverlay(LT('낙하 국기','Falling Flags'), state.score, EN()?('You cleared '+state.score+' flags.'):('국기 '+state.score+'개를 처리했어요.'));
-  const r=recordResult('fall',state.score); if(r&&r.isBest&&state.score>0){ const s=$('ovsub'); s.textContent+=LT(' · 🏆 최고 기록!',' · 🏆 New best!'); }
+  const r=recordResult('fall',state.score); const sfx=resultSuffix(r,state.score); if(sfx){ const s=$('ovsub'); s.textContent+=sfx; }
 }
 
 /* ================= Flag Symbols (pick every flag with a symbol) ================= */
@@ -3628,7 +3694,7 @@ function symSubmit(){
 function endSym(){
   if(state.ended) return; state.ended=true; state.running=false;
   showOverlay(LT('국기 기호 찾기','Flag Symbols'), state.score+' / '+state.symTotal, EN()?('Perfect rounds: '+state.score+'/'+state.symTotal):(state.symTotal+'라운드 중 '+state.score+'라운드 완벽!'));
-  const r=recordResult('sym',state.score); if(r&&r.isBest&&state.score>0){ const s=$('ovsub'); s.textContent+=LT(' · 🏆 최고 기록!',' · 🏆 New best!'); }
+  const r=recordResult('sym',state.score); const sfx=resultSuffix(r,state.score); if(sfx){ const s=$('ovsub'); s.textContent+=sfx; }
 }
 
 /* ================= war trivia (kahoot-style) ================= */
@@ -10018,6 +10084,7 @@ function handleFindClick(entry){
 function submit(){
   if(state.ended) return;
   const raw=el.q.value.trim(); if(!raw) return;
+  if(norm(raw)==='이준'){ secretLeejun(); el.q.value=''; return; }   // 🥚 easter egg
   const entry=resolveName(raw); const m=state.mode;
   if(m==='chain'){ chainGuess(raw); return; }
   if(m==='fall'){ fallGuess(raw); return; }
@@ -10086,6 +10153,10 @@ function submit(){
   }
   else if(m==='ranked'){
     if(!state.rankedActive) return;
+    if(state.rankedItem && state.rankedItem.fun){
+      if(funMatch(raw, state.rankedItem.fun)) rankedAnswer(true);
+      else { shakeInput(); setFeedback(LT('음… 다른 답을 대보세요!','Hmm — try a different answer!'),'no','x'); el.q.value=''; }
+      return; }
     if(!entry){ notFound(raw); return; }
     if(state.target && entry.id===state.target.id){ rankedAnswer(true); }
     else { shakeInput(); setFeedback(EN()?('Not '+NM(entry)+' — keep trying (exact name).'):(NM(entry)+' 이(가) 아니에요 — 정확한 이름으로 계속!'),'no','x'); el.q.value=''; }
@@ -10179,8 +10250,7 @@ function endGame(){
   // save the result for the logged-in profile & flag a new best
   const scoreMap={quiz:state.score,flag:state.score,capital:state.score,findmap:state.score,compare:state.score,oddone:state.score,landmark:state.score,silhouette:state.score,capcountry:state.score,
     countdown:sovFoundCount(),region:regionFoundCount(),conquer:state.conquerDone,place:state.placeTotal,locate:state.locTotal};
-  if(scoreMap[m]!==undefined){ const r=recordResult(m,scoreMap[m]);
-    if(r&&r.isBest&&scoreMap[m]>0){ const s=$('ovsub'); s.textContent=s.textContent+LT(' · 🏆 최고 기록!',' · 🏆 New best!'); } }
+  if(scoreMap[m]!==undefined){ const r=recordResult(m,scoreMap[m]); const sfx=resultSuffix(r,scoreMap[m]); if(sfx){ const s=$('ovsub'); s.textContent=s.textContent+sfx; } }
 }
 function showOverlay(title,big,sub){ $('ovtitle').textContent=title; $('ovbig').textContent=big; $('ovsub').textContent=sub; overlay.classList.add('show'); }
 function hideOverlay(){ overlay.classList.remove('show'); }
@@ -10310,6 +10380,7 @@ function applyTheme(){
   const alabel=LT(light?'어두운 테마로':'밝은 테마로', light?'Switch to dark':'Switch to light');
   [el.themebtn,el.hometheme].forEach(btn=>{ if(btn){ const ti=btn.querySelector('.ti'); if(ti) ti.textContent=light?'☀️':'🌙'; btn.setAttribute('aria-label',alabel); } });
   [el.cbbtn,el.homecb].forEach(btn=>{ if(btn){ btn.classList.toggle('on',!!THEME.cb); btn.setAttribute('aria-pressed', THEME.cb?'true':'false'); } });
+  try{ applyCosmetics(); }catch(_){}   // re-apply equipped hidden theme + highlight over the new base theme
 }
 function saveTheme(){ try{ localStorage.setItem(THKEY,JSON.stringify(THEME)); }catch(e){} }
 function toggleTheme(){ THEME.mode=(THEME.mode==='light')?'dark':'light'; saveTheme(); applyTheme(); }
@@ -10327,6 +10398,8 @@ function refreshSettingsUI(){
   seg('speech', (SET.speech!==false)?'on':'off');
   seg('effects', (SET.effects!==false)?'on':'off');
   el.setBody.querySelectorAll('[data-set="groups"] .set-chip').forEach(b=>{ const hid=SET.hidden.includes(b.dataset.g); b.classList.toggle('off',hid); b.classList.toggle('on',!hid); });
+  const themeSeg=el.setBody.querySelector('[data-set="themes"]');
+  if(themeSeg){ const u=curUser(), eqT=(u&&u.stats&&u.stats.themeEquip)||''; themeSeg.querySelectorAll('.set-chip').forEach(b=>b.classList.toggle('on',(b.dataset.th||'')===eqT)); }
   const d=el.setBody.querySelector('#set-lenient-desc'); if(d) d.textContent={
     lenient:LT('오타·약자·모호한 이름도 최대한 맞혀 줘요.','Accepts typos, codes, and fuzzy names.'),
     normal:LT('이름과 약자(KR, US…)를 인식해요. (기본값)','Matches names and codes (KR, US…). (default)'),
@@ -10348,6 +10421,14 @@ function renderSettings(){
     +'</div>';
   h+='<div class="set-block"><div class="set-h">'+LT('효과·애니메이션','Effects & motion')+'</div>'
     +'<div class="set-seg" data-set="effects"><button class="set-chip" data-v="on">'+LT('켜기','On')+'</button><button class="set-chip" data-v="off">'+LT('끄기','Off')+'</button></div></div>';
+  const su=curUser();
+  if(su){ const owned=(su.stats&&su.stats.themes)||{}, eqT=(su.stats&&su.stats.themeEquip)||'';
+    let th='<button class="set-chip" data-th="">'+LT('기본','Default')+'</button>';
+    Object.keys(HIDDEN_THEMES).forEach(k=>{ const has=owned[k], t=HIDDEN_THEMES[k];
+      th+='<button class="set-chip'+(has?'':' lock')+'" data-th="'+k+'">'+(has?(t.ic+' '+LT(t.ko,t.en)):'🔒 ???')+'</button>'; });
+    h+='<div class="set-block"><div class="set-h">'+LT('특별 테마','Special themes')+' ('+Object.keys(owned).length+'/'+Object.keys(HIDDEN_THEMES).length+')</div>'
+      +'<div class="set-seg wrap" data-set="themes">'+th+'</div>'
+      +'<div class="set-desc">'+LT('희귀·비밀 팔레트예요. 잠긴 테마는 랭크전 등에서 아주 낮은 확률로 열려요.','Rare & secret palettes. Locked ones unlock at a very small chance in Ranked and elsewhere.')+'</div></div>'; }
   h+='<div class="set-block"><div class="set-h">'+LT('홈 화면 섹션 (눌러서 숨기기)','Home sections (tap to hide)')+'</div>'
     +'<div class="set-seg wrap" data-set="groups">'
     + groups.map(g=>'<button class="set-chip" data-g="'+esc(g)+'">'+esc(EN()?(GROUP_EN[g]||g):g)+'</button>').join('')
@@ -10357,6 +10438,7 @@ function renderSettings(){
   el.setBody.querySelectorAll('[data-set="lenient"] .set-chip').forEach(b=>b.onclick=()=>{ SET.lenient=b.dataset.v; saveSet(); refreshSettingsUI(); });
   el.setBody.querySelectorAll('[data-set="speech"] .set-chip').forEach(b=>b.onclick=()=>{ SET.speech=(b.dataset.v==='on'); saveSet(); refreshSettingsUI(); refreshMic(); });
   el.setBody.querySelectorAll('[data-set="effects"] .set-chip').forEach(b=>b.onclick=()=>{ SET.effects=(b.dataset.v==='on'); saveSet(); refreshSettingsUI(); });
+  el.setBody.querySelectorAll('[data-set="themes"] .set-chip').forEach(b=>b.onclick=()=>{ if(b.classList.contains('lock')) return; const u=curUser(); if(!u) return; u.stats.themeEquip=b.dataset.th||''; accSave(); applyCosmetics(); refreshSettingsUI(); });
   el.setBody.querySelectorAll('[data-set="groups"] .set-chip').forEach(b=>b.onclick=()=>{ const g=b.dataset.g, i=SET.hidden.indexOf(g);
     if(i>=0) SET.hidden.splice(i,1); else if(SET.hidden.length<groups.length-1) SET.hidden.push(g);   // keep at least one section
     saveSet(); refreshSettingsUI(); buildHome(); });
@@ -10415,9 +10497,10 @@ function renderRankHub(){
   let cosHtml='<button class="rh-chip'+(equip?'':' on')+'" data-hl="">'+LT('기본','Default')+'</button>';
   Object.keys(HL_COSMETICS).forEach(k=>{ const owned=cos[k], c=HL_COSMETICS[k];
     cosHtml+='<button class="rh-chip'+(equip===k?' on':'')+(owned?'':' lock')+'" data-hl="'+k+'">'+(owned?'':'🔒 ')+LT(c.ko,c.en)+'</button>'; });
-  const shinies=(u.stats&&u.stats.shiny)?Object.keys(u.stats.shiny):[];
-  const shinyHtml=shinies.length? shinies.map(i2=>{ const e=lookup.get(norm(i2)); return '<span title="'+esc(e?NM(e):i2)+'">'+flagEmoji(i2)+'</span>'; }).join('')
-    : ('<span style="font-size:13px;color:var(--faint)">'+LT('아직 없어요 — 랭크전 정답 시 낮은 확률로 획득','none yet — small chance on a correct ranked answer')+'</span>');
+  const myThemes=(u.stats&&u.stats.themes)?Object.keys(u.stats.themes):[], eqTheme=(u.stats&&u.stats.themeEquip)||'';
+  const themeHtml=myThemes.length? ('<button class="rh-theme'+(eqTheme?'':' on')+'" data-th="" title="'+LT('기본','Default')+'">🚫</button>'
+      + myThemes.map(k=>{ const th=HIDDEN_THEMES[k]; return th?('<button class="rh-theme'+(eqTheme===k?' on':'')+'" data-th="'+k+'" title="'+esc(LT(th.ko,th.en))+'">'+th.ic+'</button>'):''; }).join(''))
+    : ('<span style="font-size:13px;color:var(--faint)">'+LT('아직 없어요 — 랭크전 등에서 아주 낮은 확률로 해금','none yet — very small chance to unlock in Ranked and elsewhere')+'</span>');
   el.rhBody.innerHTML=
     '<div class="rh-hero"><span class="rh-badge">'+t.ic+'</span><div><h2>'+LT(t.ko,t.en)+'</h2>'
     +'<div class="rh-elo">ELO '+Math.round(elo)+(nt?(' · '+LT('다음 티어까지 ','to next ')+(nt.elo-Math.round(elo))):' · '+LT('최고 티어','top tier'))+'</div>'
@@ -10427,12 +10510,13 @@ function renderRankHub(){
     +(placed?'<button class="btn solid rh-play" id="rh-play">'+LT('랭크 매치 시작 · '+RANKED_N+'문제','Start ranked · '+RANKED_N+'Q')+'</button>'
             :'<button class="btn solid rh-play" id="rh-place">'+LT('배치고사 보기 · '+RANKED_N+'문제','Take placement · '+RANKED_N+'Q')+'</button>')
     +'<div class="rh-sec">'+LT('하이라이트 코스메틱 (티어 보상)','Highlight cosmetics (tier rewards)')+'</div><div class="rh-row" id="rh-cos">'+cosHtml+'</div>'
-    +'<div class="rh-sec">✨ '+LT('샤이니 컬렉션','Shiny collection')+' ('+shinies.length+')</div><div class="rh-shiny">'+shinyHtml+'</div>'
+    +'<div class="rh-sec">✨ '+LT('특별 테마 컬렉션','Special themes')+' ('+myThemes.length+'/'+Object.keys(HIDDEN_THEMES).length+')</div><div class="rh-shiny" id="rh-themes">'+themeHtml+'</div>'
     +'<p class="rh-note">'+LT('· 정확한 이름만 · 문제당 '+RANKED_QTIME+'초 · 건너뛰기 없음<br>· 중도 포기 시 ELO를 잃어요 · 붙여넣기 차단·탭 이탈 감지(부정행위 방지)<br>· ELO가 오를수록 더 어렵고 낯선 나라가 나와요','· Exact names · '+RANKED_QTIME+'s/question · no skips<br>· Quitting mid-match loses ELO · paste blocked & tab-switch forfeits (anti-cheat)<br>· Higher ELO = harder, more obscure countries')+'</p>';
   el.rhBody.querySelectorAll('#rh-bases .rh-chip').forEach(b=>b.onclick=()=>{ state.rankedBase=b.dataset.b; renderRankHub(); });
   const play=el.rhBody.querySelector('#rh-play'); if(play) play.onclick=()=>{ state.rankedPlacement=false; playRanked(); };
   const place=el.rhBody.querySelector('#rh-place'); if(place) place.onclick=()=>{ state.rankedPlacement=true; playRanked(); };
   el.rhBody.querySelectorAll('#rh-cos .rh-chip').forEach(b=>b.onclick=()=>{ if(b.classList.contains('lock')) return; u.stats.cosEquip=b.dataset.hl||''; accSave(); applyCosmetics(); renderRankHub(); });
+  el.rhBody.querySelectorAll('#rh-themes .rh-theme').forEach(b=>b.onclick=()=>{ u.stats.themeEquip=b.dataset.th||''; accSave(); applyCosmetics(); renderRankHub(); });
 }
 function playRanked(){ el.rankhub.classList.remove('show'); el.home.classList.remove('show'); el.homebtn.classList.remove('hidden'); setMode('ranked'); }
 el.rankBanner.onclick=openRankHub;
@@ -10456,17 +10540,38 @@ async function hashPass(pw,salt){
 }
 function randSalt(){ try{ const a=new Uint8Array(8); crypto.getRandomValues(a); return [...a].map(b=>b.toString(16).padStart(2,'0')).join(''); }catch(e){ return 'saltxx'; } }
 // record a SOLO result for the logged-in user → {isBest,best} | null
+/* ---- per-game tiers (I–X) + account XP / levels ---- */
+const TIER_ROMAN=['','I','II','III','IV','V','VI','VII','VIII','IX','X'];
+const TIER_MAX={quiz:50,countdown:60,region:55,daily:10,ladder:25,chain:25,compare:35,estimate:600,oddone:35,sym:10,fall:40,
+  place:45,locate:45,conquer:40,flag:40,capital:40,findmap:40,silhouette:35,capcountry:40,landmark:35};
+function tierThreshold(max,i){ return Math.max(1,Math.round(max*Math.pow(i/10,1.4))); }   // front-loaded, reachable
+function categoryTier(mode,best){ const max=TIER_MAX[mode]||40; let t=0; for(let i=1;i<=10;i++){ if((best||0)>=tierThreshold(max,i)) t=i; } return t; }
+function tierXCount(u){ const b=(u&&u.stats&&u.stats.best)||{}; let n=0; Object.keys(b).forEach(k=>{ if(categoryTier(k,b[k])>=10) n++; }); return n; }
+function xpForLevel(L){ return 50*L*L; }
+function levelForXp(xp){ return Math.max(0,Math.floor(Math.sqrt((xp||0)/50))); }
+function addXP(u,amt){ if(!u) return 0; u.stats=u.stats||{}; const b=levelForXp(u.stats.xp||0); u.stats.xp=(u.stats.xp||0)+Math.max(0,Math.round(amt||0)); return levelForXp(u.stats.xp)-b; }
+
 function recordResult(key,score){
   const u=curUser(); if(!u||key==null||state.vs) return null;
   u.stats=u.stats||{games:0,best:{},plays:{},points:0};
   u.stats.games++; u.stats.plays[key]=(u.stats.plays[key]||0)+1;
   u.stats.points=(u.stats.points||0)+Math.max(0,score||0);
+  const prevTier=categoryTier(key,u.stats.best[key]||0);
   const prev=u.stats.best[key]||0, isBest=(score||0)>prev;
   if(isBest) u.stats.best[key]=score;
+  const lvUp=addXP(u, Math.max(1,Math.round((score||0)/2)) + (isBest?15:0));
+  const newTier=categoryTier(key,u.stats.best[key]||0);
   accSave(); renderProfile();
   if(typeof checkAchievements==='function') checkAchievements();
-  return {isBest,best:u.stats.best[key]};
+  if(typeof maybeUnlockTheme==='function') maybeUnlockTheme();
+  return {isBest,best:u.stats.best[key],lvUp,tierUp:(newTier>prevTier?newTier:0)};
 }
+// end-screen suffix announcing new best / tier-up / level-up
+function resultSuffix(r,score){ if(!r) return ''; let x='';
+  if(r.isBest&&(score||0)>0) x+=LT(' · 🏆 최고 기록!',' · 🏆 New best!');
+  if(r.tierUp) x+=LT(' · ⬆️ 티어 '+TIER_ROMAN[r.tierUp],' · ⬆️ Tier '+TIER_ROMAN[r.tierUp]);
+  if(r.lvUp>0) x+=LT(' · ✨ 레벨 업!',' · ✨ Level up!');
+  return x; }
 /* ---- per-country mastery tracking (Leitner-style boxes 0–5) ---- */
 function trackCountry(entry,correct){
   if(state.vs||!entry||!entry.i2) return;        // only track solo naming attempts
@@ -10650,7 +10755,10 @@ const ACHIEVEMENTS=[
   {id:'ladder10', ic:'🪜', ko:'사다리 타기', en:'Ladder Legend', dko:'업다운 10연속', den:'Higher–Lower streak of 10', test:st=>((st.best&&st.best.ladder)||0)>=10},
   {id:'rank_gold', ic:'🥇', ko:'골드 등반', en:'Gold Rank', dko:'랭크전 골드 티어', den:'Reached Gold in Ranked', test:st=>(st.elo||0)>=1250},
   {id:'rank_diamond', ic:'💠', ko:'다이아 등반', en:'Diamond Rank', dko:'랭크전 다이아 티어', den:'Reached Diamond in Ranked', test:st=>(st.elo||0)>=1750},
-  {id:'shiny5', ic:'✨', ko:'수집가', en:'Collector', dko:'샤이니 5개 수집', den:'Collected 5 shinies', test:st=>(st.shiny?Object.keys(st.shiny).length:0)>=5},
+  {id:'themes3', ic:'🎨', ko:'테마 수집가', en:'Theme Collector', dko:'특별 테마 3개 해금', den:'Unlocked 3 special themes', test:st=>(st.themes?Object.keys(st.themes).length:0)>=3},
+  {id:'lvl10', ic:'⭐', ko:'레벨 10', en:'Level 10', dko:'계정 레벨 10 달성', den:'Reached account level 10', test:st=>levelForXp(st.xp||0)>=10},
+  {id:'tierx', ic:'🔟', ko:'종목 마스터', en:'Category Master', dko:'한 종목 티어 X 달성', den:'Reached Tier X in a category', test:st=>{const b=st.best||{};return Object.keys(b).some(k=>categoryTier(k,b[k])>=10);}},
+  {id:'sec_leejun', ic:'👑', ko:'이준', en:'Yi Jun', dko:'숨겨진 비밀을 발견했어요', den:'You found a hidden secret', secret:true, test:st=>!!(st.ach&&st.ach.sec_leejun)},
 ];
 function achTitle(a){ return EN()?a.en:a.ko; }
 function achDesc(a){ return EN()?a.den:a.dko; }
@@ -10717,6 +10825,7 @@ function renderProfile(){
     +'<button class="btn pc-logout" id="pc-logout"><span data-icon="logout"></span> <span>'+LT('로그아웃','Log out')+'</span></button>'
     +'</div>'
     +(bh?('<div class="pc-stats">'+bh+'</div>'):('<div class="pc-sub" style="margin-top:11px">'+LT('게임을 하면 최고 기록이 여기에 쌓여요.','Play a game and your best scores show up here.')+'</div>'))
+    +progressionHTML(st)
     +achievementsHTML(st)
     +'<div class="pc-actions"><button class="btn pc-share" id="pc-share">🎉 '+LT('공유 카드 만들기','Make a share card')+'</button></div>';
   const lg=el.profilecard.querySelector('#pc-logout');
@@ -10724,9 +10833,20 @@ function renderProfile(){
   lg.onclick=()=>{ ACC.current=null; accSave(); renderProfile(); };
   const sh=el.profilecard.querySelector('#pc-share'); if(sh) sh.onclick=openShare;
 }
+function progressionHTML(st){
+  const xp=st.xp||0, lv=levelForXp(xp), cur=xpForLevel(lv), nxt=xpForLevel(lv+1);
+  const pct=Math.max(0,Math.min(100,Math.round((xp-cur)/(nxt-cur)*100)));
+  const best=st.best||{};
+  const tiers=Object.keys(best).map(k=>({k,t:categoryTier(k,best[k])})).filter(x=>x.t>0).sort((a,b)=>b.t-a.t).slice(0,10);
+  let th=''; tiers.forEach(x=>{ const meta=MODE_LABEL[x.k], nm=meta?(EN()?(meta.te||meta.t):meta.t):x.k;
+    th+='<span class="pc-tier'+(x.t>=10?' max':'')+'">'+esc(nm)+' <b>'+TIER_ROMAN[x.t]+'</b></span>'; });
+  return '<div class="pc-lv"><div class="pc-lvhead">'+LT('레벨','Level')+' <b>'+lv+'</b> · '+xp+' XP · '+LT('다음까지 ','next in ')+(nxt-xp)+'</div><div class="pc-lvbar"><i style="width:'+pct+'%"></i></div></div>'
+    +(tiers.length?('<div class="pc-sec">'+LT('종목 등급','Game tiers')+'</div><div class="pc-tiers">'+th+'</div>'):'');
+}
 function achievementsHTML(st){
   const owned=ACHIEVEMENTS.filter(a=>a.test(st));
   let badges=''; ACHIEVEMENTS.forEach(a=>{ const on=a.test(st);
+    if(a.secret && !on){ badges+='<span class="ach-badge off" title="'+LT('숨겨진 업적','Hidden achievement')+'" aria-label="'+LT('숨겨진 업적','hidden achievement')+'">❓</span>'; return; }
     badges+='<span class="ach-badge'+(on?'':' off')+'" title="'+esc(achTitle(a)+' — '+achDesc(a))+'" aria-label="'+esc(achTitle(a)+(on?'':LT(' (미획득)',' (locked)')))+'">'+a.ic+'</span>'; });
   return '<div class="pc-ach"><div class="pc-ach-h">'+LT('뱃지','Badges')+' · '+owned.length+'/'+ACHIEVEMENTS.length+'</div><div class="pc-ach-grid">'+badges+'</div></div>';
 }
