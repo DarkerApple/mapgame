@@ -447,6 +447,7 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 .rh-lb-refresh:hover{color:var(--accent);border-color:var(--accent)}
 .rh-lb{display:flex;flex-direction:column;gap:3px;max-height:340px;overflow-y:auto}
 .rh-lb-empty{font-size:13px;color:var(--faint);padding:6px 2px}
+.rh-lb-err{color:var(--warn,#e6a23c);line-height:1.5}.rh-lb-err code{background:rgba(128,128,128,.18);padding:1px 5px;border-radius:5px;font-size:12px}.rh-lb-code{opacity:.6;font-size:11px;white-space:nowrap}
 .rh-lb-row{display:flex;align-items:center;gap:9px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:7px 11px}
 .rh-lb-row.me{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,var(--surface2))}
 .rh-lb-rk{min-width:26px;font-weight:800;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
@@ -2027,8 +2028,7 @@ const LANDMARKS={
       "hint_en": "A village right on the Arctic Circle known as the official hometown of Santa Claus."
     }
   ]
-}
-;
+};
 // which flags contain which symbol (star/crescent/cross/…), for the Flag Symbols game
 const FLAGSYM={
   "symbols": [
@@ -2089,8 +2089,7 @@ const FLAGSYM={
       "iso2": ["GB", "AU", "NZ", "FJ", "TV"]
     }
   ]
-}
-;
+};
 
 /* ================= regions ================= */
 const CONT_LIST=["아시아","유럽","아프리카","북아메리카","남아메리카","오세아니아"];
@@ -11049,13 +11048,18 @@ function resolvePendingRanked(u){ const pd=u&&u.stats&&u.stats.rankedPending; if
   u.stats.rankedPending=null; accSave(); }
 function lbHTML(){ const rows=state.lbRows;
   if(rows===undefined) return '<div class="rh-lb-empty">'+LT('불러오는 중…','Loading…')+'</div>';
+  if(rows&&rows.error){ const miss=rows.missing;
+    return '<div class="rh-lb-empty rh-lb-err">'+(miss
+        ? LT('리더보드 설정이 아직 안 됐어요 — 서버에 <code>leaderboard_top</code> 함수를 설치해야 해요.','Leaderboard isn\'t set up yet — the <code>leaderboard_top</code> function needs to be installed on the server.')
+        : LT('리더보드를 불러올 수 없어요','Couldn\'t load the leaderboard'))
+      +' <span class="rh-lb-code">('+esc(rows.error)+')</span></div>'; }
   if(!rows||!rows.length) return '<div class="rh-lb-empty">'+LT('아직 순위가 없어요 — 배치고사를 마치면 여기에 올라요!','No ranks yet — finish placement to appear here!')+'</div>';
   const meName=((curUser()||{}).name||'').toLowerCase();
   return rows.map(r=>{ const ri=Math.floor((r.elo||0)/100000), t=RANK_MAIN[Math.max(0,Math.min(RANK_MAIN.length-1,ri))], mine=meName&&(''+r.username).toLowerCase()===meName;
     return '<div class="rh-lb-row'+(mine?' me':'')+'"><span class="rh-lb-rk">'+r.rank+'</span><span class="rh-lb-ic">'+t.ic+'</span><span class="rh-lb-nm">'+esc(r.username)+'</span><span class="rh-lb-lv">Lv '+(r.level||0)+'</span><span class="rh-lb-elo">'+LT(t.ko,t.en)+'</span></div>'; }).join('');
 }
 async function refreshLeaderboard(){ state.lbRows=undefined; const paint=()=>{ const b=el.rhBody&&el.rhBody.querySelector('#rh-lb'); if(b) b.innerHTML=lbHTML(); }; paint();
-  const rows=await sbLeaderboard(50); state.lbRows=Array.isArray(rows)?rows:[]; paint(); }
+  const rows=await sbLeaderboard(50); state.lbRows=Array.isArray(rows)?rows:((rows&&rows.error)?rows:[]); paint(); }
 function openRankHub(){ const u=curUser(); if(u) resolvePendingRanked(u); renderRankHub(); el.home.classList.remove('show'); el.rankhub.classList.add('show'); el.rankhub.scrollTop=0; if(SUPA_ON) refreshLeaderboard(); }
 function closeRankHub(){ el.rankhub.classList.remove('show'); el.home.classList.add('show'); renderRankBanner(); }
 function renderRankHub(){
@@ -11270,7 +11274,10 @@ function sbQueueSave(){ if(!SUPA_ON||!SB.tok) return; clearTimeout(sbSaveT); sbS
 // public leaderboard (anon-readable RPC — one indexed query, no auth needed)
 async function sbLeaderboard(lim){ if(!SUPA_ON) return null;
   try{ const r=await fetch(SB.rest+'/rpc/leaderboard_top',{method:'POST',headers:{apikey:SB.anon,'content-type':'application/json'},body:JSON.stringify({lim:lim||50})});
-    if(!r.ok) return null; return await r.json(); }catch(e){ return null; } }
+    if(!r.ok){ let code='http_'+r.status; try{ const j=await r.json(); if(j&&j.code) code=j.code; }catch(e){}
+      // PGRST202 = function missing from schema cache (migration not applied yet)
+      return {error:code, missing:(r.status===404||code==='PGRST202'||code==='PGRST100')}; }
+    return await r.json(); }catch(e){ return {error:'network', missing:false}; } }
 function applyCloudProfile(p){ if(!p) return null; const key=((p.username||'me').toLowerCase())||'me';
   const st=(p.stats&&typeof p.stats==='object')?p.stats:{};
   ACC.users={}; ACC.users[key]={name:p.username||'me', stats:st, email:p.email||null, email_verified:!!p.email_verified, cloud:true}; ACC.current=key; return key; }
