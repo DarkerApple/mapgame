@@ -573,6 +573,41 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
 .cxd-note .k{display:block;color:var(--target);font-size:12px;font-weight:800;margin-bottom:4px}
 @media(max-width:520px){ .cx-grid{grid-template-columns:1fr 1fr;gap:8px} .cxd-facts{grid-template-columns:1fr} .cx-item .cxf{font-size:26px} }
 
+/* ---- Falling Flags ---- */
+#fall{position:absolute;inset:0;z-index:7;background:radial-gradient(120% 80% at 50% 0,var(--surface),var(--bg) 70%);display:none;overflow:hidden}
+#fall.show{display:block}
+#fall-area{position:absolute;inset:0}
+.fall-item{position:absolute;top:0;left:0;font-size:44px;line-height:1;will-change:transform;filter:drop-shadow(0 4px 8px rgba(0,0,0,.45));cursor:default;user-select:none}
+.fall-item.pop{animation:fallPop .3s ease forwards}
+@keyframes fallPop{to{transform:scale(1.6);opacity:0}}
+#fall-hud{position:absolute;top:12px;left:14px;font-weight:800;font-size:15px;color:var(--text);z-index:3;display:flex;gap:14px}
+#fall-hud .lives{color:var(--bad)}
+.fall-line{position:absolute;left:0;right:0;bottom:0;height:4px;background:linear-gradient(90deg,transparent,var(--bad),transparent);opacity:.55;z-index:2}
+.fall-flash{animation:fallFlash .4s ease}
+@keyframes fallFlash{0%{background:var(--bad-dim)}100%{background:transparent}}
+
+/* ---- Flag Symbol Picker ---- */
+#sym{position:absolute;inset:0;z-index:7;background:var(--bg);display:none;flex-direction:column;padding:16px 18px calc(16px + env(safe-area-inset-bottom));gap:12px}
+#sym.show{display:flex}
+.sym-top{display:flex;align-items:center;gap:12px;max-width:900px;width:100%;margin:0 auto;flex:0 0 auto}
+.sym-q{flex:1;font-size:clamp(16px,3vw,21px);font-weight:800;letter-spacing:-.01em}
+.sym-q b{color:var(--target)}
+.sym-grid{flex:1;min-height:0;overflow-y:auto;display:grid;gap:8px;max-width:900px;width:100%;margin:0 auto;
+  grid-template-columns:repeat(auto-fill,minmax(84px,1fr));align-content:start;padding-bottom:6px}
+.sym-cell{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;background:var(--surface);border:2px solid var(--border2);
+  border-radius:12px;padding:12px 6px 8px;cursor:pointer;font:inherit;color:var(--text);transition:.12s}
+.sym-cell:hover{background:var(--surface2)}
+.sym-cell .sf{font-size:34px;line-height:1}
+.sym-cell .sn{font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.sym-cell.sel{border-color:var(--found);background:color-mix(in srgb,var(--found) 16%,var(--surface))}
+.sym-cell.sel::after{content:"✓";position:absolute;top:3px;right:6px;color:var(--found);font-weight:900;font-size:13px}
+.sym-cell.right{border-color:var(--ok);background:var(--ok-dim)}
+.sym-cell.wrong{border-color:var(--bad);background:var(--bad-dim)}
+.sym-cell.missed{border-color:var(--target);background:color-mix(in srgb,var(--target) 14%,var(--surface))}
+.sym-fact{text-align:center;color:var(--muted);font-size:14px;min-height:20px;font-weight:700;max-width:760px;margin:0 auto}
+.sym-fact b{color:var(--target)}
+@media(max-width:520px){ .sym-grid{grid-template-columns:repeat(auto-fill,minmax(66px,1fr))} .sym-cell .sf{font-size:28px} }
+
 @media(prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
 
 /* ---------- mobile ---------- */
@@ -697,6 +732,12 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
         </div>
         <div class="cx-grid" id="cx-grid"></div>
         <div class="cx-detail" id="cx-detail" hidden></div>
+      </div>
+      <div id="fall"><div id="fall-area"></div><div id="fall-hud"></div><div class="fall-line"></div></div>
+      <div id="sym">
+        <div class="sym-top"><div class="sym-q" id="sym-q"></div><button class="btn solid" id="sym-go"></button></div>
+        <div class="sym-grid" id="sym-grid"></div>
+        <div class="sym-fact" id="sym-fact"></div>
       </div>
     </div>
     <aside id="studypanel" class="hidden">
@@ -1741,6 +1782,68 @@ const LANDMARKS={
   ]
 }
 ;
+// which flags contain which symbol (star/crescent/cross/…), for the Flag Symbols game
+const FLAGSYM={
+  "symbols": [
+    {
+      "key": "star",
+      "ko": "별",
+      "en": "Star",
+      "emoji": "⭐",
+      "iso2": ["US", "CN", "VN", "TR", "CL", "CU", "VE", "BR", "AU", "NZ", "MY", "SG", "KP", "SY", "MA", "SO", "GH", "CM", "SN", "BF", "TG", "GW", "LR", "MM", "CF", "DZ", "TN", "MR", "AZ", "TM", "PK", "LY", "KM", "UZ", "PH", "ET", "SB", "FM", "MH", "NR", "WS", "PG", "TV", "DJ", "CV", "ST", "AO", "MZ", "BI", "HN", "PA", "GD", "BA"]
+    },
+    {
+      "key": "crescent",
+      "ko": "초승달",
+      "en": "Crescent moon",
+      "emoji": "🌙",
+      "iso2": ["TR", "PK", "DZ", "TN", "LY", "MY", "MV", "MR", "AZ", "TM", "SG", "KM", "UZ", "NP", "BN"]
+    },
+    {
+      "key": "cross",
+      "ko": "십자가",
+      "en": "Cross",
+      "emoji": "✝️",
+      "iso2": ["DK", "SE", "NO", "FI", "IS", "CH", "GB", "GR", "GE", "DO", "TO", "MT", "DM"]
+    },
+    {
+      "key": "sun",
+      "ko": "태양",
+      "en": "Sun",
+      "emoji": "☀️",
+      "iso2": ["AR", "UY", "JP", "BD", "KZ", "KG", "NE", "RW", "AG", "NA", "PH", "TW", "MK", "MW", "KI", "NP"]
+    },
+    {
+      "key": "bird",
+      "ko": "새",
+      "en": "Bird",
+      "emoji": "🐦",
+      "iso2": ["MX", "EG", "AL", "RS", "ME", "ZM", "PG", "KZ", "UG", "DM", "FJ", "ZW", "EC", "BO", "MD", "GT", "KI"]
+    },
+    {
+      "key": "circle",
+      "ko": "원",
+      "en": "Circle",
+      "emoji": "⚪",
+      "iso2": ["JP", "BD", "PW", "LA", "BR", "KR", "IN", "NE", "TN", "ET", "KP"]
+    },
+    {
+      "key": "triangle",
+      "ko": "삼각형",
+      "en": "Triangle",
+      "emoji": "🔺",
+      "iso2": ["CU", "BS", "JO", "SD", "ER", "PH", "CZ", "SS", "MZ", "DJ", "GY", "VU", "TL", "BA", "KM", "ZW"]
+    },
+    {
+      "key": "unionjack",
+      "ko": "유니언잭",
+      "en": "Union Jack",
+      "emoji": "🇬🇧",
+      "iso2": ["GB", "AU", "NZ", "FJ", "TV"]
+    }
+  ]
+}
+;
 
 /* ================= regions ================= */
 const CONT_LIST=["아시아","유럽","아프리카","북아메리카","남아메리카","오세아니아"];
@@ -1992,12 +2095,16 @@ const state={mode:'free',running:false,found:new Set(),score:0,target:null,pool:
   cmpMetric:'pop',cmpA:null,cmpB:null,cmpLock:false,
   estMetric:'pop',ladderStreak:0,ladderBest:0,mgLock:false,chainCur:null,chainUsed:null,chainLen:0,
   triviaSel:'all',triviaCount:6,triviaCats:null,triviaQueue:[],triviaIdx:0,triviaLocked:false,
-  ranked:false,rankedBase:'quiz',rankedRule:'none',rankedHit:0,rankedMiss:0,silTarget:null};
+  ranked:false,rankedBase:'quiz',rankedRule:'none',rankedHit:0,rankedMiss:0,silTarget:null,
+  fallItems:[],fallLives:3,fallRAF:0,fallT:0,fallLast:0,fallSpawn:0,fallPool:null,
+  symBank:[],symSel:null,symAnswer:null,symSymbol:null,symLocked:false,symRound:0,symTotal:10};
 /* ================= persistent settings ================= */
 const SETKEY='wmh_settings_v1';
 const SET_DEFAULT={lenient:'normal',speech:true,effects:true,hidden:[]};
 let SET=(function(){ try{ return Object.assign({},SET_DEFAULT,JSON.parse(localStorage.getItem(SETKEY))||{}); }catch(e){ return Object.assign({},SET_DEFAULT); } })();
 function saveSet(){ try{ localStorage.setItem(SETKEY,JSON.stringify(SET)); }catch(e){} }
+// touch (phone/tablet) vs pointer (desktop) — drives instructions & whether keybinds are advertised
+const IS_TOUCH=(function(){ try{ return (navigator.maxTouchPoints||0)>0 || matchMedia('(pointer:coarse)').matches; }catch(e){ return 'ontouchstart' in window; } })();
 // i18n helper: pick Korean or English string by current language
 function EN(){ return state.lang==='en'; }
 function LT(ko,en){ return state.lang==='en'?en:ko; }
@@ -2020,6 +2127,8 @@ const el={
   compare:$('compare'),cmpQ:$('cmp-q'),cmpA:$('cmp-a'),cmpB:$('cmp-b'),cmpFact:$('cmp-fact'),
   minigame:$('minigame'),mgQ:$('mg-q'),mgBody:$('mg-body'),mgFact:$('mg-fact'),
   codex:$('codex'),cxSearch:$('cx-search'),cxCount:$('cx-count'),cxGrid:$('cx-grid'),cxDetail:$('cx-detail'),
+  fall:$('fall'),fallArea:$('fall-area'),fallHud:$('fall-hud'),
+  sym:$('sym'),symQ:$('sym-q'),symGo:$('sym-go'),symGrid:$('sym-grid'),symFact:$('sym-fact'),
   profilebtn:$('profilebtn'),profilebtnT:$('profilebtn-t'),profilecard:$('profilecard'),
   auth:$('auth'),authBody:$('auth-body'),authClose:$('auth-close'),
 };
@@ -2065,7 +2174,8 @@ function updateScore(){
   const m=state.mode;
   if(state.vs && ['quiz','flag','findmap','hint','capital','oddone','compare','landmark','silhouette','capcountry'].includes(m)){ el.scoreval.innerHTML=vsScoreChip(); return; }
   if(m==='free') el.scoreval.textContent=state.found.size;
-  else if(m==='quiz'||m==='findmap'||m==='flag'||m==='capital'||m==='compare'||m==='estimate'||m==='oddone'||m==='review'||m==='landmark'||m==='clue'||m==='silhouette'||m==='capcountry'||m==='ranked') el.scoreval.textContent=state.score;
+  else if(m==='quiz'||m==='findmap'||m==='flag'||m==='capital'||m==='compare'||m==='estimate'||m==='oddone'||m==='review'||m==='landmark'||m==='clue'||m==='silhouette'||m==='capcountry'||m==='ranked'||m==='fall') el.scoreval.textContent=state.score;
+  else if(m==='sym') el.scoreval.textContent=state.score+' / '+(state.symTotal||10);
   else if(m==='daily') el.scoreval.textContent=state.score+' / '+(state.dailyTotal||10);
   else if(m==='ladder') el.scoreval.textContent=state.ladderStreak;
   else if(m==='chain') el.scoreval.textContent=state.chainLen;
@@ -2165,8 +2275,8 @@ el.region.onchange=()=>{ state.region=el.region.value; resetMode(); };
 
 /* ================= input layout ================= */
 function setInputMode(kind){ // text | quiz | flag | click | study | place | hint | rank | conquer | trivia | locate
-  el.inputrow.classList.toggle('hidden',['place','rank','conquer','trivia','compare','mini','codex','mastery'].includes(kind));
-  const showText=['text','quiz','flag','hint','capital','chain','landmark','clue','silhouette','capcountry','ranked'].includes(kind);
+  el.inputrow.classList.toggle('hidden',['place','rank','conquer','trivia','compare','mini','codex','mastery','sym'].includes(kind));
+  const showText=['text','quiz','flag','hint','capital','chain','landmark','clue','silhouette','capcountry','ranked','fall'].includes(kind);
   el.q.classList.toggle('hidden',!showText);
   el.go.classList.toggle('hidden',!showText);
   el.micbtn.classList.toggle('hidden',!(showText && voiceSupported() && SET.speech!==false));
@@ -2213,6 +2323,8 @@ function setMode(mode){
   else if(mode==='capcountry'){ state.countUp=false; state.duration=90; setInputMode('capcountry'); el.scorelbl.textContent=LT('점수','Score'); }
   else if(mode==='clue'){ state.countUp=true; setInputMode('clue'); el.scorelbl.textContent=LT('점수','Score'); }
   else if(mode==='ranked'){ state.countUp=false; setInputMode('ranked'); el.scorelbl.textContent=LT('정답','Correct'); }
+  else if(mode==='fall'){ state.countUp=true; setInputMode('fall'); el.scorelbl.textContent=LT('점수','Score'); }
+  else if(mode==='sym'){ setInputMode('sym'); el.scorelbl.textContent=LT('점수','Score'); }
   else if(mode==='conquer'){ state.countUp=false; setInputMode('conquer'); el.scorelbl.textContent=LT('정복','Conquered'); }
   else if(mode==='region'){ state.countUp=true; setInputMode('text'); el.scorelbl.textContent=LT('진행','Progress'); }
   else if(mode==='countdown'){ state.countUp=false; state.duration=[60,180,300].includes(state.duration)?state.duration:180; buildDurRow(state.duration); setInputMode('text'); el.scorelbl.textContent=LT('찾은 나라','Found'); }
@@ -2232,7 +2344,7 @@ function resetMode(){
   state.running=false; state.ended=false; state.found=new Set(); state.score=0; state.findLock=false;
   state.elapsed=0; state.target=null; state.queue=[]; state.pool=[]; state.regionIds=null; state.regionTotal=0;
   clearMap(); el.studypanel.classList.add('hidden'); el.trivia.classList.remove('show'); el.compare.classList.remove('show');
-  el.minigame.classList.remove('show'); el.codex.classList.remove('show');
+  el.minigame.classList.remove('show'); el.codex.classList.remove('show'); el.sym.classList.remove('show'); stopFall(); el.fall.classList.remove('show');
   el.prompt.classList.remove('hidden'); el.feedback.classList.remove('hidden');
   el.q.disabled=false; el.q.value='';
   const m=state.mode, region=state.region;
@@ -2253,6 +2365,8 @@ function resetMode(){
   if(m==='oddone'){ startOddone(); updateTimerDisplay(); return; }
   if(m==='chain'){ startChain(); updateTimerDisplay(); return; }
   if(m==='codex'){ startCodex(); return; }
+  if(m==='fall'){ startFall(); return; }
+  if(m==='sym'){ startSym(); return; }
   if(m==='ranked'){ startRanked(); updateTimerDisplay(); return; }
   if(m==='mastery'){ startMastery(); return; }
   if(m==='review'){ startReview(); updateTimerDisplay(); return; }
@@ -3282,6 +3396,111 @@ function endRanked(){
     sub=LT('로그인하면 랭크(RP·티어)가 저장돼요.','Log in to save your rank (RP & tier).');
   }
   showOverlay(LT('랭크전 결과','Ranked result'), (EN()?(hits+' correct'):(hits+'개 정답')), sub);
+}
+
+/* ================= Falling Flags (type before it lands) ================= */
+function stopFall(){ if(state.fallRAF){ cancelAnimationFrame(state.fallRAF); state.fallRAF=0; }
+  (state.fallItems||[]).forEach(it=>{ if(it.el&&it.el.parentNode) it.el.remove(); }); state.fallItems=[]; }
+function updateFallHud(){ el.fallHud.innerHTML='<span>'+LT('점수','Score')+' '+state.score+'</span><span class="lives">'+('❤'.repeat(Math.max(0,state.fallLives))||'—')+'</span>'; }
+function startFall(){
+  stopFall();
+  [el.trivia,el.compare,el.minigame,el.codex,el.sym].forEach(x=>x.classList.remove('show')); el.studypanel.classList.add('hidden');
+  el.fall.classList.add('show'); el.timer.classList.add('hidden');
+  state.score=0; state.fallLives=3; state.fallItems=[]; state.fallT=0; state.fallLast=0; state.fallSpawn=350; state.running=true;
+  state.fallPool=allEntries.filter(e=>e.sov&&e.i2&&!e.isMarker);
+  el.prompt.innerHTML=LT('떨어지는 국기의 나라 이름을 <b>바닥에 닿기 전에</b> 입력하세요!','Type each falling flag’s country <b>before it lands</b>!');
+  setFeedback(LT('생명 3개 · 점점 빨라져요.','3 lives · it speeds up.'),'info');
+  updateScore(); updateFallHud(); el.q.value=''; el.q.focus();
+  state.fallRAF=requestAnimationFrame(fallLoop);
+}
+function spawnFall(){
+  const area=el.fallArea, W=area.clientWidth||600;
+  const active=new Set(state.fallItems.map(it=>it.entry.id));
+  let e=null,tries=0; do{ e=state.fallPool[Math.floor(Math.random()*state.fallPool.length)]; tries++; }while(active.has(e.id)&&tries<20);
+  const d=document.createElement('div'); d.className='fall-item'; d.textContent=flagEmoji(e.i2); area.appendChild(d);
+  const fw=d.offsetWidth||48, x=Math.max(4,Math.min(W-fw-4, Math.random()*(W-fw-8)));
+  const it={entry:e,x,y:-52,speed:0.045+Math.min(0.11,state.fallT*0.0000013),el:d};
+  d.style.transform='translate('+x+'px,'+it.y+'px)'; state.fallItems.push(it);
+}
+function fallLoop(ts){
+  if(state.mode!=='fall'||state.ended){ return; }
+  const dt=Math.min(48, ts-(state.fallLast||ts)); state.fallLast=ts; state.fallT+=dt;
+  state.fallSpawn-=dt;
+  if(state.fallSpawn<=0){ spawnFall(); state.fallSpawn=Math.max(620, 1650 - state.fallT*0.055); }
+  const H=(el.fallArea.clientHeight||500)-48;
+  for(const it of state.fallItems.slice()){
+    it.y += it.speed*dt;
+    if(it.y>=H){ it.el.remove(); state.fallItems.splice(state.fallItems.indexOf(it),1); state.fallLives--;
+      el.fall.classList.remove('fall-flash'); void el.fall.offsetWidth; el.fall.classList.add('fall-flash');
+      celebrate(false,LT('놓침!','Missed!')); updateFallHud();
+      if(state.fallLives<=0){ endFall(); return; }
+    } else it.el.style.transform='translate('+it.x+'px,'+it.y+'px)';
+  }
+  state.fallRAF=requestAnimationFrame(fallLoop);
+}
+function fallGuess(raw){
+  const entry=resolveName(raw); if(!entry){ notFound(raw); return; }
+  let best=null; for(const it of state.fallItems){ if(it.entry.id===entry.id && (!best||it.y>best.y)) best=it; }
+  if(!best){ shakeInput(); setFeedback(EN()?(NM(entry)+' isn’t falling right now.'):(NM(entry)+' 은(는) 지금 떨어지고 있지 않아요.'),'no','x'); el.q.value=''; return; }
+  const bel=best.el; bel.classList.add('pop'); setTimeout(()=>{ if(bel.parentNode) bel.remove(); },300);
+  state.fallItems.splice(state.fallItems.indexOf(best),1);
+  state.score++; trackCountry(entry,true); updateScore(); updateFallHud();
+  celebrate(true,'+1'); setFeedback(LT('정답! ','Correct! ')+NM(entry),'ok','check'); el.q.value='';
+}
+function endFall(){
+  if(state.ended) return; state.ended=true; state.running=false; stopFall();
+  showOverlay(LT('낙하 국기','Falling Flags'), state.score, EN()?('You cleared '+state.score+' flags.'):('국기 '+state.score+'개를 처리했어요.'));
+  const r=recordResult('fall',state.score); if(r&&r.isBest&&state.score>0){ const s=$('ovsub'); s.textContent+=LT(' · 🏆 최고 기록!',' · 🏆 New best!'); }
+}
+
+/* ================= Flag Symbols (pick every flag with a symbol) ================= */
+function symPickable(){ return (FLAGSYM&&FLAGSYM.symbols||[]).filter(s=>s.iso2&&s.iso2.length>=6); }
+function startSym(){
+  [el.trivia,el.compare,el.minigame,el.codex,el.fall].forEach(x=>x.classList.remove('show')); el.studypanel.classList.add('hidden');
+  el.prompt.classList.add('hidden'); el.feedback.classList.add('hidden'); el.timer.classList.add('hidden');
+  el.sym.classList.add('show'); el.symGo.textContent=LT('제출','Submit'); el.symGo.onclick=symSubmit;
+  state.score=0; state.symRound=0; updateScore(); nextSym();
+}
+function nextSym(){
+  state.symLocked=false;
+  const sym=rndOf(symPickable()); state.symSymbol=sym;
+  const has=new Set(sym.iso2);
+  const withSym=shuffleArr(allEntries.filter(e=>e.sov&&e.i2&&has.has(e.i2)));
+  const without=shuffleArr(allEntries.filter(e=>e.sov&&e.i2&&!has.has(e.i2)));
+  const nWith=Math.min(withSym.length, 4+Math.floor(Math.random()*4));   // 4–7 correct in the bank
+  state.symBank=shuffleArr(withSym.slice(0,nWith).concat(without.slice(0, 16-nWith)));
+  state.symSel=new Set(); state.symAnswer=has;
+  el.symQ.innerHTML=LT((state.symRound+1)+'/'+state.symTotal+' · <b>'+sym.emoji+' '+sym.ko+'</b> 기호가 든 국기를 모두 고르세요.',
+    (state.symRound+1)+'/'+state.symTotal+' · Pick every flag with a <b>'+sym.emoji+' '+sym.en+'</b>.');
+  el.symFact.textContent=LT('고른 뒤 제출을 누르세요.','Tap the flags, then Submit.');
+  renderSymGrid();
+}
+function renderSymGrid(){
+  el.symGrid.innerHTML='';
+  state.symBank.forEach(e=>{ const b=document.createElement('button'); b.className='sym-cell'+(state.symSel.has(e.id)?' sel':'');
+    b.innerHTML='<span class="sf">'+flagEmoji(e.i2)+'</span><span class="sn">'+esc(NM(e))+'</span>';
+    b.onclick=()=>{ if(state.symLocked) return; if(state.symSel.has(e.id)) state.symSel.delete(e.id); else state.symSel.add(e.id); b.classList.toggle('sel',state.symSel.has(e.id)); };
+    el.symGrid.appendChild(b); });
+}
+function symSubmit(){
+  if(state.symLocked||state.mode!=='sym') return; state.symLocked=true;
+  const cells=[...el.symGrid.children]; let right=0,wrong=0,missed=0;
+  cells.forEach((c,i)=>{ const e=state.symBank[i], isAns=state.symAnswer.has(e.i2), picked=state.symSel.has(e.id);
+    if(picked&&isAns){ c.classList.add('right'); right++; } else if(picked&&!isAns){ c.classList.add('wrong'); wrong++; } else if(!picked&&isAns){ c.classList.add('missed'); missed++; } });
+  const answers=state.symBank.filter(e=>state.symAnswer.has(e.i2)).length;
+  const perfect=(wrong===0&&missed===0);
+  if(perfect){ state.score++; updateScore(); celebrate(true,LT('완벽!','Perfect!')); }
+  else celebrate(false,LT('아쉬워요','Close'));
+  el.symFact.innerHTML=(EN()?(right+'/'+answers+' right · '+wrong+' wrong · '+missed+' missed'+(perfect?' · <b>+1</b>':''))
+    :('정답 '+right+'/'+answers+' · 오답 '+wrong+' · 놓침 '+missed+(perfect?' · <b>+1점</b>':'')));
+  state.symRound++;
+  const g=state.gen; setTimeout(()=>{ if(state.gen!==g||state.ended||state.mode!=='sym') return;
+    if(state.symRound>=state.symTotal) endSym(); else nextSym(); }, 1800);
+}
+function endSym(){
+  if(state.ended) return; state.ended=true; state.running=false;
+  showOverlay(LT('국기 기호 찾기','Flag Symbols'), state.score+' / '+state.symTotal, EN()?('Perfect rounds: '+state.score+'/'+state.symTotal):(state.symTotal+'라운드 중 '+state.score+'라운드 완벽!'));
+  const r=recordResult('sym',state.score); if(r&&r.isBest&&state.score>0){ const s=$('ovsub'); s.textContent+=LT(' · 🏆 최고 기록!',' · 🏆 New best!'); }
 }
 
 /* ================= war trivia (kahoot-style) ================= */
@@ -9460,6 +9679,7 @@ const MODES_META=[
  {m:'landmark',t:'랜드마크 퀴즈',te:'Landmark Quiz',d:'유명한 명소 설명을 보고 나라 맞히기',de:'Name the country from a famous landmark',ic:'landmark',g:'퀴즈'},
  {m:'clue',t:'스무고개',te:'Clue Hunt',d:'원하는 힌트를 골라 열고, 적게 열수록 고득점 (20점에서 시작)',de:'Buy the clues you want — fewer clues = more points (start at 20)',ic:'question',g:'퀴즈'},
  {m:'silhouette',t:'실루엣 퀴즈',te:'Silhouette',d:'나라의 윤곽(모양)만 보고 이름 맞히기',de:'Name the country from its outline shape',ic:'shape',g:'퀴즈'},
+ {m:'sym',t:'국기 기호 찾기',te:'Flag Symbols',d:'같은 기호(별·달·십자…)가 든 국기를 모두 고르기',de:'Pick every flag that contains a given symbol',ic:'flag2',g:'퀴즈'},
  {m:'capcountry',t:'수도로 나라 맞히기',te:'Capital → Country',d:'수도 이름을 보고 어느 나라인지 맞히기',de:'Name the country from its capital',ic:'star',g:'퀴즈'},
  {m:'compare',t:'더 큰 나라?',te:'Bigger?',d:'두 나라 중 더 큰(많은) 쪽 고르기',de:'Pick the bigger of two countries',ic:'scale',g:'비교·순위'},
  {m:'ladder',t:'업다운 사다리',te:'Higher–Lower',d:'다음 나라가 더 높을지 낮을지 이어서 맞히기',de:'Guess if the next country is higher or lower — keep the streak',ic:'bars',g:'비교·순위'},
@@ -9469,6 +9689,7 @@ const MODES_META=[
  {m:'chain',t:'국경 잇기',te:'Border Chain',d:'국경이 맞닿은 나라를 이어서 최대한 길게',de:'Chain countries that share a land border — go as long as you can',ic:'chain',g:'도전'},
  {m:'daily',t:'오늘의 도전',te:'Daily Challenge',d:'매일 바뀌는 10문제 · 전 세계가 같은 문제',de:'10 questions that change daily — everyone gets the same set',ic:'calendar',g:'도전'},
  {m:'ranked',t:'랭크전',te:'Ranked',d:'정확한 이름만 인정 · 룰과 RP·티어가 있는 승부',de:'Exact names only · rules, RP and rank tiers',ic:'rank',g:'도전'},
+ {m:'fall',t:'낙하 국기',te:'Falling Flags',d:'떨어지는 국기가 바닥에 닿기 전에 이름 입력',de:'Type each falling flag before it lands',ic:'clock',g:'도전'},
  {m:'region',t:'지역별 도전',te:'Region Challenge',d:'고른 지역의 모든 나라 입력',de:'Name every country in a chosen region',ic:'layers',g:'도전'},
  {m:'countdown',t:'전세계 도전',te:'World Countdown',d:'제한 시간 안에 최대한 많이',de:'Name as many as you can before time runs out',ic:'clock',g:'도전'},
  {m:'conquer',t:'정복 모드',te:'Conquer',d:'나라를 반복해 눌러 칠하고 지역 정복',de:'Tap countries repeatedly to paint the region',ic:'trophy',g:'도전'},
@@ -9482,7 +9703,7 @@ const SETUP_CFG={ study:['region'],place:['region'],
   capital:['region','vs'],compare:['cmpmetric','region','vs'],silhouette:['region','vs'],capcountry:['region','vs'],
   ladder:['cmpmetric','region'],estimate:['estmetric','region'],oddone:['region','vs'],chain:['region'],
   conquer:['region'],region:['region'],countdown:['dur'],rank:['metric','region'],
-  locate:['region'],codex:['region'],ranked:['rankedbase','rankedrule'],
+  locate:['region'],codex:['region'],ranked:['rankedbase','rankedrule'],fall:[],sym:[],
   trivia:['war','triviacats','count','vs'] };
 const CMP_METRICS=[{k:'pop',t:'인구',te:'Population'},{k:'area',t:'면적',te:'Area'},{k:'gdp',t:'GDP',te:'GDP'}];
 function chipRow(labelText, items, isOn, onPick){
@@ -9574,7 +9795,7 @@ function enterMode(m){ if(m==='free') startGame('free'); else showSetup(m); }
 function startGame(m){ el.setup.classList.remove('show'); el.home.classList.remove('show'); el.homebtn.classList.remove('hidden'); setMode(m); }
 function showHome(){
   stopTicker(); stopTrivia(); cancelDrag(); state.gen++; state.ended=true; state.running=false;
-  el.trivia.classList.remove('show'); el.compare.classList.remove('show'); el.minigame.classList.remove('show'); el.codex.classList.remove('show'); el.studypanel.classList.add('hidden'); el.inputrow.classList.add('hidden');
+  el.trivia.classList.remove('show'); el.compare.classList.remove('show'); el.minigame.classList.remove('show'); el.codex.classList.remove('show'); el.sym.classList.remove('show'); stopFall(); el.fall.classList.remove('show'); el.studypanel.classList.add('hidden'); el.inputrow.classList.add('hidden');
   el.setup.classList.remove('show'); hideOverlay(); clearMap(); clearLabels(); resetView();
   el.vsbar.classList.add('hidden'); el.timer.classList.remove('hidden');
   el.modetitle.textContent=''; el.homebtn.classList.add('hidden'); el.home.classList.add('show');
@@ -9670,6 +9891,7 @@ function submit(){
   const raw=el.q.value.trim(); if(!raw) return;
   const entry=resolveName(raw); const m=state.mode;
   if(m==='chain'){ chainGuess(raw); return; }
+  if(m==='fall'){ fallGuess(raw); return; }
   if(m==='free'){ if(!entry){notFound(raw);return;} revealFree(entry); el.q.value=''; }
   else if(m==='quiz'||m==='review'||m==='daily'){
     if(!entry){notFound(raw);return;}
@@ -9926,10 +10148,16 @@ function applyLang(){
     '<span><span class="sw" style="background:var(--land)"></span>'+LT('기본','Land')+'</span>'+
     '<span><span class="sw" style="background:var(--found)"></span>'+LT('찾음','Found')+'</span>'+
     '<span><span class="sw tgt"></span>'+LT('문제','Target')+'</span>';
-  // footer
-  $('footer').innerHTML=en
-    ? 'Type a name or code (<kbd>KR</kbd> <kbd>US</kbd> <kbd>JP</kbd> <kbd>UK</kbd>) · wheel/pinch to zoom · drag to pan · in Free Explore you can also tap the map'
-    : '한글·영문 이름 또는 약자(<kbd>KR</kbd> <kbd>US</kbd> <kbd>JP</kbd> <kbd>UK</kbd>) 입력 · 휠/손가락 오므리기로 확대 · 드래그로 이동 · 자유 탐색에선 지도를 눌러도 됩니다';
+  // footer — platform-aware instructions
+  if(IS_TOUCH){
+    $('footer').innerHTML=en
+      ? 'Type a name or code (<kbd>KR</kbd> <kbd>US</kbd> <kbd>JP</kbd> <kbd>UK</kbd>) · pinch to zoom · drag to pan · tap answers to choose'
+      : '이름·약자(<kbd>KR</kbd> <kbd>US</kbd> <kbd>JP</kbd> <kbd>UK</kbd>) 입력 · 손가락 오므려 확대 · 드래그로 이동 · 답은 눌러서 선택';
+  } else {
+    $('footer').innerHTML=en
+      ? 'Type a name or code · wheel to zoom · drag to pan · keys: <kbd>1</kbd>–<kbd>4</kbd> pick answer · <kbd>←</kbd><kbd>→</kbd>/<kbd>A</kbd><kbd>D</kbd> compare · <kbd>↑</kbd><kbd>↓</kbd> higher/lower · <kbd>Enter</kbd> start · <kbd>H</kbd> home'
+      : '이름·약자 입력 · 휠로 확대 · 드래그로 이동 · 단축키: <kbd>1</kbd>–<kbd>4</kbd> 보기 선택 · <kbd>←</kbd><kbd>→</kbd>/<kbd>A</kbd><kbd>D</kbd> 비교 · <kbd>↑</kbd><kbd>↓</kbd> 크다/작다 · <kbd>Enter</kbd> 시작 · <kbd>H</kbd> 홈';
+  }
   // rebuild data-driven selects, preserving current values
   const rv=el.region.value, mv=el.metric.value, wv=el.warsel.value;
   fillRegionOptions(el.region); if(rv) el.region.value=rv;
@@ -10014,6 +10242,29 @@ function closeSettings(){ el.settings.classList.remove('show'); el.settings.setA
 el.setbtn.onclick=openSettings; el.homeset.onclick=openSettings; el.setClose.onclick=closeSettings;
 el.settings.addEventListener('click',e=>{ if(e.target===el.settings) closeSettings(); });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&el.settings.classList.contains('show')) closeSettings(); });
+
+/* ================= keyboard shortcuts (desktop) — inert while typing ================= */
+document.body.classList.add(IS_TOUCH?'is-touch':'is-desktop');
+document.addEventListener('keydown',e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey) return;
+  const ae=document.activeElement, tag=(ae&&ae.tagName)||'';
+  const typing=tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT';
+  const anyModal=el.settings.classList.contains('show')||el.auth.classList.contains('show')||overlay.classList.contains('show');
+  const k=e.key, kl=k.toLowerCase();
+  if(el.setup.classList.contains('show') && k==='Enter' && !typing){ e.preventDefault(); el.setupStart.click(); return; }
+  if(typing||anyModal) return;
+  if(kl==='h' && !el.home.classList.contains('show')){ showHome(); return; }
+  if(el.trivia.classList.contains('show')){
+    const opts=el.tvOpts.querySelectorAll('.tv-opt'), i={'1':0,'2':1,'3':2,'4':3,a:0,b:1,c:2,d:3}[kl];
+    if(i!=null && opts[i]){ e.preventDefault(); opts[i].click(); } return;
+  }
+  const m=state.mode;
+  if(m==='oddone'){ const cards=el.mgBody.querySelectorAll('.mg-grid .mg-card'), i={'1':0,'2':1,'3':2,'4':3}[k];
+    if(i!=null && cards[i]){ e.preventDefault(); cards[i].click(); } return; }
+  if(m==='compare'){ if(k==='ArrowLeft'||kl==='a'){ e.preventDefault(); compareClick('a'); } else if(k==='ArrowRight'||kl==='d'){ e.preventDefault(); compareClick('b'); } return; }
+  if(m==='ladder'){ if(k==='ArrowUp'||k==='ArrowLeft'||kl==='w'||kl==='a'){ e.preventDefault(); ladderGuess('higher'); }
+    else if(k==='ArrowDown'||k==='ArrowRight'||kl==='s'||kl==='d'){ e.preventDefault(); ladderGuess('lower'); } return; }
+});
 
 /* ================= local profiles (saved in THIS browser only — no server) ================= */
 const AKEY='wmh_accounts_v1';
