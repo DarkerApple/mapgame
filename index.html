@@ -454,7 +454,9 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 .rh-lb-ic{font-size:17px}
 .rh-lb-nm{flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rh-lb-lv{font-size:12px;color:var(--muted)}
-.rh-lb-elo{font-weight:800;font-variant-numeric:tabular-nums;color:var(--target)}
+.rh-lb-elo{display:flex;flex-direction:column;align-items:flex-end;line-height:1.15;min-width:56px}
+.rh-lb-pts{font-weight:800;font-variant-numeric:tabular-nums;color:var(--target)}
+.rh-lb-tier{font-size:10.5px;color:var(--muted);font-weight:700;white-space:nowrap}
 .gicon{flex:0 0 auto;width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;
   background:color-mix(in srgb,var(--gc,#4ea1ff) 16%,transparent);color:var(--gc,#4ea1ff);
   border:1px solid color-mix(in srgb,var(--gc,#4ea1ff) 30%,transparent);transition:transform .16s}
@@ -11078,8 +11080,9 @@ function lbHTML(){ const rows=state.lbRows;
       +' <span class="rh-lb-code">('+esc(rows.error)+')</span></div>'; }
   if(!rows||!rows.length) return '<div class="rh-lb-empty">'+LT('아직 순위가 없어요 — 배치고사를 마치면 여기에 올라요!','No ranks yet — finish placement to appear here!')+'</div>';
   const meName=((curUser()||{}).name||'').toLowerCase();
-  return rows.map(r=>{ const ri=Math.floor((r.elo||0)/100000), t=RANK_MAIN[Math.max(0,Math.min(RANK_MAIN.length-1,ri))], mine=meName&&(''+r.username).toLowerCase()===meName;
-    return '<div class="rh-lb-row'+(mine?' me':'')+'"><span class="rh-lb-rk">'+r.rank+'</span><span class="rh-lb-ic">'+t.ic+'</span><span class="rh-lb-nm">'+esc(r.username)+'</span><span class="rh-lb-lv">Lv '+(r.level||0)+'</span><span class="rh-lb-elo">'+LT(t.ko,t.en)+'</span></div>'; }).join('');
+  return rows.map(r=>{ const raw=(r.elo||0), ri=Math.floor(raw/100000), t=RANK_MAIN[Math.max(0,Math.min(RANK_MAIN.length-1,ri))], mine=meName&&(''+r.username).toLowerCase()===meName;
+    const score=Math.max(0,Math.round(raw%100000));   // composite = rank*100000 + total mode ELO
+    return '<div class="rh-lb-row'+(mine?' me':'')+'"><span class="rh-lb-rk">'+r.rank+'</span><span class="rh-lb-ic">'+t.ic+'</span><span class="rh-lb-nm">'+esc(r.username)+'</span><span class="rh-lb-lv">Lv '+(r.level||0)+'</span><span class="rh-lb-elo"><span class="rh-lb-pts">'+score.toLocaleString()+'</span><span class="rh-lb-tier">'+LT(t.ko,t.en)+'</span></span></div>'; }).join('');
 }
 async function refreshLeaderboard(){ state.lbRows=undefined; const paint=()=>{ const b=el.rhBody&&el.rhBody.querySelector('#rh-lb'); if(b) b.innerHTML=lbHTML(); }; paint();
   const rows=await sbLeaderboard(50); state.lbRows=Array.isArray(rows)?rows:((rows&&rows.error)?rows:[]); paint(); }
