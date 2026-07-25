@@ -34,12 +34,28 @@ supabase/
    injected into every Edge Function automatically** — you do NOT need to set
    them. Its URL is `https://<project-ref>.supabase.co/functions/v1/auth`.
 
-   Optional — only to actually send verification emails:
-   ```bash
-   supabase secrets set RESEND_API_KEY=<your resend key>
-   ```
-   Until a mail provider is set, the optional email field is stored but no
-   verification code is sent (accounts still work fully by username/password).
+### Optional: verification emails
+
+Edge Functions can't send email on their own — you must connect a provider.
+The function uses [Resend](https://resend.com) (free tier) when a key is set:
+
+```bash
+supabase secrets set RESEND_API_KEY=<your resend key>
+# to send from your own domain (see the caveat below):
+supabase secrets set MAIL_FROM="Georama <no-reply@yourdomain.com>"
+```
+
+Secrets are read at runtime, so **no redeploy is needed** after setting them.
+
+**Delivery caveat:** with the default sender `onboarding@resend.dev`, Resend
+only delivers to the email you signed up to Resend with (test mode). To email
+*any* user, verify a domain in Resend and set `MAIL_FROM` to an address on it.
+
+Until a provider is configured, the optional email field is stored but no code
+is sent — the app now says so clearly, and accounts work fully by
+username/password regardless.
+
+The function actions are: `signup`, `login`, `verify`, `resend`.
 
 5. **Auth settings.** Dashboard → Authentication → Providers → Email: leave
    "Confirm email" **off** (username accounts are auto-confirmed; the optional

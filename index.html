@@ -10743,7 +10743,11 @@ function cloudAuthError(err){ const c=(err&&err.code)||''; const m={
   bad_credentials:LT('비밀번호가 틀렸어요.','Wrong password.'),
   invalid_username:LT('이름은 2–24자, 공백·@ 없이 입력하세요.','Name must be 2–24 chars, no spaces or @.'),
   invalid_password:LT('비밀번호는 6자 이상이어야 해요.','Password must be at least 6 characters.'),
-  missing:LT('이름과 비밀번호를 입력하세요.','Enter a name and password.')
+  missing:LT('이름과 비밀번호를 입력하세요.','Enter a name and password.'),
+  wrong_code:LT('코드가 틀렸어요.','Wrong code.'),
+  expired:LT('코드가 만료됐어요 — 다시 보내세요.','Code expired — resend it.'),
+  no_code:LT('먼저 코드를 요청하세요.','Request a code first.'),
+  no_email:LT('등록된 이메일이 없어요.','No email on file.')
 };
   if(m[c]) return m[c];
   if(/^http_|network|Failed to fetch|TypeError/.test(c)||/fetch/i.test(String(err&&err.message))) return LT('서버에 연결하지 못했어요 — 잠시 후 다시 시도하세요.','Couldn’t reach the server — try again shortly.');
@@ -10882,7 +10886,9 @@ function renderAuth(){
         +'<div class="pc-sub">'+LT('플레이 ','Games ')+((u.stats&&u.stats.games)||0)+' · '+LT('누적 점수 ','Total ')+((u.stats&&u.stats.points)||0)+'</div>'
         +(u.email?('<div class="pc-sub">'+esc(u.email)+' · '+(u.email_verified?LT('✅ 인증됨','✅ verified'):LT('미인증','unverified'))+'</div>'):'')
         +(needVerify?('<div class="auth-verify"><label class="auth-field"><span>'+LT('이메일 인증 코드','Email code')+'</span><input id="auth-code" inputmode="numeric" maxlength="6" placeholder="000000"></label>'
-            +'<button class="btn auth-mini" id="auth-doverify">'+LT('인증','Verify')+'</button></div>'):'')
+            +'<button class="btn auth-mini" id="auth-doverify">'+LT('인증','Verify')+'</button></div>'
+            +'<button class="auth-link" id="auth-resend">'+LT('코드 다시 보내기','Resend code')+'</button>'
+            +'<p class="auth-note" style="margin-top:2px">'+(u._emailSent?LT('인증 코드를 이메일로 보냈어요. 안 오면 스팸함을 확인하거나 다시 보내세요.','A code was emailed to you. If it doesn’t arrive, check spam or resend.'):LT('※ 아직 이메일 발송이 설정되지 않아 코드가 오지 않을 수 있어요. 메일 제공자를 연결하면 발송돼요 — 계정은 그대로 사용할 수 있어요.','※ Email delivery may not be set up yet, so a code might not arrive. It sends once a mail provider is connected — your account works fine regardless.'))+'</p>'):'')
         +'<button class="btn solid auth-submit" id="auth-logout" style="margin-top:16px">'+LT('로그아웃','Log out')+'</button>'
         +'<div class="auth-msg" id="auth-msg" role="status" aria-live="polite"></div>'
         +'<p class="auth-note">'+LT('클라우드 계정이에요 — 어느 기기에서든 로그인하면 기록이 이어져요.','A cloud account — log in on any device and your progress follows you.')+'</p></div>';
@@ -10890,6 +10896,9 @@ function renderAuth(){
       const vb=el.authBody.querySelector('#auth-doverify'); if(vb) vb.onclick=async()=>{ const code=(el.authBody.querySelector('#auth-code').value||'').trim();
         if(!await sbFresh()){ authMsg(LT('세션이 만료됐어요 — 다시 로그인하세요.','Session expired — log in again.'),'err'); return; }
         try{ await sbFn('verify',{access_token:SB.tok.access_token,code}); u.email_verified=true; authMsg(LT('인증됐어요!','Verified!'),'ok'); renderAuth(); }
+        catch(err){ authMsg(cloudAuthError(err),'err'); } };
+      const rb=el.authBody.querySelector('#auth-resend'); if(rb) rb.onclick=async()=>{ if(!await sbFresh()){ authMsg(LT('세션이 만료됐어요 — 다시 로그인하세요.','Session expired — log in again.'),'err'); return; }
+        try{ const j=await sbFn('resend',{access_token:SB.tok.access_token}); u._emailSent=!!j.email_sent; authMsg(j.email_sent?LT('코드를 다시 보냈어요.','Code resent.'):LT('이메일 발송이 아직 설정되지 않았어요.','Email delivery isn’t set up yet.'), j.email_sent?'ok':'err'); }
         catch(err){ authMsg(cloudAuthError(err),'err'); } };
       return;
     }
@@ -10993,11 +11002,14 @@ async function onAuthSubmit(e){
     const btn=el.authBody.querySelector('.auth-submit'); if(btn) btn.disabled=true;
     authMsg(LT('처리 중…','Working…'),'');
     try{
-      const j=authTab==='signup' ? await sbFn('signup',{username:name,password:pw,email:email||undefined})
-                                  : await sbFn('login',{username:name,password:pw});
+      const wasSignup=authTab==='signup';
+      const j=wasSignup ? await sbFn('signup',{username:name,password:pw,email:email||undefined})
+                        : await sbFn('login',{username:name,password:pw});
       SB.saveTok(j.session);
       const p=await sbLoadProfile(); applyCloudProfile(p||{username:name,stats:{}});
-      closeAuth(); renderProfile();
+      renderProfile();
+      if(wasSignup && email){ const u=curUser(); if(u) u._emailSent=!!j.email_sent; authView='main'; renderAuth(); }   // stay open to show the email-verify step
+      else closeAuth();
     }catch(err){ if(btn) btn.disabled=false; authMsg(cloudAuthError(err),'err'); }
     return;
   }

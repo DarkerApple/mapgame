@@ -43,24 +43,27 @@ async function passwordSession(email: string, password: string) {
   return { access_token: data.session.access_token, refresh_token: data.session.refresh_token };
 }
 
-async function sendCode(id: string, email: string) {
+// Returns true only if a mail provider is configured AND the send was accepted.
+async function sendCode(id: string, email: string): Promise<boolean> {
   const code = String(Math.floor(100000 + Math.random() * 900000));
   const codeHash = await sha256Hex(code);
   const expires = new Date(Date.now() + 15 * 60 * 1000).toISOString();
   await admin.from("email_codes").upsert({ id, code_hash: codeHash, expires_at: expires });
   const key = Deno.env.get("RESEND_API_KEY");
-  if (key) {
-    await fetch("https://api.resend.com/emails", {
+  if (!key) return false; // no provider configured -> nothing is sent
+  const from = Deno.env.get("MAIL_FROM") || "Georama <onboarding@resend.dev>";
+  try {
+    const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { authorization: "Bearer " + key, "content-type": "application/json" },
       body: JSON.stringify({
-        from: "Georama <onboarding@resend.dev>",
-        to: [email],
+        from, to: [email],
         subject: "Georama verification code",
         text: "Your Georama verification code is: " + code + " (valid 15 minutes).",
       }),
-    }).catch(() => {});
-  }
+    });
+    return r.ok;
+  } catch { return false; }
 }
 
 async function signup(b: Record<string, unknown>) {
@@ -85,10 +88,24 @@ async function signup(b: Record<string, unknown>) {
   });
   if (pErr) { await admin.auth.admin.deleteUser(id); return json({ error: pErr.message }, 400); }
 
-  if (email) await sendCode(id, email).catch(() => {});
+  const emailSent = email ? await sendCode(id, email).catch(() => false) : false;
   const session = await passwordSession(authEmail, password);
   if (!session) return json({ error: "login_failed" }, 500);
-  return json({ ok: true, username, email, email_verified: false, session });
+  return json({ ok: true, username, email, email_verified: false, email_sent: emailSent, session });
+}
+
+// resend a verification code to the account's stored email (needs the caller's access token)
+async function resend(b: Record<string, unknown>) {
+  const token = clean(b.access_token);
+  if (!token) return json({ error: "no_token" }, 401);
+  const c = createClient(SUPABASE_URL, ANON, { global: { headers: { Authorization: "Bearer " + token } }, auth: { persistSession: false } });
+  const { data: u } = await c.auth.getUser();
+  if (!u.user) return json({ error: "bad_token" }, 401);
+  const { data: prof } = await admin.from("profiles").select("email,email_verified").eq("id", u.user.id).maybeSingle();
+  if (!prof || !prof.email) return json({ error: "no_email" }, 400);
+  if (prof.email_verified) return json({ ok: true, email_verified: true, email_sent: false });
+  const emailSent = await sendCode(u.user.id, prof.email);
+  return json({ ok: true, email_sent: emailSent });
 }
 
 async function login(b: Record<string, unknown>) {
@@ -129,6 +146,7 @@ Deno.serve(async (req) => {
       case "signup": return await signup(body);
       case "login": return await login(body);
       case "verify": return await verify(body);
+      case "resend": return await resend(body);
       default: return json({ error: "unknown_action" }, 400);
     }
   } catch (e) {
