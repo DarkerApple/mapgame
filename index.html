@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Georama · 지오라마 — 지도로 배우는 지리 게임</title>
 <meta name="description" content="나라 이름이나 약자를 입력하면 세계 지도에서 해당 나라가 하이라이트됩니다. 학습 카드, 타이머, 여러 게임 모드 포함.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%228%22%20fill%3D%22%23159a5a%22%2F%3E%3Ccircle%20cx%3D%2214.5%22%20cy%3D%2216.5%22%20r%3D%228.5%22%20fill%3D%22%23ffffff%22%2F%3E%3Cpath%20d%3D%22M6%2016.5h17M14.5%208c2.7%202.9%202.7%2014.1%200%2017M14.5%208c-2.7%202.9-2.7%2014.1%200%2017%22%20fill%3D%22none%22%20stroke%3D%22%23159a5a%22%20stroke-width%3D%221.6%22%2F%3E%3Cpath%20d%3D%22M23%203.5c-2.2%200-4%201.8-4%204%200%203%204%206.2%204%206.2s4-3.2%204-6.2c0-2.2-1.8-4-4-4z%22%20fill%3D%22%23ffd54a%22%20stroke%3D%22%230c6b3c%22%20stroke-width%3D%221.1%22%2F%3E%3Ccircle%20cx%3D%2223%22%20cy%3D%227.5%22%20r%3D%221.7%22%20fill%3D%22%230c6b3c%22%2F%3E%3C%2Fsvg%3E">
 <meta name="theme-color" content="#0b0b0d">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -172,6 +173,8 @@ select#region:focus{outline:none;border-color:var(--border2)}
 #sp-list{flex:1;overflow-y:auto;overflow-x:hidden;padding:9px;display:flex;flex-direction:column;gap:6px}
 #sp-list::-webkit-scrollbar{width:10px}
 #sp-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:6px;border:2px solid var(--surface)}
+#sp-actions{display:flex;gap:8px;padding:10px;border-top:1px solid var(--border)}
+#sp-actions .btn{flex:1;justify-content:center}
 .sp-item{display:flex;align-items:center;gap:11px;width:100%;text-align:left;color:var(--text);
   background:var(--surface2);border:1px solid transparent;border-radius:11px;padding:10px 12px;cursor:pointer;
   font:inherit;transition:background .14s,border-color .14s,transform .1s}
@@ -591,7 +594,7 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
   <header>
     <div class="bar bar-top">
       <button class="btn hidden" id="homebtn" data-icon="home"><span class="t">홈</span></button>
-      <div class="brand" id="brand"><span data-icon="globe"></span> 지오라마</div>
+      <div class="brand" id="brand"><span data-icon="brand"></span> 지오라마</div>
       <span class="modetitle" id="modetitle"></span>
       <button class="btn" id="themebtn" title="테마 / Theme" aria-label="테마 바꾸기" style="margin-left:auto"><span class="ti">🌙</span></button>
       <button class="btn" id="cbbtn" title="색약 모드 / Colorblind-safe" aria-label="색약 친화 색상 켜기/끄기">🎨</button>
@@ -620,8 +623,6 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
            placeholder="나라 이름이나 약자 입력…  (예: 대한민국, 미국, JP)">
     <button class="btn" id="go" data-icon="check"><span class="t">확인</span></button>
     <button class="btn hidden" id="micbtn" title="음성으로 답하기"><span class="mic">🎤</span></button>
-    <button class="btn hidden" id="hintbtn" data-icon="bulb"><span class="t">다음 힌트</span></button>
-    <button class="btn hidden" id="feverbtn"><span class="fv">🔥</span> <span class="t">확실한 힌트</span></button>
     <button class="btn hidden" id="skip" data-icon="skip"><span class="t">넘기기</span></button>
     <button class="btn hidden step" id="prev" data-icon="prev"><span class="t">이전</span></button>
     <button class="btn hidden step" id="shuffle" data-icon="shuffle"><span class="t">섞기</span></button>
@@ -679,6 +680,10 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
         <label class="sp-toggle" id="sp-toggle"><input type="checkbox" id="hideNames"> <span id="hideNamesLbl">이름 가리기</span></label>
       </div>
       <div id="sp-list"></div>
+      <div id="sp-actions" class="hidden">
+        <button class="btn" id="hintbtn" data-icon="bulb"><span class="t">다음 힌트</span></button>
+        <button class="btn" id="feverbtn"><span class="fv">🔥</span> <span class="t">확실한 힌트</span></button>
+      </div>
     </aside>
   </div>
   <div id="dragghost" class="hidden"></div>
@@ -700,7 +705,7 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
         <button class="home-chip" id="homelang" title="Language / 언어">English</button>
       </div>
     </div>
-    <h1 class="home-title"><span data-icon="globe"></span> 지오라마</h1>
+    <h1 class="home-title"><span data-icon="brand"></span> 지오라마</h1>
     <p class="home-sub">지도로 배우고 겨루는 지리 게임 모음 · 원하는 놀이를 골라 보세요</p>
     <section id="profilecard" class="hidden" aria-label="내 기록"></section>
     <div id="home-content"></div>
@@ -778,6 +783,7 @@ const ICONS={
   medal:svg('<circle cx="12" cy="14" r="6"/><path d="M9 8 6 2M15 8l3-6M12 12l1 2h-2z"/>'),
   landmark:svg('<path d="M12 3l8 4v2H4V7zM6 9v8M10 9v8M14 9v8M18 9v8M4 20h16M3 17h18"/>'),
   question:svg('<circle cx="12" cy="12" r="9"/><path d="M9.2 9.3a3 3 0 0 1 5.6 1.2c0 2-2.8 2.5-2.8 4M12 17h.01"/>'),
+  brand:svg('<circle cx="10.5" cy="13" r="7.5"/><path d="M3 13h15M10.5 5.5c2.7 3 2.7 12 0 15M10.5 5.5c-2.7 3-2.7 12 0 15"/><path d="M18.7 2.7a3 3 0 0 0-3 3c0 2.2 3 4.8 3 4.8s3-2.6 3-4.8a3 3 0 0 0-3-3z"/><circle cx="18.7" cy="5.7" r=".7"/>'),
 };
 document.querySelectorAll('[data-icon]').forEach(e=>e.insertAdjacentHTML('afterbegin', ICONS[e.dataset.icon]||''));
 
@@ -1958,7 +1964,7 @@ const el={
   timerval:$('timerval'),timer:$('timer'),scoreval:$('scoreval'),scorelbl:$('scorelbl'),
   prompt:$('promptbar'),feedback:$('feedback'),q:$('q'),go:$('go'),skip:$('skip'),
   prev:$('prev'),next:$('next'),shuffle:$('shuffle'),region:$('region'),regquiz:$('regquiz'),durrow:$('durrow'),
-  studypanel:$('studypanel'),spList:$('sp-list'),spTitle:$('sp-title'),spToggle:$('sp-toggle'),hideNames:$('hideNames'),
+  studypanel:$('studypanel'),spList:$('sp-list'),spTitle:$('sp-title'),spToggle:$('sp-toggle'),spActions:$('sp-actions'),hideNames:$('hideNames'),
   inputrow:$('inputrow'),metric:$('metric'),orderbtn:$('orderbtn'),hintbtn:$('hintbtn'),feverbtn:$('feverbtn'),micbtn:$('micbtn'),
   home:$('home'),homeContent:$('home-content'),homebtn:$('homebtn'),brand:$('brand'),modetitle:$('modetitle'),
   setup:$('setup'),setupIc:$('setup-ic'),setupTitle:$('setup-title'),setupDesc:$('setup-desc'),setupBody:$('setup-body'),setupStart:$('setup-start'),setupBack:$('setup-back'),
@@ -2097,8 +2103,10 @@ function setInputMode(kind){ // text | quiz | flag | click | study | place | hin
   el.micbtn.classList.toggle('hidden',!(showText && voiceSupported()));
   el.skip.classList.toggle('hidden',!(kind==='quiz'||kind==='flag'||kind==='click'||kind==='hint'||kind==='locate'||kind==='capital'||kind==='chain'||kind==='landmark'||kind==='clue'));
   { const st=el.skip.querySelector('.t'); if(st) st.textContent=(kind==='chain')?LT('끝내기','End'):LT('넘기기','Skip'); }
-  el.hintbtn.classList.toggle('hidden',kind!=='hint');
-  el.feverbtn.classList.toggle('hidden',kind!=='hint' || !(state.hintKinds&&state.hintKinds.has('fever')));
+  // hint-reveal buttons live in the study panel (keeps the top input row uncluttered)
+  el.spActions.classList.toggle('hidden',kind!=='hint');
+  el.hintbtn.classList.remove('hidden');
+  el.feverbtn.classList.toggle('hidden',!(state.hintKinds&&state.hintKinds.has('fever')));
   const step=(kind==='study');
   [el.prev,el.shuffle,el.next].forEach(b=>b.classList.toggle('hidden',!step));
 }
@@ -9686,9 +9694,9 @@ function applyLang(){
   if(el.langbtn) el.langbtn.textContent=en?'한국어':'EN';
   if(el.homelang) el.homelang.textContent=en?'한국어':'English';
   // brand / titles
-  el.brand.innerHTML='<span data-icon="globe"></span> '+(en?'Georama':'지오라마');
-  el.brand.querySelector('[data-icon]').insertAdjacentHTML('afterbegin',ICONS.globe);
-  const ht=document.querySelector('.home-title'); if(ht){ ht.innerHTML='<span data-icon="globe"></span> '+(en?'Georama':'지오라마'); ht.querySelector('[data-icon]').insertAdjacentHTML('afterbegin',ICONS.globe); }
+  el.brand.innerHTML='<span data-icon="brand"></span> '+(en?'Georama':'지오라마');
+  el.brand.querySelector('[data-icon]').insertAdjacentHTML('afterbegin',ICONS.brand);
+  const ht=document.querySelector('.home-title'); if(ht){ ht.innerHTML='<span data-icon="brand"></span> '+(en?'Georama':'지오라마'); ht.querySelector('[data-icon]').insertAdjacentHTML('afterbegin',ICONS.brand); }
   const hsub=document.querySelector('.home-sub'); if(hsub) hsub.textContent=en?'A set of map games to learn and compete · pick one to play':'지도로 배우고 겨루는 지리 게임 모음 · 원하는 놀이를 골라 보세요';
   // static buttons
   setBtnLabel('homebtn',LT('홈','Home'));
