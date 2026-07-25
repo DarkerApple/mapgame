@@ -456,6 +456,41 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
 .cmp-fact{text-align:center;color:var(--muted);font-size:14px;min-height:20px;font-weight:700}
 @media(max-width:520px){ .cmp-cards{gap:8px} .cmp-card{padding:18px 8px} }
 
+/* ---- shared mini-game panel (odd-one-out / ladder / estimate) ---- */
+#minigame{position:absolute;inset:0;z-index:7;background:var(--bg);display:none;flex-direction:column;
+  padding:20px 20px calc(20px + env(safe-area-inset-bottom));align-items:center;justify-content:center;gap:18px}
+#minigame.show{display:flex}
+.mg-q{text-align:center;font-size:clamp(17px,3vw,23px);font-weight:800;letter-spacing:-.01em;max-width:760px;line-height:1.4}
+.mg-q b{color:var(--target)}
+.mg-body{display:flex;flex-direction:column;align-items:center;gap:16px;width:min(760px,96vw)}
+.mg-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%}
+.mg-card{display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--surface);border:2px solid var(--border2);
+  border-radius:16px;padding:20px 12px;cursor:pointer;font:inherit;color:var(--text);transition:background .14s,border-color .14s,transform .1s}
+.mg-card:hover{background:var(--surface2);border-color:var(--muted)}
+.mg-card:active{transform:scale(.98)}
+.mg-card .mf{font-size:clamp(34px,7vw,52px);line-height:1}
+.mg-card .mn{font-size:clamp(15px,2.4vw,19px);font-weight:800;text-align:center}
+.mg-card .mv{font-size:13px;color:var(--muted);font-weight:700;min-height:16px}
+.mg-card.win{border-color:var(--ok);background:var(--ok-dim);box-shadow:0 0 0 2px var(--ok) inset}
+.mg-card.lose{border-color:var(--bad);background:var(--bad-dim)}
+.mg-card.dim{opacity:.5}
+.mg-ladder{display:flex;align-items:stretch;gap:14px;width:100%;justify-content:center}
+.mg-ladder .mg-card{flex:1;min-width:0;max-width:300px}
+.mg-arrow{display:flex;align-items:center;font-weight:900;color:var(--faint);font-size:18px}
+.mg-btns{display:flex;gap:12px;width:100%;max-width:420px}
+.mg-btns button{flex:1;background:var(--surface);border:2px solid var(--border2);border-radius:14px;padding:16px 10px;
+  cursor:pointer;font:inherit;font-size:16px;font-weight:800;color:var(--text);transition:.12s}
+.mg-btns button:hover{background:var(--surface2);border-color:var(--muted)}
+.mg-btns button:active{transform:scale(.98)}
+.mg-est{display:flex;flex-direction:column;gap:12px;width:100%;max-width:420px;align-items:stretch}
+.mg-est input{background:var(--surface2);border:2px solid var(--border2);border-radius:12px;padding:14px 14px;
+  font:inherit;font-size:20px;font-weight:800;color:var(--text);text-align:center;width:100%}
+.mg-est input:focus{outline:none;border-color:var(--accent)}
+.mg-est .mg-sub{color:var(--muted);font-size:13px;text-align:center;font-weight:700}
+.mg-fact{text-align:center;color:var(--muted);font-size:14px;min-height:20px;font-weight:700;max-width:680px}
+.mg-fact b{color:var(--target)}
+@media(max-width:520px){ .mg-grid{gap:8px} .mg-ladder{gap:8px} }
+
 @media(prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
 
 /* ---------- mobile ---------- */
@@ -569,6 +604,11 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
         </div>
         <div class="cmp-fact" id="cmp-fact"></div>
       </div>
+      <div id="minigame">
+        <div class="mg-q" id="mg-q"></div>
+        <div class="mg-body" id="mg-body"></div>
+        <div class="mg-fact" id="mg-fact"></div>
+      </div>
     </div>
     <aside id="studypanel" class="hidden">
       <div class="sp-head">
@@ -667,6 +707,12 @@ const ICONS={
   scale:svg('<path d="M12 3v18M7 21h10M5 7h14M5 7l-3 6h6zM19 7l-3 6h6z"/>'),
   user:svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>'),
   logout:svg('<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l-5-5 5-5M5 12h11"/>'),
+  chain:svg('<path d="M9 12a3 3 0 0 0 3 3h2a3 3 0 0 0 0-6M15 12a3 3 0 0 0-3-3h-2a3 3 0 0 0 0 6"/>'),
+  puzzle:svg('<path d="M10 4a2 2 0 0 1 4 0v2h4v4a2 2 0 0 0 0 4v4h-4a2 2 0 0 1-4 0H6v-4a2 2 0 0 0 0-4V6h4z"/>'),
+  gauge:svg('<path d="M12 13l4-4M3 18a9 9 0 1 1 18 0"/><circle cx="12" cy="13" r="1.4"/>'),
+  book:svg('<path d="M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 0-2 2z"/><path d="M5 4v16"/><path d="M9 8h6M9 12h5"/>'),
+  calendar:svg('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/>'),
+  medal:svg('<circle cx="12" cy="14" r="6"/><path d="M9 8 6 2M15 8l3-6M12 12l1 2h-2z"/>'),
 };
 document.querySelectorAll('[data-icon]').forEach(e=>e.insertAdjacentHTML('afterbegin', ICONS[e.dataset.icon]||''));
 
@@ -959,6 +1005,7 @@ const state={mode:'free',running:false,found:new Set(),score:0,target:null,pool:
   lang:'ko',
   vs:false,turn:0,p:[0,0],vsRounds:10,vsDone:0,
   cmpMetric:'pop',cmpA:null,cmpB:null,cmpLock:false,
+  estMetric:'pop',ladderStreak:0,ladderBest:0,mgLock:false,chainCur:null,chainUsed:null,chainLen:0,
   triviaSel:'all',triviaCount:6,triviaCats:null,triviaQueue:[],triviaIdx:0,triviaLocked:false};
 // i18n helper: pick Korean or English string by current language
 function EN(){ return state.lang==='en'; }
@@ -979,6 +1026,7 @@ const el={
   burst:$('burst'),burstIc:$('burst-ic'),burstTxt:$('burst-txt'),
   langbtn:$('langbtn'),homelang:$('homelang'),themebtn:$('themebtn'),cbbtn:$('cbbtn'),hometheme:$('hometheme'),homecb:$('homecb'),vsbar:$('vsbar'),
   compare:$('compare'),cmpQ:$('cmp-q'),cmpA:$('cmp-a'),cmpB:$('cmp-b'),cmpFact:$('cmp-fact'),
+  minigame:$('minigame'),mgQ:$('mg-q'),mgBody:$('mg-body'),mgFact:$('mg-fact'),
   profilebtn:$('profilebtn'),profilebtnT:$('profilebtn-t'),profilecard:$('profilecard'),
   auth:$('auth'),authBody:$('auth-body'),authClose:$('auth-close'),
 };
@@ -1021,9 +1069,11 @@ function sovFoundCount(){ let n=0; state.found.forEach(id=>{const e=idMap.get(id
 function regionFoundCount(){ let n=0; if(state.regionIds) state.found.forEach(id=>{ if(state.regionIds.has(id)) n++; }); return n; }
 function updateScore(){
   const m=state.mode;
-  if(state.vs && ['quiz','flag','findmap','hint','capital'].includes(m)){ el.scoreval.innerHTML=vsScoreChip(); return; }
+  if(state.vs && ['quiz','flag','findmap','hint','capital','oddone','compare'].includes(m)){ el.scoreval.innerHTML=vsScoreChip(); return; }
   if(m==='free') el.scoreval.textContent=state.found.size;
-  else if(m==='quiz'||m==='findmap'||m==='flag'||m==='capital'||m==='compare') el.scoreval.textContent=state.score;
+  else if(m==='quiz'||m==='findmap'||m==='flag'||m==='capital'||m==='compare'||m==='estimate'||m==='oddone') el.scoreval.textContent=state.score;
+  else if(m==='ladder') el.scoreval.textContent=state.ladderStreak;
+  else if(m==='chain') el.scoreval.textContent=state.chainLen;
   else if(m==='countdown') el.scoreval.textContent=sovFoundCount()+' / '+TOTAL_SOV;
   else if(m==='region') el.scoreval.textContent=regionFoundCount()+' / '+(state.regionTotal||0);
   else if(m==='place') el.scoreval.textContent=(state.placeTotal-state.cards.length)+' / '+state.placeTotal;
@@ -1089,12 +1139,13 @@ el.region.onchange=()=>{ state.region=el.region.value; resetMode(); };
 
 /* ================= input layout ================= */
 function setInputMode(kind){ // text | quiz | flag | click | study | place | hint | rank | conquer | trivia | locate
-  el.inputrow.classList.toggle('hidden',['place','rank','conquer','trivia','compare'].includes(kind));
-  const showText=['text','quiz','flag','hint','capital'].includes(kind);
+  el.inputrow.classList.toggle('hidden',['place','rank','conquer','trivia','compare','mini'].includes(kind));
+  const showText=['text','quiz','flag','hint','capital','chain'].includes(kind);
   el.q.classList.toggle('hidden',!showText);
   el.go.classList.toggle('hidden',!showText);
   el.micbtn.classList.toggle('hidden',!(showText && voiceSupported()));
-  el.skip.classList.toggle('hidden',!(kind==='quiz'||kind==='flag'||kind==='click'||kind==='hint'||kind==='locate'||kind==='capital'));
+  el.skip.classList.toggle('hidden',!(kind==='quiz'||kind==='flag'||kind==='click'||kind==='hint'||kind==='locate'||kind==='capital'||kind==='chain'));
+  { const st=el.skip.querySelector('.t'); if(st) st.textContent=(kind==='chain')?LT('끝내기','End'):LT('넘기기','Skip'); }
   el.hintbtn.classList.toggle('hidden',kind!=='hint');
   el.feverbtn.classList.toggle('hidden',kind!=='hint' || !(state.hintKinds&&state.hintKinds.has('fever')));
   const step=(kind==='study');
@@ -1105,7 +1156,7 @@ function setInputMode(kind){ // text | quiz | flag | click | study | place | hin
 function setMode(mode){
   state.mode=mode;
   document.querySelectorAll('.mode').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
-  const scoped=['study','place','region','quiz','findmap','flag','hint','rank','conquer','locate','capital','compare'].includes(mode);
+  const scoped=['study','place','region','quiz','findmap','flag','hint','rank','conquer','locate','capital','compare','ladder','estimate','oddone','chain'].includes(mode);
   el.region.classList.toggle('hidden',!scoped);
   el.regquiz.classList.toggle('hidden',mode!=='study');
   el.spToggle.classList.toggle('hidden',mode!=='study');
@@ -1124,6 +1175,10 @@ function setMode(mode){
   else if(mode==='flag'){ state.countUp=false; state.duration=90; setInputMode('flag'); el.scorelbl.textContent=LT('점수','Score'); }
   else if(mode==='capital'){ state.countUp=false; state.duration=90; setInputMode('capital'); el.scorelbl.textContent=LT('점수','Score'); }
   else if(mode==='compare'){ state.countUp=false; state.duration=60; setInputMode('compare'); el.scorelbl.textContent=LT('점수','Score'); }
+  else if(mode==='ladder'){ state.countUp=true; setInputMode('mini'); el.scorelbl.textContent=LT('연속','Streak'); }
+  else if(mode==='estimate'){ state.countUp=true; setInputMode('mini'); el.scorelbl.textContent=LT('점수','Score'); }
+  else if(mode==='oddone'){ state.countUp=false; state.duration=60; setInputMode('mini'); el.scorelbl.textContent=LT('점수','Score'); }
+  else if(mode==='chain'){ state.countUp=true; setInputMode('chain'); el.scorelbl.textContent=LT('사슬','Chain'); }
   else if(mode==='hint'){ state.countUp=true; setInputMode('hint'); el.scorelbl.textContent=LT('점수','Score'); }
   else if(mode==='conquer'){ state.countUp=false; setInputMode('conquer'); el.scorelbl.textContent=LT('정복','Conquered'); }
   else if(mode==='region'){ state.countUp=true; setInputMode('text'); el.scorelbl.textContent=LT('진행','Progress'); }
@@ -1139,11 +1194,12 @@ function resetMode(){
   state.running=false; state.ended=false; state.found=new Set(); state.score=0; state.findLock=false;
   state.elapsed=0; state.target=null; state.queue=[]; state.pool=[]; state.regionIds=null; state.regionTotal=0;
   clearMap(); el.studypanel.classList.add('hidden'); el.trivia.classList.remove('show'); el.compare.classList.remove('show');
+  el.minigame.classList.remove('show');
   el.prompt.classList.remove('hidden'); el.feedback.classList.remove('hidden');
   el.q.disabled=false; el.q.value='';
   const m=state.mode, region=state.region;
   el.timer.classList.remove('hidden');
-  const vsMode = state.vs && ['quiz','flag','findmap','hint','capital'].includes(m);
+  const vsMode = state.vs && ['quiz','flag','findmap','hint','capital','oddone','compare'].includes(m);
   if(!vsMode) el.vsbar.classList.add('hidden');
 
   if(m==='study'){ startStudy(); updateTimerDisplay(); return; }
@@ -1153,6 +1209,10 @@ function resetMode(){
   if(m==='rank'){ startRank(); updateTimerDisplay(); return; }
   if(m==='conquer'){ startConquer(); updateTimerDisplay(); return; }
   if(m==='compare'){ startCompare(); updateTimerDisplay(); return; }
+  if(m==='ladder'){ startLadder(); updateTimerDisplay(); return; }
+  if(m==='estimate'){ startEstimate(); updateTimerDisplay(); return; }
+  if(m==='oddone'){ startOddone(); updateTimerDisplay(); return; }
+  if(m==='chain'){ startChain(); updateTimerDisplay(); return; }
   if(m==='trivia'){ startTrivia(); updateTimerDisplay(); return; }
 
   resetView(); updateScore(); updateTimerDisplay();
@@ -1603,13 +1663,15 @@ function cmpFmt(v){ const m=METRICS.find(x=>x.k===state.cmpMetric); return m?m.f
 function cmpLabel(){ const m=CMP_METRICS.find(x=>x.k===state.cmpMetric)||CMP_METRICS[0]; return EN()?m.te:m.t; }
 function startCompare(){
   el.studypanel.classList.add('hidden'); el.trivia.classList.remove('show'); el.compare.classList.add('show');
+  el.minigame.classList.remove('show');
   el.prompt.classList.add('hidden'); el.feedback.classList.add('hidden');   // compare panel is full-screen
-  el.timer.classList.remove('hidden');
+  el.timer.classList.toggle('hidden',state.vs);
   state.score=0; state.cmpLock=false;
   state.cmpPool=regionEntries(state.region).filter(e=>cmpVal(e)!=null);
   if(state.cmpPool.length<2) state.cmpPool=allEntries.filter(e=>e.sov&&cmpVal(e)!=null);
+  if(state.vs){ vsInit(); el.cmpFact.textContent=LT('1 대 1 · 번갈아 한 번씩 고르세요. 정답 +1점.','1v1 · take turns picking. +1 per correct.'); }
+  else el.cmpFact.textContent=LT('첫 선택에 '+state.duration+'초 타이머가 시작돼요.','the '+state.duration+'s timer starts on your first pick.');
   updateScore(); updateTimerDisplay();
-  el.cmpFact.textContent=LT('첫 선택에 '+state.duration+'초 타이머가 시작돼요.','the '+state.duration+'s timer starts on your first pick.');
   nextComparePair();
 }
 function pickTwoDistinct(){
@@ -1629,19 +1691,269 @@ function nextComparePair(){
 }
 function compareClick(which){
   if(state.ended||state.cmpLock||!state.cmpA) return;
-  if(!state.running){ state.running=true; startTicker(); }
+  if(!state.vs && !state.running){ state.running=true; startTicker(); }
   state.cmpLock=true;
   const a=state.cmpA,b=state.cmpB, va=cmpVal(a),vb=cmpVal(b), bigger=va>=vb?'a':'b', correct=which===bigger;
   el.cmpA.querySelector('.cval').textContent=cmpFmt(va);
   el.cmpB.querySelector('.cval').textContent=cmpFmt(vb);
   el.cmpA.classList.add(bigger==='a'?'win':'lose');
   el.cmpB.classList.add(bigger==='b'?'win':'lose');
-  if(correct){ state.score++; updateScore(); celebrate(true,LT('정답!','Correct!')); el.cmpFact.textContent=LT('정답! 👍','Correct! 👍'); }
+  if(correct){ if(state.vs) vsAward(1); else { state.score++; updateScore(); } celebrate(true,LT('정답!','Correct!')); el.cmpFact.textContent=LT('정답! 👍','Correct! 👍'); }
   else { celebrate(false,LT('오답','Nope')); el.cmpFact.textContent=LT('아쉬워요.','Not quite.'); }
+  if(state.vs){ vsAfterAnswerCmp(correct); return; }
   const g=state.gen; setTimeout(()=>{ if(state.gen!==g||state.ended||state.mode!=='compare') return; nextComparePair(); },950);
+}
+// compare 1v1 turn handoff
+function vsAfterAnswerCmp(correct){
+  state.vsDone++; const g=state.gen;
+  setTimeout(()=>{ if(state.gen!==g||state.ended||!state.vs) return;
+    if(state.vsDone>=state.vsRounds){ endVs(); return; }
+    state.turn^=1; updateVsBar(); nextComparePair();
+  }, correct?950:1150);
 }
 el.cmpA.onclick=()=>compareClick('a');
 el.cmpB.onclick=()=>compareClick('b');
+
+/* ================= mini-games: Higher–Lower · Estimate · Odd-One-Out ================= */
+function mgShow(){ el.studypanel.classList.add('hidden'); el.trivia.classList.remove('show'); el.compare.classList.remove('show');
+  el.minigame.classList.add('show'); el.prompt.classList.add('hidden'); el.feedback.classList.add('hidden'); }
+function rndOf(a){ return a[Math.floor(Math.random()*a.length)]; }
+function mgPool(minN){ let p=regionEntries(state.region).filter(e=>e.st); if(p.length<(minN||4)) p=allEntries.filter(e=>e.sov&&e.st); return p; }
+
+/* ---- Higher / Lower ladder (uses state.cmpMetric) ---- */
+function startLadder(){
+  mgShow(); el.timer.classList.remove('hidden');
+  state.score=0; state.ladderStreak=0; state.mgLock=false;
+  state.ladderPool=mgPool(3).filter(e=>cmpVal(e)!=null);
+  if(state.ladderPool.length<3){ el.mgQ.textContent=LT('이 지역은 자료가 부족해요. 다른 지역을 골라 주세요.','Not enough data here — pick another region.'); el.mgBody.innerHTML=''; el.mgFact.textContent=''; return; }
+  state.ladderCur=rndOf(state.ladderPool);
+  updateScore(); updateTimerDisplay(); el.mgFact.textContent='';
+  renderLadder();
+}
+function ladderPickNext(){
+  const cur=state.ladderCur, cv=cmpVal(cur); let n=cur,tries=0;
+  while((n===cur||cmpVal(n)===cv)&&tries<80){ n=rndOf(state.ladderPool); tries++; }
+  return n;
+}
+function ladderCardHTML(e,showVal){
+  return '<div class="mf">'+flagEmoji(e.i2)+'</div><div class="mn">'+esc(NM(e))+'</div><div class="mv">'+(showVal?esc(cmpFmt(cmpVal(e))):'?')+'</div>';
+}
+function renderLadder(){
+  state.mgLock=false;
+  state.ladderNext=ladderPickNext();
+  el.mgQ.innerHTML=EN()?('Does the right country have a <b>higher</b> or <b>lower</b> '+cmpLabel()+'?'):('오른쪽 나라의 <b>'+cmpLabel()+'</b> — 더 클까요, 작을까요?');
+  el.mgBody.innerHTML='<div class="mg-ladder">'
+    +'<div class="mg-card cur">'+ladderCardHTML(state.ladderCur,true)+'</div>'
+    +'<div class="mg-arrow">→</div>'
+    +'<div class="mg-card nxt">'+ladderCardHTML(state.ladderNext,false)+'</div></div>'
+    +'<div class="mg-btns"><button data-hl="higher">▲ '+LT('더 큼','Higher')+'</button><button data-hl="lower">▼ '+LT('더 작음','Lower')+'</button></div>';
+  el.mgBody.querySelectorAll('.mg-btns button').forEach(b=>b.onclick=()=>ladderGuess(b.dataset.hl));
+}
+function ladderGuess(choice){
+  if(state.ended||state.mgLock||!state.ladderNext) return;
+  if(!state.running){ state.running=true; startTicker(); }
+  state.mgLock=true;
+  const cv=cmpVal(state.ladderCur), nv=cmpVal(state.ladderNext);
+  const correct=(choice==='higher')?(nv>cv):(nv<cv);
+  const nxtCard=el.mgBody.querySelector('.mg-card.nxt');
+  nxtCard.querySelector('.mv').textContent=cmpFmt(nv);
+  nxtCard.classList.add(correct?'win':'lose');
+  if(correct){
+    state.ladderStreak++; state.score=state.ladderStreak; updateScore();
+    celebrate(true,LT('연속 '+state.ladderStreak+'!','Streak '+state.ladderStreak+'!'));
+    el.mgFact.textContent=LT('정답! 계속 이어가요.','Correct! Keep going.');
+    const g=state.gen; setTimeout(()=>{ if(state.gen!==g||state.ended||state.mode!=='ladder')return; state.ladderCur=state.ladderNext; renderLadder(); },900);
+  } else {
+    celebrate(false,LT('끝!','Game over!'));
+    el.mgFact.innerHTML=LT('아쉬워요 — 최종 연속 <b>'+state.ladderStreak+'</b>','Nope — final streak <b>'+state.ladderStreak+'</b>');
+    const g=state.gen; setTimeout(()=>{ if(state.gen!==g||state.ended||state.mode!=='ladder')return; endLadder(); },1200);
+  }
+}
+function endLadder(){
+  if(state.ended) return; state.ended=true; state.running=false; stopTicker();
+  const best=state.ladderStreak;
+  showOverlay(LT('연속 기록','Streak'),best,EN()?('You chained '+best+' in a row.'):(best+'개를 연속으로 맞혔어요.'));
+  const r=recordResult('ladder',best); if(r&&r.isBest&&best>0){ const s=$('ovsub'); s.textContent+=LT(' · 🏆 최고 기록!',' · 🏆 New best!'); }
+}
+
+/* ---- Estimate (population / area) ---- */
+function estUnit(){ return state.estMetric==='area'
+  ? {mul:1e3, kl:'면적 (천 km² 단위 · 예: 100)', el:'Area (in thousand km² · e.g. 100)', fmt:v=>fmtArea(v)}
+  : {mul:1e6, kl:'인구 (백만 명 단위 · 예: 51)', el:'Population (in millions · e.g. 51)', fmt:v=>fmtPop(v)}; }
+function startEstimate(){
+  mgShow(); el.timer.classList.remove('hidden');
+  state.score=0; state.mgLock=false; state.estRound=0; state.estTotal=8;
+  state.estPool=mgPool(4).filter(e=>e.st&&e.st[state.estMetric]!=null);
+  if(state.estPool.length<4){ el.mgQ.textContent=LT('이 지역은 자료가 부족해요. 다른 지역을 골라 주세요.','Not enough data here — pick another region.'); el.mgBody.innerHTML=''; el.mgFact.textContent=''; return; }
+  state.estQueue=shuffleArr(state.estPool.slice());
+  updateScore(); updateTimerDisplay(); el.mgFact.textContent='';
+  nextEstimate();
+}
+function nextEstimate(){
+  state.mgLock=false;
+  if(!state.estQueue.length) state.estQueue=shuffleArr(state.estPool.slice());
+  state.estTarget=state.estQueue.pop();
+  const u=estUnit(), t=state.estTarget;
+  el.mgQ.innerHTML=(EN()?('Round '+(state.estRound+1)+' / '+state.estTotal):((state.estRound+1)+' / '+state.estTotal+' 라운드'));
+  el.mgBody.innerHTML='<div class="mg-card" style="cursor:default"><div class="mf">'+flagEmoji(t.i2)+'</div><div class="mn">'+esc(NM(t))+'</div></div>'
+    +'<div class="mg-est"><div class="mg-sub">'+esc(LT(u.kl,u.el))+'</div>'
+    +'<input id="mg-in" type="number" inputmode="decimal" min="0" step="any" placeholder="'+LT('숫자 입력','enter a number')+'">'
+    +'<button class="btn solid" id="mg-go">'+LT('제출','Submit')+'</button></div>';
+  const inp=el.mgBody.querySelector('#mg-in');
+  el.mgBody.querySelector('#mg-go').onclick=estSubmit;
+  inp.onkeydown=e=>{ if(e.key==='Enter') estSubmit(); };
+  inp.focus();
+}
+function estScore(ratio){ // ratio >=1 (bigger/smaller). closer to 1 = better
+  if(ratio<=1.1)return 100; if(ratio<=1.25)return 80; if(ratio<=1.5)return 60; if(ratio<=2)return 40; if(ratio<=3)return 20; if(ratio<=5)return 10; return 0;
+}
+function estSubmit(){
+  if(state.ended||state.mgLock) return;
+  const inp=el.mgBody.querySelector('#mg-in'); if(!inp) return;
+  const raw=parseFloat(inp.value); if(isNaN(raw)||raw<0){ inp.focus(); return; }
+  if(!state.running){ state.running=true; startTicker(); }
+  state.mgLock=true;
+  const u=estUnit(), t=state.estTarget, truth=t.st[state.estMetric], guess=raw*u.mul;
+  const ratio=guess<=0?1e9:Math.max(guess,truth)/Math.min(guess,truth);
+  const pts=estScore(ratio); state.score+=pts; updateScore();
+  const good=pts>=60;
+  celebrate(good,'+'+pts);
+  el.mgFact.innerHTML=(EN()?('Actual: <b>'+u.fmt(truth)+'</b> · you guessed '+u.fmt(guess)+' · +'+pts+' pts')
+    :('실제: <b>'+u.fmt(truth)+'</b> · 추정 '+u.fmt(guess)+' · +'+pts+'점'));
+  state.estRound++;
+  const g=state.gen;
+  setTimeout(()=>{ if(state.gen!==g||state.ended||state.mode!=='estimate')return;
+    if(state.estRound>=state.estTotal) endEstimate(); else nextEstimate(); },1500);
+}
+function endEstimate(){
+  if(state.ended) return; state.ended=true; state.running=false; stopTicker();
+  showOverlay(LT('어림 점수','Estimate score'),state.score,EN()?('Over '+state.estTotal+' rounds.'):(state.estTotal+'라운드 합계.'));
+  const r=recordResult('estimate',state.score); if(r&&r.isBest&&state.score>0){ const s=$('ovsub'); s.textContent+=LT(' · 🏆 최고 기록!',' · 🏆 New best!'); }
+}
+
+/* ---- Odd One Out ---- */
+const ODD_RULES=[
+  {k:'continent', q:['다른 대륙에 있는 나라를 고르세요.','Pick the country on a different continent.'], key:e=>e.c},
+  {k:'region',    q:['다른 지역(권역)에 속한 나라를 고르세요.','Pick the country in a different region.'], key:e=>(SUB_OF[e.i2]||e.c)},
+  {k:'coast',     q:['바다 접근이 다른 하나를 고르세요.','Pick the odd one by coastline (land-locked vs coastal).'], key:e=>(e.st&&e.st.land===1)?'land':'coast'},
+];
+function startOddone(){
+  mgShow();
+  el.timer.classList.toggle('hidden',state.vs);
+  state.score=0; state.mgLock=false;
+  state.oddPool=allEntries.filter(e=>e.sov&&e.st&&e.c);
+  if(state.vs){ vsInit(); el.mgFact.textContent=LT('1 대 1 · 번갈아 한 문제씩. 정답 +1점.','1v1 · take turns. +1 per correct.'); }
+  else el.mgFact.textContent=LT('첫 선택에 '+state.duration+'초 타이머가 시작돼요.','the '+state.duration+'s timer starts on your first pick.');
+  updateScore(); updateTimerDisplay();
+  nextOddone();
+}
+function buildOddRound(){
+  // try rules until one yields a clean 3+1 split
+  const rules=shuffleArr(ODD_RULES.slice());
+  for(const rule of rules){
+    const groups={}; state.oddPool.forEach(e=>{ const k=rule.key(e); (groups[k]=groups[k]||[]).push(e); });
+    const keys=Object.keys(groups).filter(k=>groups[k].length>=3);
+    if(!keys.length) continue;
+    const famKey=rndOf(keys);
+    const others=state.oddPool.filter(e=>rule.key(e)!==famKey);
+    if(others.length<1) continue;
+    const fam=shuffleArr(groups[famKey].slice()).slice(0,3);
+    const odd=rndOf(others);
+    return {rule, fam, odd, cards:shuffleArr(fam.concat([odd]))};
+  }
+  return null;
+}
+function nextOddone(){
+  state.mgLock=false;
+  const rd=buildOddRound();
+  if(!rd){ el.mgQ.textContent=LT('문제를 만들 수 없어요.','Could not build a round.'); return; }
+  state.oddRound=rd;
+  el.mgQ.textContent=LT(rd.rule.q[0],rd.rule.q[1]);
+  el.mgBody.innerHTML='<div class="mg-grid"></div>';
+  const grid=el.mgBody.querySelector('.mg-grid');
+  rd.cards.forEach(e=>{ const b=document.createElement('button'); b.className='mg-card';
+    b.innerHTML='<div class="mf">'+flagEmoji(e.i2)+'</div><div class="mn">'+esc(NM(e))+'</div>';
+    b.onclick=()=>oddClick(e,b); grid.appendChild(b); });
+}
+function oddClick(e,btn){
+  if(state.ended||state.mgLock||!state.oddRound) return;
+  if(!state.vs && !state.running){ state.running=true; startTicker(); }
+  state.mgLock=true;
+  const rd=state.oddRound, correct=e===rd.odd;
+  const grid=el.mgBody.querySelector('.mg-grid'); const kids=[...grid.children];
+  kids.forEach((k,i)=>{ const ce=rd.cards[i]; if(ce===rd.odd) k.classList.add('win'); else if(ce===e) k.classList.add('lose'); else k.classList.add('dim'); });
+  if(correct){ if(state.vs) vsAward(1); else { state.score++; updateScore(); } celebrate(true,LT('정답!','Correct!')); }
+  else { celebrate(false,LT('오답','Nope')); }
+  el.mgFact.innerHTML=EN()?('The odd one was <b>'+esc(NM(rd.odd))+'</b>.'):('정답은 <b>'+esc(NM(rd.odd))+'</b> 였어요.');
+  if(state.vs){ vsAfterAnswerMG(correct); return; }
+  const g=state.gen; setTimeout(()=>{ if(state.gen!==g||state.ended||state.mode!=='oddone')return; nextOddone(); },1050);
+}
+// odd-one-out 1v1 turn handoff (mirrors vsAfterAnswer but re-renders the panel)
+function vsAfterAnswerMG(correct){
+  state.vsDone++; const g=state.gen;
+  setTimeout(()=>{ if(state.gen!==g||state.ended||!state.vs) return;
+    if(state.vsDone>=state.vsRounds){ endVs(); return; }
+    state.turn^=1; updateVsBar(); nextOddone();
+  }, correct?900:1150);
+}
+
+/* ---- Border Chain (uses the map + text input) ---- */
+function chainNeighbors(e){
+  // resolve this country's neighbor names to entry ids, restricted to the active pool
+  const out=new Set(); const names=(e.st&&(e.st.nb||[]))||[];
+  names.forEach(nm=>{ const t=lookup.get(norm(nm)); if(t&&state.chainSet&&state.chainSet.has(t.id)) out.add(t.id); });
+  return out;
+}
+function chainLiveNeighbors(id){ const e=idMap.get(id); if(!e) return []; return [...chainNeighbors(e)].filter(nid=>!state.chainUsed.has(nid)); }
+function startChain(){
+  el.minigame.classList.remove('show');
+  el.prompt.classList.remove('hidden'); el.feedback.classList.remove('hidden');
+  el.timer.classList.remove('hidden'); resetView();
+  let pool=regionEntries(state.region).filter(e=>e.st); if(pool.length<3) pool=allEntries.filter(e=>e.sov&&e.st);
+  state.chainSet=new Set(pool.map(e=>e.id));
+  // seeds that actually have at least one neighbor inside the pool
+  const seeds=pool.filter(e=>chainNeighbors(e).size>0);
+  if(!seeds.length){ el.prompt.innerHTML=LT('이 지역은 육지 국경이 거의 없어 사슬을 만들 수 없어요. 다른 지역을 골라 주세요.','This region has too few land borders for a chain — pick another region.'); setFeedback('','info'); state.ended=true; return; }
+  // prefer a well-connected starting country so the chain has room to grow
+  const wellConnected=seeds.filter(e=>chainNeighbors(e).size>=3);
+  const seedPool=wellConnected.length?wellConnected:seeds;
+  state.chainUsed=new Set(); state.chainLen=1;
+  state.chainCur=rndOf(seedPool).id; state.chainUsed.add(state.chainCur);
+  const cur=idMap.get(state.chainCur);
+  cur.el.classList.add('found'); cur.el.classList.add('target'); cur.el.parentNode.appendChild(cur.el); focusEntry(cur,2.2);
+  updateScore(); updateTimerDisplay();
+  chainPrompt(); el.q.value=''; el.q.focus();
+}
+function chainPrompt(){
+  const cur=idMap.get(state.chainCur); const live=chainLiveNeighbors(state.chainCur).length;
+  el.prompt.innerHTML=EN()?('Name a country bordering <b>'+esc(NM(cur))+'</b>. <span style="color:var(--muted)">('+live+' left)</span>')
+    :('<b>'+esc(NM(cur))+'</b> 와(과) 국경을 맞댄 나라를 입력하세요. <span style="color:var(--muted)">(남은 이웃 '+live+')</span>');
+  setFeedback(EN()?('Chain length: '+state.chainLen):('사슬 길이: '+state.chainLen),'info');
+}
+function chainGuess(raw){
+  const entry=lookup.get(norm(raw)); if(!entry){ notFound(raw); return; }
+  if(state.chainUsed.has(entry.id)){ setFeedback(LT('이미 사슬에 있는 나라예요: ','Already in the chain: ')+NM(entry),'info'); shakeInput(); return; }
+  if(!state.chainSet.has(entry.id)){ setFeedback(EN()?(NM(entry)+' is not in this region.'):(NM(entry)+' 은(는) 이 지역이 아니에요.'),'no','x'); shakeInput(); return; }
+  const nb=chainNeighbors(idMap.get(state.chainCur));
+  if(!nb.has(entry.id)){ setFeedback(EN()?(NM(entry)+' does not border '+NM(idMap.get(state.chainCur))+'.'):(NM(entry)+' 은(는) '+NM(idMap.get(state.chainCur))+' 와(과) 국경이 없어요.'),'no','x'); shakeInput(); return; }
+  // valid link
+  if(!state.running){ state.running=true; startTicker(); }
+  const prev=idMap.get(state.chainCur); prev.el.classList.remove('target');
+  state.chainUsed.add(entry.id); state.chainLen++; state.chainCur=entry.id;
+  markFound(entry,true); entry.el.classList.add('target'); entry.el.parentNode.appendChild(entry.el); focusEntry(entry,2.2);
+  updateScore(); el.q.value='';
+  celebrate(true,'+1');
+  if(chainLiveNeighbors(state.chainCur).length===0){ // dead end
+    setFeedback(EN()?('Dead end! Final chain: '+state.chainLen):('막다른 길! 최종 사슬: '+state.chainLen),'ok','check');
+    later(endChain,1200); return;
+  }
+  chainPrompt();
+}
+function endChain(){
+  if(state.ended) return; state.ended=true; state.running=false; stopTicker(); el.q.disabled=true;
+  showOverlay(LT('사슬 길이','Chain length'),state.chainLen,EN()?('You linked '+state.chainLen+' bordering countries.'):('국경을 맞댄 나라 '+state.chainLen+'개를 이었어요.'));
+  const r=recordResult('chain',state.chainLen); if(r&&r.isBest&&state.chainLen>0){ const s=$('ovsub'); s.textContent+=LT(' · 🏆 최고 기록!',' · 🏆 New best!'); }
+}
 
 /* ================= war trivia (kahoot-style) ================= */
 const CAT_EN={'세계대전':'World Wars','냉전기 전쟁':'Cold War Era','근대 전쟁':'Modern Wars','고대·중세 전쟁':'Ancient & Medieval','현대 분쟁':'Contemporary','그 밖의 전쟁':'Other Wars'};
@@ -7814,7 +8126,11 @@ const MODES_META=[
  {m:'capital',t:'수도 퀴즈',te:'Capital Quiz',d:'나라를 보고 수도 이름 입력',de:'Type the capital of the shown country',ic:'star',g:'퀴즈'},
  {m:'hint',t:'힌트 퀴즈',te:'Hint Quiz',d:'인접국·크기·수도 등 힌트로 추리',de:'Guess from neighbors, size, capital…',ic:'bulb',g:'퀴즈'},
  {m:'compare',t:'더 큰 나라?',te:'Bigger?',d:'두 나라 중 더 큰(많은) 쪽 고르기',de:'Pick the bigger of two countries',ic:'scale',g:'비교·순위'},
+ {m:'ladder',t:'업다운 사다리',te:'Higher–Lower',d:'다음 나라가 더 높을지 낮을지 이어서 맞히기',de:'Guess if the next country is higher or lower — keep the streak',ic:'bars',g:'비교·순위'},
+ {m:'estimate',t:'어림하기',te:'Estimate',d:'인구·면적을 숫자로 어림해서 가까울수록 고득점',de:'Estimate population or area — closer guesses score more',ic:'gauge',g:'비교·순위'},
  {m:'rank',t:'순위표',te:'Rankings',d:'인구·면적·GDP 등 지표별 순위와 지도',de:'Rank countries by population, area, GDP…',ic:'bars',g:'비교·순위'},
+ {m:'oddone',t:'하나 빼기',te:'Odd One Out',d:'넷 중 무리에 속하지 않는 하나 고르기',de:'Pick the country that does not belong',ic:'puzzle',g:'퀴즈'},
+ {m:'chain',t:'국경 잇기',te:'Border Chain',d:'국경이 맞닿은 나라를 이어서 최대한 길게',de:'Chain countries that share a land border — go as long as you can',ic:'chain',g:'도전'},
  {m:'region',t:'지역별 도전',te:'Region Challenge',d:'고른 지역의 모든 나라 입력',de:'Name every country in a chosen region',ic:'layers',g:'도전'},
  {m:'countdown',t:'전세계 도전',te:'World Countdown',d:'제한 시간 안에 최대한 많이',de:'Name as many as you can before time runs out',ic:'clock',g:'도전'},
  {m:'conquer',t:'정복 모드',te:'Conquer',d:'나라를 반복해 눌러 칠하고 지역 정복',de:'Tap countries repeatedly to paint the region',ic:'trophy',g:'도전'},
@@ -7825,7 +8141,8 @@ function modeDesc(x){ return EN()?(x.de||x.d):x.d; }
 /* ---- pre-game setup (choose place/criteria before the timer starts) ---- */
 const SETUP_CFG={ study:['region'],place:['region'],
   quiz:['region','vs'],findmap:['region','vs'],flag:['region','vs'],hint:['region','hintkinds','vs'],
-  capital:['region','vs'],compare:['cmpmetric','region'],
+  capital:['region','vs'],compare:['cmpmetric','region','vs'],
+  ladder:['cmpmetric','region'],estimate:['estmetric','region'],oddone:['region','vs'],chain:['region'],
   conquer:['region'],region:['region'],countdown:['dur'],rank:['metric','region'],
   locate:['region'],
   trivia:['war','triviacats','count','vs'] };
@@ -7861,6 +8178,10 @@ function setupControl(kind){
       CMP_METRICS.map(m=>({v:m.k,t:EN()?m.te:m.t})),
       it=>state.cmpMetric===it.v,
       (it,b,wrap)=>{ state.cmpMetric=it.v; [...wrap.children].forEach(c=>c.classList.remove('on')); b.classList.add('on'); }); }
+  else if(kind==='estmetric'){ return chipRow(LT('어림할 지표','Estimate what'),
+      [{v:'pop',t:LT('인구','Population')},{v:'area',t:LT('면적','Area')}],
+      it=>state.estMetric===it.v,
+      (it,b,wrap)=>{ state.estMetric=it.v; [...wrap.children].forEach(c=>c.classList.remove('on')); b.classList.add('on'); }); }
   else if(kind==='triviacats'){ if(!state.triviaCats) state.triviaCats=new Set(allCats());
     return chipRow(LT('카테고리 (눌러서 숨기기)','Categories (tap to hide)'),
       allCats().map(c=>({v:c,t:catName(c)})),
@@ -7906,7 +8227,7 @@ function enterMode(m){ if(m==='free') startGame('free'); else showSetup(m); }
 function startGame(m){ el.setup.classList.remove('show'); el.home.classList.remove('show'); el.homebtn.classList.remove('hidden'); setMode(m); }
 function showHome(){
   stopTicker(); stopTrivia(); cancelDrag(); state.gen++; state.ended=true; state.running=false;
-  el.trivia.classList.remove('show'); el.compare.classList.remove('show'); el.studypanel.classList.add('hidden'); el.inputrow.classList.add('hidden');
+  el.trivia.classList.remove('show'); el.compare.classList.remove('show'); el.minigame.classList.remove('show'); el.studypanel.classList.add('hidden'); el.inputrow.classList.add('hidden');
   el.setup.classList.remove('show'); hideOverlay(); clearMap(); clearLabels(); resetView();
   el.vsbar.classList.add('hidden'); el.timer.classList.remove('hidden');
   el.modetitle.textContent=''; el.homebtn.classList.add('hidden'); el.home.classList.add('show');
@@ -7991,6 +8312,7 @@ function submit(){
   if(state.ended) return;
   const raw=el.q.value.trim(); if(!raw) return;
   const entry=lookup.get(norm(raw)); const m=state.mode;
+  if(m==='chain'){ chainGuess(raw); return; }
   if(m==='free'){ if(!entry){notFound(raw);return;} revealFree(entry); el.q.value=''; }
   else if(m==='quiz'){
     if(!entry){notFound(raw);return;}
@@ -8072,6 +8394,7 @@ el.skip.onclick=()=>{
   else if(m==='locate'){ const t=state.target; if(!t) return; t.el.classList.add('target'); t.el.parentNode.appendChild(t.el); focusEntry(t,2.4);
     setFeedback(EN()?(NM(t)+' is here.'):(NM(t)+' 은(는) 여기예요.'),'info');
     state.findLock=true; later(()=>{ state.findLock=false; t.el.classList.remove('target'); nextLocateTarget(); },1400); }
+  else if(m==='chain'){ endChain(); }
 };
 
 /* ================= end / overlay ================= */
@@ -8086,6 +8409,7 @@ function endGame(){
   else if(m==='flag') showOverlay(TIMEUP,state.score,EN()?('You named '+state.score+' flags.'):('국기 '+state.score+'개를 맞혔어요.'));
   else if(m==='capital') showOverlay(TIMEUP,state.score,EN()?('You named '+state.score+' capitals.'):('수도 '+state.score+'개를 맞혔어요.'));
   else if(m==='compare') showOverlay(TIMEUP,state.score,EN()?('You got '+state.score+' comparisons right.'):('비교 '+state.score+'개를 맞혔어요.'));
+  else if(m==='oddone') showOverlay(TIMEUP,state.score,EN()?('You solved '+state.score+' puzzles.'):('퍼즐 '+state.score+'개를 풀었어요.'));
   else if(m==='region'){ const n=regionFoundCount(),tot=state.regionTotal,done=n>=tot;
     showOverlay(done?LT('완성! 🎉','Complete! 🎉'):LT('종료','Done'),n+' / '+tot, done? (EN()?('Cleared all of '+regionName(state.region)+' in '+fmtTime(state.elapsed)+'!'):(regionName(state.region)+' 전체를 '+fmtTime(state.elapsed)+' 만에 완성!')) : (EN()?(n+' of '+tot+' in '+regionName(state.region)+'.'):(regionName(state.region)+' '+tot+'개 중 '+n+'개.'))); }
   else if(m==='place'){ showOverlay(LT('완성! 🎉','Complete! 🎉'),state.placeTotal+LT('개',''), EN()?('Placed every label in '+regionName(state.region)+' in '+fmtTime(state.elapsed)+'!'):(regionName(state.region)+'의 모든 이름표를 '+fmtTime(state.elapsed)+' 만에 붙였어요!')); }
@@ -8095,7 +8419,7 @@ function endGame(){
       done? (EN()?('Painted every country in '+regionName(state.region)+' in '+fmtTime(state.elapsed)+'!'):(regionName(state.region)+'의 모든 나라를 '+fmtTime(state.elapsed)+' 만에 칠했어요!')) : (EN()?('Almost! '+state.conquerDone+' of '+state.conquerTotal+' painted.'):('조금만 더! '+state.conquerTotal+'개 중 '+state.conquerDone+'개 칠했어요.'))); }
   else { const sov=sovFoundCount(); showOverlay(TIMEUP,sov+' / '+TOTAL_SOV,EN()?('You found '+sov+' of '+TOTAL_SOV+' sovereign states!'):('주권국 '+TOTAL_SOV+'개 중 '+sov+'개를 찾았어요!')); }
   // save the result for the logged-in profile & flag a new best
-  const scoreMap={quiz:state.score,flag:state.score,capital:state.score,findmap:state.score,compare:state.score,
+  const scoreMap={quiz:state.score,flag:state.score,capital:state.score,findmap:state.score,compare:state.score,oddone:state.score,
     countdown:sovFoundCount(),region:regionFoundCount(),conquer:state.conquerDone,place:state.placeTotal,locate:state.locTotal};
   if(scoreMap[m]!==undefined){ const r=recordResult(m,scoreMap[m]);
     if(r&&r.isBest&&scoreMap[m]>0){ const s=$('ovsub'); s.textContent=s.textContent+LT(' · 🏆 최고 기록!',' · 🏆 New best!'); } }
