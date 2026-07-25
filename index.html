@@ -341,6 +341,15 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 .pc-stat{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:9px 14px;min-width:76px}
 .pc-stat .n{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
 .pc-stat .l{font-size:11px;color:var(--muted);margin-top:2px}
+.pc-ach{margin-top:15px}
+.pc-ach-h{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+.pc-ach-grid{display:flex;flex-wrap:wrap;gap:7px}
+.ach-badge{width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:21px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:10px;cursor:default}
+.ach-badge.off{filter:grayscale(1);opacity:.32}
+.pc-actions{margin-top:15px}
+.pc-share{width:100%;justify-content:center;font-weight:700}
+.share-img{display:block;width:100%;max-width:340px;margin:6px auto 12px;border-radius:14px;border:1px solid var(--border2)}
 /* auth modal */
 #auth{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:18px;
   background:rgba(6,6,8,.74);backdrop-filter:blur(5px)}
@@ -1010,6 +1019,7 @@ map.addEventListener('click',e=>{
   else if(state.mode==='rank'){ const i=state.rankList?state.rankList.indexOf(entry):-1; if(i>=0) focusRank(i); }
   else if(state.mode==='conquer') conquerClick(entry);
   else if(state.mode==='locate') locateClick(entry);
+  else if(state.mode==='mastery') masteryClick(entry);
 });
 
 /* ================= highlight helpers ================= */
@@ -1115,9 +1125,11 @@ function updateScore(){
   const m=state.mode;
   if(state.vs && ['quiz','flag','findmap','hint','capital','oddone','compare'].includes(m)){ el.scoreval.innerHTML=vsScoreChip(); return; }
   if(m==='free') el.scoreval.textContent=state.found.size;
-  else if(m==='quiz'||m==='findmap'||m==='flag'||m==='capital'||m==='compare'||m==='estimate'||m==='oddone') el.scoreval.textContent=state.score;
+  else if(m==='quiz'||m==='findmap'||m==='flag'||m==='capital'||m==='compare'||m==='estimate'||m==='oddone'||m==='review') el.scoreval.textContent=state.score;
+  else if(m==='daily') el.scoreval.textContent=state.score+' / '+(state.dailyTotal||10);
   else if(m==='ladder') el.scoreval.textContent=state.ladderStreak;
   else if(m==='chain') el.scoreval.textContent=state.chainLen;
+  else if(m==='mastery') el.scoreval.textContent=(state.masteryCount||0);
   else if(m==='countdown') el.scoreval.textContent=sovFoundCount()+' / '+TOTAL_SOV;
   else if(m==='region') el.scoreval.textContent=regionFoundCount()+' / '+(state.regionTotal||0);
   else if(m==='place') el.scoreval.textContent=(state.placeTotal-state.cards.length)+' / '+state.placeTotal;
@@ -1183,7 +1195,7 @@ el.region.onchange=()=>{ state.region=el.region.value; resetMode(); };
 
 /* ================= input layout ================= */
 function setInputMode(kind){ // text | quiz | flag | click | study | place | hint | rank | conquer | trivia | locate
-  el.inputrow.classList.toggle('hidden',['place','rank','conquer','trivia','compare','mini','codex'].includes(kind));
+  el.inputrow.classList.toggle('hidden',['place','rank','conquer','trivia','compare','mini','codex','mastery'].includes(kind));
   const showText=['text','quiz','flag','hint','capital','chain'].includes(kind);
   el.q.classList.toggle('hidden',!showText);
   el.go.classList.toggle('hidden',!showText);
@@ -1230,6 +1242,9 @@ function setMode(mode){
   else if(mode==='rank'){ state.countUp=true; setInputMode('rank'); el.scorelbl.textContent=LT('나라','Countries'); }
   else if(mode==='locate'){ state.countUp=true; setInputMode('locate'); el.scorelbl.textContent=LT('익힘','Learned'); }
   else if(mode==='codex'){ setInputMode('codex'); }
+  else if(mode==='mastery'){ setInputMode('mastery'); el.scorelbl.textContent=LT('숙달','Mastered'); }
+  else if(mode==='review'){ state.countUp=true; setInputMode('quiz'); el.scorelbl.textContent=LT('복습','Review'); }
+  else if(mode==='daily'){ state.countUp=true; setInputMode('quiz'); el.scorelbl.textContent=LT('점수','Score'); }
   else if(mode==='trivia'){ state.countUp=true; setInputMode('trivia'); el.scorelbl.textContent=LT('점수','Score'); }
   resetMode();
 }
@@ -1259,6 +1274,9 @@ function resetMode(){
   if(m==='oddone'){ startOddone(); updateTimerDisplay(); return; }
   if(m==='chain'){ startChain(); updateTimerDisplay(); return; }
   if(m==='codex'){ startCodex(); return; }
+  if(m==='mastery'){ startMastery(); return; }
+  if(m==='review'){ startReview(); updateTimerDisplay(); return; }
+  if(m==='daily'){ startDaily(); updateTimerDisplay(); return; }
   if(m==='trivia'){ startTrivia(); updateTimerDisplay(); return; }
 
   resetView(); updateScore(); updateTimerDisplay();
@@ -1377,11 +1395,12 @@ function nextLocateTarget(){
 function locateClick(entry){
   if(state.ended||state.findLock||!state.target) return;
   if(entry.id===state.target.id){
-    state.found.add(entry.id); markFound(entry,true); celebrate(true,LT('맞아요!','Yes!'));
+    state.found.add(entry.id); markFound(entry,true); celebrate(true,LT('맞아요!','Yes!')); trackCountry(state.target,true);
     setFeedback(LT('맞아요! ','Correct! ')+NM(entry),'ok','check'); updateScore();
     state.findLock=true; later(()=>{ state.findLock=false; nextLocateTarget(); },600);
   } else {
     // teach: flash the wrong pick, then briefly light up the correct location
+    trackCountry(state.target,false);
     flashWrong(entry);
     const t=state.target; t.el.classList.add('target'); t.el.parentNode.appendChild(t.el); focusEntry(t,2.4);
     setFeedback(EN()?('That’s '+NM(entry)+'. '+NM(t)+' is here — remember it!'):('그건 '+NM(entry)+' 예요. '+NM(t)+' 은(는) 여기예요 — 기억해요!'),'no','x');
@@ -2053,6 +2072,87 @@ function showCodexDetail(e){
     +'<div class="cxd-sub">'+esc(en?(e.ko):(e.en||''))+(e.i2?(' · '+e.i2):'')+'</div></div></div>'
     +'<div class="cxd-facts">'+facts+'</div>'+notes;
   el.cxDetail.querySelector('#cxd-back').onclick=()=>{ el.cxDetail.hidden=true; el.cxGrid.style.display=''; };
+}
+
+/* ================= Mastery Map · Mistake Review · Daily Challenge ================= */
+function needLoginMsg(){ el.prompt.innerHTML=LT('이 기능은 <b>로그인</b>이 필요해요. 홈에서 로그인하면 학습 기록이 저장돼요.','This needs a <b>login</b>. Sign in from the home screen to save your progress.'); setFeedback('','info'); }
+const MASTERY_FILL=['','#c0463f','#dca100','#1a9e57']; // level 0..3 (0 = default → '')
+function startMastery(){
+  el.timer.classList.add('hidden'); $('scorechip').classList.remove('hidden');
+  clearMap(); resetView();
+  if(!curUser()){ needLoginMsg(); state.masteryCount=0; updateScore(); return; }
+  let mastered=0, a=[0,0,0,0];
+  allEntries.forEach(e=>{ if(!e.sov||!e.i2) return; const lv=masteryLevel(e.i2); a[lv]++;
+    if(lv>0){ e.el.style.fill=MASTERY_FILL[lv]; if(lv===3) mastered++; } });
+  state.masteryCount=mastered;
+  el.prompt.innerHTML=LT('내 학습 지도 · 나라를 눌러 기록을 확인하세요.','Your mastery map · tap a country to see its record.');
+  setFeedback(LT('🟢 숙달 '+a[3]+' · 🟡 학습중 '+a[2]+' · 🔴 복습필요 '+a[1]+' · ⚪ 미학습 '+a[0],'🟢 Mastered '+a[3]+' · 🟡 Learning '+a[2]+' · 🔴 Weak '+a[1]+' · ⚪ Unseen '+a[0]),'info');
+  updateScore();
+}
+function masteryClick(entry){
+  if(!entry||!entry.i2) return;
+  const u=curUser(); if(!u){ needLoginMsg(); return; }
+  const cc=(u.stats&&u.stats.cc)||{}, r=cc[entry.i2]; focusEntry(entry,1.8);
+  if(!r||(r.r+r.w)===0){ setFeedback(NM(entry)+' — '+LT('아직 풀지 않았어요.','not attempted yet.'),'info'); return; }
+  const lvl=['','🔴 '+LT('복습 필요','weak'),'🟡 '+LT('학습 중','learning'),'🟢 '+LT('숙달','mastered')][masteryLevel(entry.i2)];
+  setFeedback(NM(entry)+' · '+lvl+' · '+LT('정답 '+r.r+' / 오답 '+r.w, r.r+' right / '+r.w+' wrong'),'info');
+}
+// Mistake Review — spaced pool of weak/unseen countries (weakest first)
+function reviewPool(){
+  const u=curUser(); const cc=(u&&u.stats&&u.stats.cc)||{};
+  const named=allEntries.filter(e=>e.sov&&!e.isMarker);
+  const seen=named.filter(e=>cc[e.i2]&&(cc[e.i2].r+cc[e.i2].w)>0);
+  seen.sort((a,b)=>{ const x=cc[a.i2],y=cc[b.i2]; return (x.box-y.box)||(y.w-x.w); });
+  const weak=seen.filter(e=>masteryLevel(e.i2)<3);
+  if(weak.length>=6) return weak.slice(0,40);
+  const unseen=shuffleArr(named.filter(e=>!cc[e.i2]||(cc[e.i2].r+cc[e.i2].w)===0));
+  return weak.concat(unseen).slice(0,Math.max(12,weak.length+12));
+}
+function startReview(){
+  el.timer.classList.remove('hidden');
+  if(!curUser()){ needLoginMsg(); return; }
+  const pool=reviewPool();
+  if(!pool.length){ el.prompt.innerHTML=LT('복습할 나라가 없어요. 먼저 퀴즈를 풀어 보세요!','Nothing to review yet — play some quizzes first!'); setFeedback('','info'); return; }
+  state.pool=pool; state.queue=[]; state.score=0; state.found=new Set(); updateScore();
+  el.prompt.innerHTML=LT('약한 나라부터 복습해요. 금색 나라의 이름을 입력하세요.','Reviewing your weak spots. Type the name of the gold country.');
+  setFeedback(LT('맞히면 숙달도가 오르고, 틀리면 복습 목록에 남아요.','Correct answers raise mastery; misses stay in review.'),'info');
+  nextQuizTarget(); el.q.focus();
+}
+// Daily Challenge — a deterministic 10-question set that changes each UTC day
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function dailyDateStr(d){ d=d||new Date(); return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0'); }
+function yesterdayStr(){ const d=new Date(); d.setUTCDate(d.getUTCDate()-1); return dailyDateStr(d); }
+function dailySeedNum(){ const d=new Date(); return (d.getUTCFullYear()*10000+(d.getUTCMonth()+1)*100+d.getUTCDate())>>>0; }
+function startDaily(){
+  el.timer.classList.remove('hidden'); state.countUp=true;
+  const rng=mulberry32(dailySeedNum());
+  const arr=allEntries.filter(e=>e.sov&&!e.isMarker).slice().sort((a,b)=>String(a.id).localeCompare(String(b.id)));
+  for(let i=arr.length-1;i>0;i--){ const j=Math.floor(rng()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+  state.dailyQueue=arr.slice(0,10); state.dailyTotal=10; state.dailyIdx=0; state.score=0; state.found=new Set();
+  const u=curUser(), doneToday=u&&u.stats&&u.stats.dailyDate===dailyDateStr();
+  updateScore();
+  setFeedback(doneToday?LT('오늘은 이미 완료했어요 (최고 '+(u.stats.dailyBest||0)+'/10). 다시 도전할 수 있어요!','Already done today (best '+(u.stats.dailyBest||0)+'/10). Play again anytime!'):LT('첫 답을 입력하면 시작돼요. 전 세계가 같은 10문제!','starts on your first answer — everyone gets the same 10!'),'info');
+  nextDailyTarget(); el.q.focus();
+}
+function nextDailyTarget(){
+  if(state.dailyIdx>=state.dailyQueue.length){ endDaily(); return; }
+  state.target=state.dailyQueue[state.dailyIdx++];
+  allEntries.forEach(e=>e.el.classList.remove('target'));
+  state.target.el.classList.remove('found','pop','p1cap','p2cap'); state.target.el.classList.add('target'); focusEntry(state.target,1.6);
+  el.prompt.innerHTML=LT('오늘의 도전 '+state.dailyIdx+'/'+state.dailyTotal+' · 금색 나라의 이름을 입력하세요.','Daily '+state.dailyIdx+'/'+state.dailyTotal+' · type the gold country.');
+}
+function endDaily(){
+  if(state.ended) return; state.ended=true; state.running=false; stopTicker(); el.q.disabled=true;
+  showOverlay(LT('오늘의 도전','Daily challenge'), state.score+' / '+state.dailyTotal, EN()?'Come back tomorrow for a new set!':'내일 새로운 문제로 다시 만나요!');
+  const u=curUser();
+  if(u){ u.stats=u.stats||{games:0,best:{},plays:{},points:0}; const today=dailyDateStr();
+    if(u.stats.dailyDate!==today){ u.stats.dailyStreak=(u.stats.dailyDate===yesterdayStr())?((u.stats.dailyStreak||0)+1):1;
+      u.stats.dailyDate=today; u.stats.dailyBest=state.score; }
+    else if(state.score>(u.stats.dailyBest||0)){ u.stats.dailyBest=state.score; }
+    accSave();
+    const s=$('ovsub'); s.textContent+=LT(' · 🔥 연속 '+u.stats.dailyStreak+'일',' · 🔥 '+u.stats.dailyStreak+'-day streak');
+  }
+  recordResult('daily',state.score);
 }
 
 /* ================= war trivia (kahoot-style) ================= */
@@ -8214,12 +8314,14 @@ document.addEventListener('keydown',e=>{
 });
 
 /* ================= home screen (neal.fun-style cards) ================= */
-const GROUP_EN={'배우기':'Learn','이름·위치 맞히기':'Name & Locate','퀴즈':'Quizzes','비교·순위':'Compare & Rank','도전':'Challenges','트리비아':'Trivia'};
+const GROUP_EN={'배우기':'Learn','이름·위치 맞히기':'Name & Locate','퀴즈':'Quizzes','비교·순위':'Compare & Rank','도전':'Challenges','내 학습':'My Progress','트리비아':'Trivia'};
 const MODES_META=[
  {m:'free',t:'자유 탐색',te:'Free Explore',d:'나라를 입력·클릭해 위치 확인',de:'Type or click a country to see where it is',ic:'globe',g:'배우기'},
  {m:'study',t:'학습 카드',te:'Study Cards',d:'지역별로 목록·카드로 외우고 자가 테스트',de:'Memorize by region with a list & self-test',ic:'cards',g:'배우기'},
  {m:'locate',t:'위치 학습',te:'Location Study',d:'이름을 보고 지도에서 찾으며 위치를 익혀요',de:'Learn where countries are by finding them',ic:'search',g:'배우기'},
  {m:'codex',t:'국가 도감',te:'Country Codex',d:'나라별 국기·수도·인구·역사를 찾아보는 도감',de:'Browse every country: flag, capital, stats, history',ic:'book',g:'배우기'},
+ {m:'mastery',t:'마스터리 지도',te:'Mastery Map',d:'내가 익힌 나라를 지도에 색으로 표시',de:'See which countries you have mastered on the map',ic:'trophy',g:'내 학습'},
+ {m:'review',t:'오답 복습',te:'Mistake Review',d:'자주 틀린 나라를 간격 반복으로 복습',de:'Spaced review of the countries you miss most',ic:'reset',g:'내 학습'},
  {m:'quiz',t:'이름 맞히기',te:'Name It',d:'표시된 나라 이름을 90초 안에',de:'Type the name of the highlighted country',ic:'target',g:'이름·위치 맞히기'},
  {m:'findmap',t:'지도에서 찾기',te:'Find on Map',d:'제시된 이름을 지도에서 눌러 찾기',de:'Click the named country on the map',ic:'search',g:'이름·위치 맞히기'},
  {m:'place',t:'이름표 놓기',te:'Drag & Drop',d:'이름표를 알맞은 땅으로 드래그',de:'Drag each label onto the right land',ic:'tag',g:'이름·위치 맞히기'},
@@ -8232,6 +8334,7 @@ const MODES_META=[
  {m:'rank',t:'순위표',te:'Rankings',d:'인구·면적·GDP 등 지표별 순위와 지도',de:'Rank countries by population, area, GDP…',ic:'bars',g:'비교·순위'},
  {m:'oddone',t:'하나 빼기',te:'Odd One Out',d:'넷 중 무리에 속하지 않는 하나 고르기',de:'Pick the country that does not belong',ic:'puzzle',g:'퀴즈'},
  {m:'chain',t:'국경 잇기',te:'Border Chain',d:'국경이 맞닿은 나라를 이어서 최대한 길게',de:'Chain countries that share a land border — go as long as you can',ic:'chain',g:'도전'},
+ {m:'daily',t:'오늘의 도전',te:'Daily Challenge',d:'매일 바뀌는 10문제 · 전 세계가 같은 문제',de:'10 questions that change daily — everyone gets the same set',ic:'calendar',g:'도전'},
  {m:'region',t:'지역별 도전',te:'Region Challenge',d:'고른 지역의 모든 나라 입력',de:'Name every country in a chosen region',ic:'layers',g:'도전'},
  {m:'countdown',t:'전세계 도전',te:'World Countdown',d:'제한 시간 안에 최대한 많이',de:'Name as many as you can before time runs out',ic:'clock',g:'도전'},
  {m:'conquer',t:'정복 모드',te:'Conquer',d:'나라를 반복해 눌러 칠하고 지역 정복',de:'Tap countries repeatedly to paint the region',ic:'trophy',g:'도전'},
@@ -8306,7 +8409,7 @@ function showSetup(mode){
   (SETUP_CFG[mode]||[]).forEach(c=>el.setupBody.appendChild(setupControl(c)));
   el.home.classList.remove('show'); el.setup.classList.add('show');
 }
-const GROUP_ACCENT={'배우기':'#34c777','이름·위치 맞히기':'#ffb454','퀴즈':'#4ea1ff','비교·순위':'#a78bfa','도전':'#ff8a4c','트리비아':'#f472b6'};
+const GROUP_ACCENT={'배우기':'#34c777','이름·위치 맞히기':'#ffb454','퀴즈':'#4ea1ff','비교·순위':'#a78bfa','도전':'#ff8a4c','내 학습':'#2dd4bf','트리비아':'#f472b6'};
 function buildHome(){
   el.homeContent.innerHTML='';
   [...new Set(MODES_META.map(x=>x.g))].forEach((g,gi)=>{
@@ -8401,7 +8504,7 @@ function handleFindClick(entry){
   if(state.ended||state.findLock) return;
   if(!state.vs && !state.running){ state.running=true; startTicker(); }   // timer starts on first click (solo only)
   if(entry.id===state.target.id){
-    if(state.vs) vsAward(1); else { state.score++; updateScore(); }
+    if(state.vs) vsAward(1); else { state.score++; updateScore(); trackCountry(state.target,true); }
     state.found.add(entry.id); markFound(entry,true); tagCapture(entry); celebrate(true,LT('정답!','Correct!'));
     setFeedback(LT('정답! ','Correct! ')+NM(entry),'ok','check');
     if(state.vs){ state.findLock=true; setTimeout(()=>state.findLock=false,950); vsAfterAnswer(true); } else later(nextFindTarget,650);
@@ -8415,14 +8518,14 @@ function submit(){
   const entry=lookup.get(norm(raw)); const m=state.mode;
   if(m==='chain'){ chainGuess(raw); return; }
   if(m==='free'){ if(!entry){notFound(raw);return;} revealFree(entry); el.q.value=''; }
-  else if(m==='quiz'){
+  else if(m==='quiz'||m==='review'||m==='daily'){
     if(!entry){notFound(raw);return;}
     if(!state.vs && !state.running){ state.running=true; startTicker(); }   // timer starts on first answer (solo only)
     if(entry.id===state.target.id){
-      if(state.vs) vsAward(1); else { state.score++; updateScore(); }
+      if(state.vs) vsAward(1); else { state.score++; updateScore(); trackCountry(state.target,true); }
       state.found.add(entry.id); markFound(entry,true); tagCapture(entry); celebrate(true,LT('정답!','Correct!'));
       setFeedback(LT('정답! ','Correct! ')+entry.ko+' · '+entry.en,'ok','check'); el.q.value='';
-      if(state.vs) vsAfterAnswer(true); else later(nextQuizTarget,650);
+      if(state.vs) vsAfterAnswer(true); else if(m==='daily') later(nextDailyTarget,700); else later(nextQuizTarget,650);
     } else { shakeInput(); const msg=EN()?('Not '+NM(entry)+'. Look at the outlined country.'):(entry.ko+' 이(가) 아니에요. 표시된 나라를 보세요.');
       if(state.vs){ vsPenalty(); celebrate(false,LT('−1점','−1')); el.q.value=''; setFeedback(vsWrongMsg(msg),'no','x'); }
       else setFeedback(msg,'no','x'); }
@@ -8431,7 +8534,7 @@ function submit(){
     if(!entry){notFound(raw);return;}
     if(!state.vs && !state.running){ state.running=true; startTicker(); }   // timer starts on first answer (solo only)
     if(entry.id===state.target.id){
-      if(state.vs){ vsAward(1); state.found.add(entry.id); markFound(entry,true); tagCapture(entry); } else { state.score++; state.found.add(entry.id); updateScore(); }
+      if(state.vs){ vsAward(1); state.found.add(entry.id); markFound(entry,true); tagCapture(entry); } else { state.score++; state.found.add(entry.id); updateScore(); trackCountry(state.target,true); }
       celebrate(true,LT('정답!','Correct!'));
       setFeedback(LT('정답! ','Correct! ')+flagEmoji(entry.i2)+' '+NM(entry),'ok','check'); el.q.value='';
       if(state.vs) vsAfterAnswer(true); else later(nextFlagTarget,650);
@@ -8443,7 +8546,7 @@ function submit(){
     const t=state.target; if(!t) return;
     if(!state.vs && !state.running){ state.running=true; startTicker(); }
     if(capitalMatch(raw,t)){
-      if(state.vs) vsAward(1); else { state.score++; updateScore(); }
+      if(state.vs) vsAward(1); else { state.score++; updateScore(); trackCountry(t,true); }
       celebrate(true,LT('정답!','Correct!'));
       setFeedback(LT('정답! ','Correct! ')+NM(t)+' · '+capitalDisplay(t),'ok','check'); el.q.value='';
       if(state.vs) vsAfterAnswer(true); else later(nextCapitalTarget,650);
@@ -8455,7 +8558,7 @@ function submit(){
     if(!entry){notFound(raw);return;}
     if(entry.id===state.hintTarget.id){
       const gain=hintPotential(), used=state.hintShown+state.feverShown;
-      if(state.vs) vsAward(gain); else { state.score+=gain; updateScore(); }
+      if(state.vs) vsAward(gain); else { state.score+=gain; updateScore(); trackCountry(state.hintTarget,true); }
       revealHintAnswer(entry); tagCapture(entry); celebrate(true,LT('+'+gain+'점','+'+gain+' pts'));
       setFeedback(LT('정답! ','Correct! ')+entry.ko+' · '+entry.en+LT(' · +'+gain+'점 (힌트 '+used+'개)',' · +'+gain+' pts ('+used+' hints)'),'ok','check'); el.q.value='';
       if(state.vs){ vsAfterAnswer(true); } else later(nextHintTarget,1300);
@@ -8484,14 +8587,14 @@ function submit(){
 el.skip.onclick=()=>{
   if(state.ended) return; const m=state.mode;
   const ans=(nm)=>EN()?('The answer was '+nm+'.'):('정답은 '+nm+' 였어요.');
-  if(m==='quiz'){ setFeedback(ans(NM(state.target)),'info'); el.q.value=''; if(state.vs) vsAfterAnswer(false); else later(nextQuizTarget,700); }
-  else if(m==='findmap'){ const t=state.target; setFeedback(ans(NM(t)),'info');
+  if(m==='quiz'||m==='review'||m==='daily'){ if(!state.vs) trackCountry(state.target,false); setFeedback(ans(NM(state.target)),'info'); el.q.value=''; if(state.vs) vsAfterAnswer(false); else if(m==='daily') later(nextDailyTarget,800); else later(nextQuizTarget,700); }
+  else if(m==='findmap'){ const t=state.target; if(!state.vs) trackCountry(t,false); setFeedback(ans(NM(t)),'info');
     if(!t.el.classList.contains('found')){ t.el.classList.add('target'); focusEntry(t,2); }
     if(state.vs){ state.findLock=true; setTimeout(()=>{ state.findLock=false; t.el.classList.remove('target'); },1100); vsAfterAnswer(false); }
     else later(()=>{ t.el.classList.remove('target'); resetView(); nextFindTarget(); },1100); }
-  else if(m==='flag'){ setFeedback(ans(flagEmoji(state.target.i2)+' '+NM(state.target)),'info'); el.q.value=''; if(state.vs) vsAfterAnswer(false); else later(nextFlagTarget,700); }
-  else if(m==='capital'){ const t=state.target; setFeedback(EN()?('The capital of '+NM(t)+' is '+capitalDisplay(t)+'.'):(NM(t)+'의 수도는 '+capitalDisplay(t)+' 예요.'),'info'); el.q.value=''; if(state.vs) vsAfterAnswer(false); else later(nextCapitalTarget,800); }
-  else if(m==='hint'){ const t=state.hintTarget; setFeedback(ans(NM(t)),'info'); revealHintAnswer(t); el.q.value=''; if(state.vs) vsAfterAnswer(false); else later(nextHintTarget,1400); }
+  else if(m==='flag'){ if(!state.vs) trackCountry(state.target,false); setFeedback(ans(flagEmoji(state.target.i2)+' '+NM(state.target)),'info'); el.q.value=''; if(state.vs) vsAfterAnswer(false); else later(nextFlagTarget,700); }
+  else if(m==='capital'){ const t=state.target; if(!state.vs) trackCountry(t,false); setFeedback(EN()?('The capital of '+NM(t)+' is '+capitalDisplay(t)+'.'):(NM(t)+'의 수도는 '+capitalDisplay(t)+' 예요.'),'info'); el.q.value=''; if(state.vs) vsAfterAnswer(false); else later(nextCapitalTarget,800); }
+  else if(m==='hint'){ const t=state.hintTarget; if(!state.vs) trackCountry(t,false); setFeedback(ans(NM(t)),'info'); revealHintAnswer(t); el.q.value=''; if(state.vs) vsAfterAnswer(false); else later(nextHintTarget,1400); }
   else if(m==='locate'){ const t=state.target; if(!t) return; t.el.classList.add('target'); t.el.parentNode.appendChild(t.el); focusEntry(t,2.4);
     setFeedback(EN()?(NM(t)+' is here.'):(NM(t)+' 은(는) 여기예요.'),'info');
     state.findLock=true; later(()=>{ state.findLock=false; t.el.classList.remove('target'); nextLocateTarget(); },1400); }
@@ -8677,7 +8780,28 @@ function recordResult(key,score){
   const prev=u.stats.best[key]||0, isBest=(score||0)>prev;
   if(isBest) u.stats.best[key]=score;
   accSave(); renderProfile();
+  if(typeof checkAchievements==='function') checkAchievements();
   return {isBest,best:u.stats.best[key]};
+}
+/* ---- per-country mastery tracking (Leitner-style boxes 0–5) ---- */
+function trackCountry(entry,correct){
+  if(state.vs||!entry||!entry.i2) return;        // only track solo naming attempts
+  const u=curUser(); if(!u) return;
+  u.stats=u.stats||{games:0,best:{},plays:{},points:0};
+  const cc=(u.stats.cc=u.stats.cc||{});
+  const rec=cc[entry.i2]||(cc[entry.i2]={r:0,w:0,box:0,t:0});
+  if(correct){ rec.r++; rec.box=Math.min(5,rec.box+1); }
+  else { rec.w++; rec.box=Math.max(0,rec.box-1); }
+  rec.t=Date.now();
+  accSave();
+}
+// mastery level from a record: 0 unseen · 1 struggling · 2 learning · 3 mastered
+function masteryLevel(i2){
+  const u=curUser(); if(!u||!u.stats||!u.stats.cc) return 0;
+  const r=u.stats.cc[i2]; if(!r||(r.r+r.w)===0) return 0;
+  if(r.box>=4) return 3;   // mastered
+  if(r.box>=1) return 2;   // learning (answered right at least once, net)
+  return 1;                // struggling (box back to 0)
 }
 
 /* ---- data transfer between devices (export/import a backup code) ---- */
@@ -8706,6 +8830,7 @@ function authMsg(text,cls){ const m=el.authBody.querySelector('#auth-msg'); if(m
 function renderAuth(){
   if(authView==='export'){ renderExport(); return; }
   if(authView==='import'){ renderImport(); return; }
+  if(authView==='share'){ renderShare(); return; }
   const u=curUser();
   if(u){
     el.authBody.innerHTML='<div class="auth-signedin">'
@@ -8776,6 +8901,22 @@ function renderImport(){
     const rd=new FileReader(); rd.onload=()=>doImport(String(rd.result||'')); rd.readAsText(f); };
   el.authBody.querySelector('#auth-back').onclick=()=>{ authView='main'; renderAuth(); };
 }
+function renderShare(){
+  const u=curUser(); if(!u){ authView='main'; renderAuth(); return; }
+  const canvas=buildShareCanvas(); const url=canvas?canvas.toDataURL('image/png'):'';
+  el.authBody.innerHTML=''
+    +'<h2 class="auth-title" id="auth-title">'+LT('공유 카드','Share card')+'</h2>'
+    +'<p class="auth-sub2">'+LT('내 학습 기록을 이미지로 저장해 공유하세요.','Save your progress as an image to share.')+'</p>'
+    +'<img class="share-img" alt="'+LT('공유 카드','share card')+'" src="'+url+'">'
+    +'<div class="auth-xfer"><button class="btn solid auth-mini" id="share-dl">'+LT('이미지 저장','Save image')+'</button>'
+      +'<button class="btn auth-mini" id="share-copy">'+LT('복사','Copy')+'</button></div>'
+    +'<div class="auth-msg" id="auth-msg" role="status" aria-live="polite"></div>'
+    +'<button class="auth-link" id="auth-back">‹ '+LT('뒤로','Back')+'</button>';
+  el.authBody.querySelector('#share-dl').onclick=()=>{ const a=document.createElement('a'); a.href=url; a.download='georama-'+u.name+'.png'; document.body.appendChild(a); a.click(); a.remove(); authMsg(LT('저장했어요.','Saved.'),'ok'); };
+  el.authBody.querySelector('#share-copy').onclick=()=>{ try{ canvas.toBlob(async(bl)=>{ try{ await navigator.clipboard.write([new ClipboardItem({'image/png':bl})]); authMsg(LT('복사됐어요!','Copied!'),'ok'); }catch(e){ authMsg(LT('이 브라우저는 이미지 복사를 지원하지 않아요 — 저장을 이용하세요.','Image copy not supported — use Save.'),'err'); } }); }catch(e){ authMsg(LT('복사 실패 — 저장을 이용하세요.','Copy failed — use Save.'),'err'); } };
+  el.authBody.querySelector('#auth-back').onclick=()=>{ authView='main'; renderAuth(); };
+}
+function openShare(){ authPrevFocus=document.activeElement; authView='share'; renderAuth(); el.auth.classList.add('show'); el.auth.setAttribute('aria-hidden','false'); }
 async function onAuthSubmit(e){
   e.preventDefault();
   const name=el.authBody.querySelector('#auth-name').value.trim();
@@ -8801,6 +8942,71 @@ function openAuth(){ authPrevFocus=document.activeElement; authView='main'; rend
 function closeAuth(){ el.auth.classList.remove('show'); el.auth.setAttribute('aria-hidden','true'); if(authPrevFocus&&authPrevFocus.focus) authPrevFocus.focus(); }
 
 /* ---- profile button + stats card on the home screen ---- */
+/* ================= achievements + share card ================= */
+function statMastered(st){ let n=0; const cc=(st&&st.cc)||{}; Object.keys(cc).forEach(k=>{ if(cc[k].box>=4) n++; }); return n; }
+function statAttempted(st){ const cc=(st&&st.cc)||{}; return Object.keys(cc).filter(k=>cc[k].r+cc[k].w>0).length; }
+const ACHIEVEMENTS=[
+  {id:'first', ic:'🌱', ko:'첫 발자국', en:'First Steps', dko:'첫 게임 플레이', den:'Played your first game', test:st=>(st.games||0)>=1},
+  {id:'games10', ic:'🎮', ko:'열정', en:'Getting Into It', dko:'게임 10판', den:'Played 10 games', test:st=>(st.games||0)>=10},
+  {id:'games50', ic:'🔥', ko:'단골', en:'Regular', dko:'게임 50판', den:'Played 50 games', test:st=>(st.games||0)>=50},
+  {id:'points1k', ic:'💰', ko:'천 점 클럽', en:'1K Club', dko:'누적 1,000점', den:'1,000 total points', test:st=>(st.points||0)>=1000},
+  {id:'allround', ic:'🎯', ko:'만능 플레이어', en:'All-Rounder', dko:'8가지 모드 플레이', den:'Played 8 different modes', test:st=>Object.keys(st.plays||{}).length>=8},
+  {id:'explorer', ic:'🧭', ko:'탐험가', en:'Explorer', dko:'30개국 도전', den:'Attempted 30 countries', test:st=>statAttempted(st)>=30},
+  {id:'scholar', ic:'📚', ko:'박학다식', en:'Scholar', dko:'100개국 도전', den:'Attempted 100 countries', test:st=>statAttempted(st)>=100},
+  {id:'master10', ic:'🟢', ko:'숙달 입문', en:'Quick Learner', dko:'10개국 숙달', den:'Mastered 10 countries', test:st=>statMastered(st)>=10},
+  {id:'master50', ic:'🏅', ko:'지리 고수', en:'Geo Whiz', dko:'50개국 숙달', den:'Mastered 50 countries', test:st=>statMastered(st)>=50},
+  {id:'master150', ic:'🌍', ko:'세계 정복', en:'World Master', dko:'150개국 숙달', den:'Mastered 150 countries', test:st=>statMastered(st)>=150},
+  {id:'streak3', ic:'📅', ko:'꾸준함', en:'On a Roll', dko:'데일리 3일 연속', den:'3-day daily streak', test:st=>(st.dailyStreak||0)>=3},
+  {id:'streak7', ic:'⭐', ko:'한 주 완주', en:'Week Warrior', dko:'데일리 7일 연속', den:'7-day daily streak', test:st=>(st.dailyStreak||0)>=7},
+  {id:'chain10', ic:'⛓️', ko:'연결의 달인', en:'Chain Master', dko:'국경 잇기 10+', den:'Border chain of 10+', test:st=>((st.best&&st.best.chain)||0)>=10},
+  {id:'ladder10', ic:'🪜', ko:'사다리 타기', en:'Ladder Legend', dko:'업다운 10연속', den:'Higher–Lower streak of 10', test:st=>((st.best&&st.best.ladder)||0)>=10},
+];
+function achTitle(a){ return EN()?a.en:a.ko; }
+function achDesc(a){ return EN()?a.den:a.dko; }
+function checkAchievements(){
+  const u=curUser(); if(!u) return []; u.stats=u.stats||{}; const st=u.stats; const have=(st.ach=st.ach||{});
+  const fresh=[];
+  ACHIEVEMENTS.forEach(a=>{ if(!have[a.id] && a.test(st)){ have[a.id]=Date.now(); fresh.push(a); } });
+  if(fresh.length){ accSave(); renderProfile(); const a=fresh[0]; celebrate(true, a.ic+' '+achTitle(a)); }
+  return fresh;
+}
+// share card — a self-contained canvas image of the player's stats & badges
+function buildShareCanvas(){
+  const u=curUser(); if(!u) return null; const st=u.stats||{};
+  const W=640,H=800, c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d');
+  const dark=THEME.mode!=='light';
+  const bg=dark?'#0b0b0d':'#eef1f6', card=dark?'#16181d':'#ffffff', ink=dark?'#f3f5f8':'#161a20', mut=dark?'#9ba2af':'#59616e', line=dark?'#2b2e36':'#d5dbe4';
+  const g=x.createLinearGradient(0,0,0,H); g.addColorStop(0,dark?'#1a1d24':'#ffffff'); g.addColorStop(1,bg); x.fillStyle=g; x.fillRect(0,0,W,H);
+  x.fillStyle=ink; x.textAlign='left';
+  x.font='800 30px system-ui,sans-serif'; x.fillText('🌐 '+(EN()?'Georama':'지오라마'),40,64);
+  x.fillStyle=mut; x.font='600 15px system-ui,sans-serif'; x.fillText(EN()?'Geography game progress':'지리 게임 학습 기록',40,90);
+  // name pill
+  x.fillStyle=ink; x.font='800 26px system-ui,sans-serif'; x.fillText(esc?u.name:u.name,40,140);
+  // stat cards
+  const stats=[
+    [EN()?'Games':'플레이', String(st.games||0)],
+    [EN()?'Points':'누적 점수', String(st.points||0)],
+    [EN()?'Mastered':'숙달', statMastered(st)+' / '+TOTAL_SOV],
+    [EN()?'Daily streak':'데일리 연속', (st.dailyStreak||0)+(EN()?'':'일')],
+  ];
+  const cols=2, cw=(W-40*2-20)/cols, ch=92;
+  stats.forEach((s,i)=>{ const cx=40+(i%cols)*(cw+20), cy=170+Math.floor(i/cols)*(ch+16);
+    x.fillStyle=card; roundRect(x,cx,cy,cw,ch,14); x.fill(); x.strokeStyle=line; x.lineWidth=1; x.stroke();
+    x.fillStyle=mut; x.font='700 13px system-ui,sans-serif'; x.fillText(s[0],cx+18,cy+30);
+    x.fillStyle=ink; x.font='800 30px system-ui,sans-serif'; x.fillText(s[1],cx+18,cy+68); });
+  // achievements
+  const ach=Object.keys(st.ach||{}); const list=ACHIEVEMENTS.filter(a=>st.ach&&st.ach[a.id]);
+  x.fillStyle=ink; x.font='800 18px system-ui,sans-serif'; x.fillText((EN()?'Badges':'뱃지')+' · '+list.length+'/'+ACHIEVEMENTS.length,40,410);
+  const per=6, bs=78;
+  ACHIEVEMENTS.forEach((a,i)=>{ const bx=40+(i%per)*bs, by=430+Math.floor(i/per)*bs; const owned=st.ach&&st.ach[a.id];
+    x.globalAlpha=owned?1:0.25; x.font='40px system-ui,sans-serif'; x.textAlign='center'; x.fillText(a.ic,bx+bs/2-6,by+42); x.globalAlpha=1; x.textAlign='left'; });
+  // footer
+  x.fillStyle=mut; x.font='600 13px system-ui,sans-serif'; x.textAlign='center';
+  x.fillText((EN()?'Play at ':'')+'darkerapple.github.io/mapgame',W/2,H-34);
+  return c;
+}
+function roundRect(x,px,py,w,h,r){ x.beginPath(); x.moveTo(px+r,py); x.arcTo(px+w,py,px+w,py+h,r); x.arcTo(px+w,py+h,px,py+h,r); x.arcTo(px,py+h,px,py,r); x.arcTo(px,py,px+w,py,r); x.closePath(); }
+
 function renderProfile(){
   const u=curUser();
   el.profilebtnT.textContent=u?u.name:LT('로그인','Log in');
@@ -8816,10 +9022,19 @@ function renderProfile(){
     +'<div><div class="pc-name">'+esc(u.name)+'</div><div class="pc-sub">'+LT('플레이 ','Games ')+(st.games||0)+' · '+LT('누적 점수 ','Total points ')+(st.points||0)+'</div></div>'
     +'<button class="btn pc-logout" id="pc-logout"><span data-icon="logout"></span> <span>'+LT('로그아웃','Log out')+'</span></button>'
     +'</div>'
-    +(bh?('<div class="pc-stats">'+bh+'</div>'):('<div class="pc-sub" style="margin-top:11px">'+LT('게임을 하면 최고 기록이 여기에 쌓여요.','Play a game and your best scores show up here.')+'</div>'));
+    +(bh?('<div class="pc-stats">'+bh+'</div>'):('<div class="pc-sub" style="margin-top:11px">'+LT('게임을 하면 최고 기록이 여기에 쌓여요.','Play a game and your best scores show up here.')+'</div>'))
+    +achievementsHTML(st)
+    +'<div class="pc-actions"><button class="btn pc-share" id="pc-share">🎉 '+LT('공유 카드 만들기','Make a share card')+'</button></div>';
   const lg=el.profilecard.querySelector('#pc-logout');
   lg.querySelector('[data-icon]').insertAdjacentHTML('afterbegin',ICONS.logout);
   lg.onclick=()=>{ ACC.current=null; accSave(); renderProfile(); };
+  const sh=el.profilecard.querySelector('#pc-share'); if(sh) sh.onclick=openShare;
+}
+function achievementsHTML(st){
+  const owned=ACHIEVEMENTS.filter(a=>a.test(st));
+  let badges=''; ACHIEVEMENTS.forEach(a=>{ const on=a.test(st);
+    badges+='<span class="ach-badge'+(on?'':' off')+'" title="'+esc(achTitle(a)+' — '+achDesc(a))+'" aria-label="'+esc(achTitle(a)+(on?'':LT(' (미획득)',' (locked)')))+'">'+a.ic+'</span>'; });
+  return '<div class="pc-ach"><div class="pc-ach-h">'+LT('뱃지','Badges')+' · '+owned.length+'/'+ACHIEVEMENTS.length+'</div><div class="pc-ach-grid">'+badges+'</div></div>';
 }
 el.profilebtn.onclick=openAuth;
 el.authClose.onclick=closeAuth;
