@@ -491,6 +491,41 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
 .mg-fact b{color:var(--target)}
 @media(max-width:520px){ .mg-grid{gap:8px} .mg-ladder{gap:8px} }
 
+/* ---- Country Codex (browsable reference) ---- */
+#codex{position:absolute;inset:0;z-index:7;background:var(--bg);display:none;flex-direction:column;
+  padding:16px 18px calc(16px + env(safe-area-inset-bottom));gap:12px}
+#codex.show{display:flex}
+.cx-top{display:flex;align-items:center;gap:12px;flex:0 0 auto;max-width:1000px;width:100%;margin:0 auto}
+#cx-search{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;
+  font:inherit;font-size:15px;color:var(--text);padding:11px 14px}
+#cx-search:focus{outline:none;border-color:var(--accent)}
+.cx-count{color:var(--muted);font-size:13px;font-weight:700;white-space:nowrap}
+.cx-grid{flex:1;min-height:0;overflow-y:auto;display:grid;gap:10px;max-width:1000px;width:100%;margin:0 auto;
+  grid-template-columns:repeat(auto-fill,minmax(190px,1fr));align-content:start;padding-bottom:8px}
+.cx-item{display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--border);
+  border-radius:13px;padding:12px 13px;cursor:pointer;text-align:left;color:var(--text);font:inherit;transition:.13s}
+.cx-item:hover{background:var(--surface2);border-color:var(--border2);transform:translateY(-1px)}
+.cx-item .cxf{font-size:30px;line-height:1;flex:0 0 auto}
+.cx-item .cxn{min-width:0}
+.cx-item .cxn b{display:block;font-size:14.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cx-item .cxn span{display:block;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cx-detail{flex:1;min-height:0;overflow-y:auto;max-width:760px;width:100%;margin:0 auto}
+.cx-detail[hidden]{display:none}
+.cxd-back{display:inline-flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border2);
+  color:var(--text);font:inherit;font-size:13px;font-weight:700;padding:8px 14px;border-radius:10px;cursor:pointer;margin-bottom:14px}
+.cxd-hd{display:flex;align-items:center;gap:16px;margin-bottom:8px}
+.cxd-hd .cxd-flag{font-size:56px;line-height:1}
+.cxd-hd h2{font-size:24px;font-weight:800;letter-spacing:-.01em}
+.cxd-hd .cxd-sub{color:var(--muted);font-size:14px;font-weight:700;margin-top:2px}
+.cxd-facts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.cxd-fact{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 13px}
+.cxd-fact .k{color:var(--muted);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.cxd-fact .v{font-size:15px;font-weight:800;margin-top:3px}
+.cxd-note{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--target);
+  border-radius:10px;padding:12px 14px;margin-top:10px;font-size:14px;line-height:1.55}
+.cxd-note .k{display:block;color:var(--target);font-size:12px;font-weight:800;margin-bottom:4px}
+@media(max-width:520px){ .cx-grid{grid-template-columns:1fr 1fr;gap:8px} .cxd-facts{grid-template-columns:1fr} .cx-item .cxf{font-size:26px} }
+
 @media(prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
 
 /* ---------- mobile ---------- */
@@ -608,6 +643,14 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
         <div class="mg-q" id="mg-q"></div>
         <div class="mg-body" id="mg-body"></div>
         <div class="mg-fact" id="mg-fact"></div>
+      </div>
+      <div id="codex">
+        <div class="cx-top">
+          <input id="cx-search" type="text" autocomplete="off" placeholder="나라 검색…" aria-label="나라 검색">
+          <span class="cx-count" id="cx-count"></span>
+        </div>
+        <div class="cx-grid" id="cx-grid"></div>
+        <div class="cx-detail" id="cx-detail" hidden></div>
       </div>
     </div>
     <aside id="studypanel" class="hidden">
@@ -1027,6 +1070,7 @@ const el={
   langbtn:$('langbtn'),homelang:$('homelang'),themebtn:$('themebtn'),cbbtn:$('cbbtn'),hometheme:$('hometheme'),homecb:$('homecb'),vsbar:$('vsbar'),
   compare:$('compare'),cmpQ:$('cmp-q'),cmpA:$('cmp-a'),cmpB:$('cmp-b'),cmpFact:$('cmp-fact'),
   minigame:$('minigame'),mgQ:$('mg-q'),mgBody:$('mg-body'),mgFact:$('mg-fact'),
+  codex:$('codex'),cxSearch:$('cx-search'),cxCount:$('cx-count'),cxGrid:$('cx-grid'),cxDetail:$('cx-detail'),
   profilebtn:$('profilebtn'),profilebtnT:$('profilebtn-t'),profilecard:$('profilecard'),
   auth:$('auth'),authBody:$('auth-body'),authClose:$('auth-close'),
 };
@@ -1139,7 +1183,7 @@ el.region.onchange=()=>{ state.region=el.region.value; resetMode(); };
 
 /* ================= input layout ================= */
 function setInputMode(kind){ // text | quiz | flag | click | study | place | hint | rank | conquer | trivia | locate
-  el.inputrow.classList.toggle('hidden',['place','rank','conquer','trivia','compare','mini'].includes(kind));
+  el.inputrow.classList.toggle('hidden',['place','rank','conquer','trivia','compare','mini','codex'].includes(kind));
   const showText=['text','quiz','flag','hint','capital','chain'].includes(kind);
   el.q.classList.toggle('hidden',!showText);
   el.go.classList.toggle('hidden',!showText);
@@ -1156,7 +1200,7 @@ function setInputMode(kind){ // text | quiz | flag | click | study | place | hin
 function setMode(mode){
   state.mode=mode;
   document.querySelectorAll('.mode').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
-  const scoped=['study','place','region','quiz','findmap','flag','hint','rank','conquer','locate','capital','compare','ladder','estimate','oddone','chain'].includes(mode);
+  const scoped=['study','place','region','quiz','findmap','flag','hint','rank','conquer','locate','capital','compare','ladder','estimate','oddone','chain','codex'].includes(mode);
   el.region.classList.toggle('hidden',!scoped);
   el.regquiz.classList.toggle('hidden',mode!=='study');
   el.spToggle.classList.toggle('hidden',mode!=='study');
@@ -1185,6 +1229,7 @@ function setMode(mode){
   else if(mode==='countdown'){ state.countUp=false; state.duration=[60,180,300].includes(state.duration)?state.duration:180; buildDurRow(state.duration); setInputMode('text'); el.scorelbl.textContent=LT('찾은 나라','Found'); }
   else if(mode==='rank'){ state.countUp=true; setInputMode('rank'); el.scorelbl.textContent=LT('나라','Countries'); }
   else if(mode==='locate'){ state.countUp=true; setInputMode('locate'); el.scorelbl.textContent=LT('익힘','Learned'); }
+  else if(mode==='codex'){ setInputMode('codex'); }
   else if(mode==='trivia'){ state.countUp=true; setInputMode('trivia'); el.scorelbl.textContent=LT('점수','Score'); }
   resetMode();
 }
@@ -1194,11 +1239,11 @@ function resetMode(){
   state.running=false; state.ended=false; state.found=new Set(); state.score=0; state.findLock=false;
   state.elapsed=0; state.target=null; state.queue=[]; state.pool=[]; state.regionIds=null; state.regionTotal=0;
   clearMap(); el.studypanel.classList.add('hidden'); el.trivia.classList.remove('show'); el.compare.classList.remove('show');
-  el.minigame.classList.remove('show');
+  el.minigame.classList.remove('show'); el.codex.classList.remove('show');
   el.prompt.classList.remove('hidden'); el.feedback.classList.remove('hidden');
   el.q.disabled=false; el.q.value='';
   const m=state.mode, region=state.region;
-  el.timer.classList.remove('hidden');
+  el.timer.classList.remove('hidden'); $('scorechip').classList.remove('hidden');
   const vsMode = state.vs && ['quiz','flag','findmap','hint','capital','oddone','compare'].includes(m);
   if(!vsMode) el.vsbar.classList.add('hidden');
 
@@ -1213,6 +1258,7 @@ function resetMode(){
   if(m==='estimate'){ startEstimate(); updateTimerDisplay(); return; }
   if(m==='oddone'){ startOddone(); updateTimerDisplay(); return; }
   if(m==='chain'){ startChain(); updateTimerDisplay(); return; }
+  if(m==='codex'){ startCodex(); return; }
   if(m==='trivia'){ startTrivia(); updateTimerDisplay(); return; }
 
   resetView(); updateScore(); updateTimerDisplay();
@@ -1953,6 +1999,60 @@ function endChain(){
   if(state.ended) return; state.ended=true; state.running=false; stopTicker(); el.q.disabled=true;
   showOverlay(LT('사슬 길이','Chain length'),state.chainLen,EN()?('You linked '+state.chainLen+' bordering countries.'):('국경을 맞댄 나라 '+state.chainLen+'개를 이었어요.'));
   const r=recordResult('chain',state.chainLen); if(r&&r.isBest&&state.chainLen>0){ const s=$('ovsub'); s.textContent+=LT(' · 🏆 최고 기록!',' · 🏆 New best!'); }
+}
+
+/* ================= Country Codex (browsable reference) ================= */
+function startCodex(){
+  el.studypanel.classList.add('hidden'); el.trivia.classList.remove('show'); el.compare.classList.remove('show'); el.minigame.classList.remove('show');
+  el.prompt.classList.add('hidden'); el.feedback.classList.add('hidden');
+  el.timer.classList.add('hidden'); $('scorechip').classList.add('hidden');
+  el.codex.classList.add('show');
+  let pool=regionEntries(state.region).filter(e=>e.st); if(pool.length<1) pool=allEntries.filter(e=>e.sov&&e.st);
+  state.codexPool=pool.slice().sort((a,b)=>NM(a).localeCompare(NM(b)));
+  el.cxDetail.hidden=true; el.cxGrid.style.display='';
+  el.cxSearch.value=''; el.cxSearch.placeholder=LT('나라 검색…','Search countries…');
+  renderCodexGrid('');
+  el.cxSearch.oninput=()=>renderCodexGrid(el.cxSearch.value);
+}
+function renderCodexGrid(query){
+  const q=norm(query||'');
+  const list=state.codexPool.filter(e=>{ if(!q) return true;
+    return norm(e.ko).includes(q)||norm(e.en).includes(q)||(e.i2&&norm(e.i2).includes(q))||(e.al||[]).some(a=>norm(a).includes(q)); });
+  el.cxCount.textContent=EN()?(list.length+' countries'):(list.length+'개');
+  el.cxGrid.innerHTML='';
+  const frag=document.createDocumentFragment();
+  list.forEach(e=>{ const b=document.createElement('button'); b.className='cx-item';
+    b.innerHTML='<span class="cxf">'+flagEmoji(e.i2)+'</span><span class="cxn"><b>'+esc(NM(e))+'</b><span>'+esc(regionOf(e))+'</span></span>';
+    b.onclick=()=>showCodexDetail(e); frag.appendChild(b); });
+  el.cxGrid.appendChild(frag);
+  if(!list.length){ const d=document.createElement('div'); d.style.cssText='color:var(--muted);padding:20px;grid-column:1/-1;text-align:center'; d.textContent=LT('검색 결과가 없어요.','No matches.'); el.cxGrid.appendChild(d); }
+}
+function cxFact(k,v){ return v?('<div class="cxd-fact"><div class="k">'+k+'</div><div class="v">'+esc(v)+'</div></div>'):''; }
+function showCodexDetail(e){
+  const s=e.st||{}, en=EN(), HF=(e.i2&&HISTFACTS[e.i2])||null;
+  el.cxGrid.style.display='none'; el.cxDetail.hidden=false; el.cxDetail.scrollTop=0;
+  const nbs=en?(s.nbe||[]):(s.nb||[]);
+  let facts='';
+  facts+=cxFact(LT('지역','Region'),regionOf(e));
+  facts+=cxFact(LT('수도','Capital'), en?(s.cape||''):(s.cap||''));
+  facts+=cxFact(LT('인구','Population'), s.pop?fmtPop(s.pop):'');
+  facts+=cxFact(LT('면적','Area'), s.area?(fmtArea(s.area)+(e.areaRank?(' · '+LT('세계 '+e.areaRank+'위','#'+e.areaRank)):'')):'');
+  facts+=cxFact(LT('인구 밀도','Density'), s.dens?(fmtInt(s.dens)+LT(' 명/km²',' /km²')):'');
+  facts+=cxFact(LT('정부 형태','Government'), en?(s.gove||''):(s.gov||''));
+  facts+=cxFact('GDP', s.gdp?fmtUSD(s.gdp):'');
+  facts+=cxFact(LT('1인당 GDP','GDP per capita'), s.gpc?('$'+fmtInt(s.gpc)):'');
+  facts+=cxFact(LT('평균 고도','Avg. elevation'), s.elev!=null?(fmtInt(s.elev)+' m'):'');
+  facts+=cxFact(LT('평균 기온','Avg. temperature'), s.temp!=null?(s.temp+' ℃'):'');
+  facts+=cxFact(LT('접경국 수','Land borders'), nbs.length?String(nbs.length):(s.land===0?LT('섬나라','island'):''));
+  let notes='';
+  if(nbs.length) notes+='<div class="cxd-note"><span class="k">'+LT('국경을 맞댄 나라','Borders')+'</span>'+esc(nbs.join(', '))+'</div>';
+  if(HF&&HF.hist) notes+='<div class="cxd-note"><span class="k">📜 '+LT('역사','History')+'</span>'+esc(en?HF.hist.en:HF.hist.ko)+'</div>';
+  if(HF&&HF.dispute) notes+='<div class="cxd-note"><span class="k">⚔️ '+LT('분쟁·이슈','Dispute')+'</span>'+esc(en?HF.dispute.en:HF.dispute.ko)+'</div>';
+  el.cxDetail.innerHTML='<button class="cxd-back" id="cxd-back">‹ '+LT('목록으로','Back to list')+'</button>'
+    +'<div class="cxd-hd"><span class="cxd-flag">'+flagEmoji(e.i2)+'</span><div><h2>'+esc(NM(e))+'</h2>'
+    +'<div class="cxd-sub">'+esc(en?(e.ko):(e.en||''))+(e.i2?(' · '+e.i2):'')+'</div></div></div>'
+    +'<div class="cxd-facts">'+facts+'</div>'+notes;
+  el.cxDetail.querySelector('#cxd-back').onclick=()=>{ el.cxDetail.hidden=true; el.cxGrid.style.display=''; };
 }
 
 /* ================= war trivia (kahoot-style) ================= */
@@ -8119,6 +8219,7 @@ const MODES_META=[
  {m:'free',t:'자유 탐색',te:'Free Explore',d:'나라를 입력·클릭해 위치 확인',de:'Type or click a country to see where it is',ic:'globe',g:'배우기'},
  {m:'study',t:'학습 카드',te:'Study Cards',d:'지역별로 목록·카드로 외우고 자가 테스트',de:'Memorize by region with a list & self-test',ic:'cards',g:'배우기'},
  {m:'locate',t:'위치 학습',te:'Location Study',d:'이름을 보고 지도에서 찾으며 위치를 익혀요',de:'Learn where countries are by finding them',ic:'search',g:'배우기'},
+ {m:'codex',t:'국가 도감',te:'Country Codex',d:'나라별 국기·수도·인구·역사를 찾아보는 도감',de:'Browse every country: flag, capital, stats, history',ic:'book',g:'배우기'},
  {m:'quiz',t:'이름 맞히기',te:'Name It',d:'표시된 나라 이름을 90초 안에',de:'Type the name of the highlighted country',ic:'target',g:'이름·위치 맞히기'},
  {m:'findmap',t:'지도에서 찾기',te:'Find on Map',d:'제시된 이름을 지도에서 눌러 찾기',de:'Click the named country on the map',ic:'search',g:'이름·위치 맞히기'},
  {m:'place',t:'이름표 놓기',te:'Drag & Drop',d:'이름표를 알맞은 땅으로 드래그',de:'Drag each label onto the right land',ic:'tag',g:'이름·위치 맞히기'},
@@ -8144,7 +8245,7 @@ const SETUP_CFG={ study:['region'],place:['region'],
   capital:['region','vs'],compare:['cmpmetric','region','vs'],
   ladder:['cmpmetric','region'],estimate:['estmetric','region'],oddone:['region','vs'],chain:['region'],
   conquer:['region'],region:['region'],countdown:['dur'],rank:['metric','region'],
-  locate:['region'],
+  locate:['region'],codex:['region'],
   trivia:['war','triviacats','count','vs'] };
 const CMP_METRICS=[{k:'pop',t:'인구',te:'Population'},{k:'area',t:'면적',te:'Area'},{k:'gdp',t:'GDP',te:'GDP'}];
 function chipRow(labelText, items, isOn, onPick){
@@ -8227,7 +8328,7 @@ function enterMode(m){ if(m==='free') startGame('free'); else showSetup(m); }
 function startGame(m){ el.setup.classList.remove('show'); el.home.classList.remove('show'); el.homebtn.classList.remove('hidden'); setMode(m); }
 function showHome(){
   stopTicker(); stopTrivia(); cancelDrag(); state.gen++; state.ended=true; state.running=false;
-  el.trivia.classList.remove('show'); el.compare.classList.remove('show'); el.minigame.classList.remove('show'); el.studypanel.classList.add('hidden'); el.inputrow.classList.add('hidden');
+  el.trivia.classList.remove('show'); el.compare.classList.remove('show'); el.minigame.classList.remove('show'); el.codex.classList.remove('show'); el.studypanel.classList.add('hidden'); el.inputrow.classList.add('hidden');
   el.setup.classList.remove('show'); hideOverlay(); clearMap(); clearLabels(); resetView();
   el.vsbar.classList.add('hidden'); el.timer.classList.remove('hidden');
   el.modetitle.textContent=''; el.homebtn.classList.add('hidden'); el.home.classList.add('show');
