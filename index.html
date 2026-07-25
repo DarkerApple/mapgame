@@ -389,8 +389,8 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 .rank-banner .rb-t{font-size:17px;font-weight:800}
 .rank-banner .rb-s{font-size:13px;color:var(--muted);margin-top:2px}
 .rank-banner .rb-go{flex:0 0 auto;font-weight:800;color:#ff8a4c}
-#rankhub,#duel{position:fixed;inset:0;z-index:42;overflow-y:auto;display:none;background:radial-gradient(130% 90% at 50% -20%,var(--home-grad1,#181b22) 0,var(--bg) 60%)}
-#rankhub.show,#duel.show{display:block}
+#rankhub,#duel,#lbpage{position:fixed;inset:0;z-index:42;overflow-y:auto;display:none;background:radial-gradient(130% 90% at 50% -20%,var(--home-grad1,#181b22) 0,var(--bg) 60%)}
+#rankhub.show,#duel.show,#lbpage.show{display:block}
 .dl-hero{display:flex;align-items:center;gap:10px;margin:6px 0 4px;font-size:22px;font-weight:900}
 .dl-sub{color:var(--muted);font-size:13.5px;margin-bottom:16px;line-height:1.5}
 .dl-beta{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-ink);background:var(--accent);border-radius:5px;padding:2px 6px;vertical-align:4px}
@@ -457,6 +457,26 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 .rh-lb-elo{display:flex;flex-direction:column;align-items:flex-end;line-height:1.15;min-width:56px}
 .rh-lb-pts{font-weight:800;font-variant-numeric:tabular-nums;color:var(--target)}
 .rh-lb-tier{font-size:10.5px;color:var(--muted);font-weight:700;white-space:nowrap}
+/* season badge + shiny shimmer */
+.season-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;letter-spacing:.04em;padding:4px 12px;border-radius:999px;color:#12100a;
+  background:linear-gradient(100deg,#ffe38a,#ffd24a 30%,#f5a623 55%,#ffd24a 75%,#fff1b8);background-size:200% 100%;animation:shimmer 3.4s linear infinite;box-shadow:0 2px 10px rgba(245,166,35,.3)}
+@keyframes shimmer{to{background-position:200% 0}}
+@media (prefers-reduced-motion:reduce){.season-badge{animation:none}}
+/* per-gamemode podiums */
+.lb-full-btn{width:100%;margin-top:8px;background:var(--surface2);border:1px solid var(--border2);border-radius:11px;padding:11px;font:inherit;font-weight:800;color:var(--text);cursor:pointer}
+.lb-full-btn:hover{border-color:var(--accent);color:var(--accent)}
+.pod-wrap{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.pod-card{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px 14px 16px}
+.pod-h{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;margin-bottom:10px}
+.pod-h .pod-mi{font-size:18px}
+.pod-row{display:flex;align-items:center;gap:10px;padding:6px 4px;border-radius:8px}
+.pod-row+.pod-row{border-top:1px solid var(--border)}
+.pod-row.me{background:color-mix(in srgb,var(--accent) 14%,var(--surface2))}
+.pod-medal{font-size:19px;width:26px;text-align:center}
+.pod-nm{flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pod-elo{font-weight:800;font-variant-numeric:tabular-nums;color:var(--target)}
+.pod-empty{font-size:12.5px;color:var(--faint);padding:8px 4px}
+.pod-gold{color:#ffd24a}.pod-silver{color:#cfd8e3}.pod-bronze{color:#e0a06a}
 .gicon{flex:0 0 auto;width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;
   background:color-mix(in srgb,var(--gc,#4ea1ff) 16%,transparent);color:var(--gc,#4ea1ff);
   border:1px solid color-mix(in srgb,var(--gc,#4ea1ff) 30%,transparent);transition:transform .16s}
@@ -1002,6 +1022,13 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
   <div class="rh-inner">
     <button class="home-chip rh-back" id="duel-back">‹ <span>홈</span></button>
     <div id="duel-body"></div>
+  </div>
+</main>
+
+<main id="lbpage" aria-label="리더보드 페이지">
+  <div class="rh-inner">
+    <button class="home-chip rh-back" id="lb-back">‹ <span id="lb-back-t">랭크전</span></button>
+    <div id="lb-body"></div>
   </div>
 </main>
 
@@ -2379,6 +2406,7 @@ const el={
   codex:$('codex'),cxSearch:$('cx-search'),cxCount:$('cx-count'),cxGrid:$('cx-grid'),cxDetail:$('cx-detail'),
   fall:$('fall'),fallArea:$('fall-area'),fallHud:$('fall-hud'),
   rankBanner:$('rank-banner'),rankhub:$('rankhub'),rhBody:$('rh-body'),rhBack:$('rh-back'),
+  lbpage:$('lbpage'),lbBody:$('lb-body'),lbBack:$('lb-back'),
   sym:$('sym'),symQ:$('sym-q'),symGo:$('sym-go'),symGrid:$('sym-grid'),symFact:$('sym-fact'),
   mines:$('mines'),mnTop:$('mn-top'),mnGrid:$('mn-grid'),mnMsg:$('mn-msg'),exam:$('exam'),examBody:$('exam-body'),mbti:$('mbti'),mbtiBody:$('mbti-body'),
   profilebtn:$('profilebtn'),profilebtnT:$('profilebtn-t'),profilecard:$('profilecard'),
@@ -3637,7 +3665,14 @@ const HL_COSMETICS={
   master:{ko:'마스터 하이라이트',en:'Master glow',   found:'#6a2fb8', target:'#e3b6ff'},
   grand:{ko:'그랜드마스터 하이라이트',en:'Grandmaster glow', found:'#8a1c3a', target:'#ff9db4'},
   chal:{ko:'챌린저 하이라이트',en:'Challenger glow',      found:'#1f6f8a', target:'#8fe8ff'},
+  // ✨ shiny collectibles — rare drops, not tied to a rank
+  prism:{ko:'프리즘 ✨',en:'Prism ✨',      found:'#7a3cff', target:'#ff6ad5', shiny:true},
+  aurora:{ko:'오로라 ✨',en:'Aurora ✨',    found:'#0f8a6a', target:'#8affd6', shiny:true},
+  sunset:{ko:'선셋 ✨',en:'Sunset ✨',      found:'#c23c2a', target:'#ffcf6a', shiny:true},
+  mono:{ko:'모노크롬 ✨',en:'Monochrome ✨', found:'#3a4048', target:'#ffffff', shiny:true},
 };
+const SHINY_GLOWS=Object.keys(HL_COSMETICS).filter(k=>HL_COSMETICS[k].shiny);
+const SEASON={n:1, ko:'시즌 1', en:'Season 1'};
 function perfNow(){ return performance.now(); }
 function rankTierOf(elo){ let t=RANK_TIERS[0]; for(const x of RANK_TIERS){ if(elo>=x.elo) t=x; } return t; }
 function rankNextTier(elo){ for(const x of RANK_TIERS){ if(elo<x.elo) return x; } return null; }
@@ -3689,6 +3724,12 @@ const HIDDEN_THEMES={
   forest:{ko:'포레스트',en:'Forest',ic:'🌲',vars:{bg:'#0a140d',ocean1:'#122016',ocean2:'#0a140d',ocean3:'#06100a',surface:'#122016',surface2:'#18301f',surface3:'#1f3d29',border:'#254a32',border2:'#2f5e40',land:'#1f4a30','land-stroke':'#3f7a52',hover:'#4a8a5e',found:'#4ade80','found-stroke':'#bff0cf',target:'#ffe066',text:'#e6f5ea',muted:'#9ac2a6',accent:'#4ade80','accent-ink':'#0a140d','home-grad1':'#132a1a','home-grad2':'#0a140d','card-grad':'#0e1c12'}},
   ocean:{ko:'딥오션',en:'Deep Ocean',ic:'🌊',vars:{bg:'#08111f',ocean1:'#0f1e33',ocean2:'#08111f',ocean3:'#050c17',surface:'#0f1e33',surface2:'#152a45',surface3:'#1c3557',border:'#254a72',border2:'#2f5e8e',land:'#1f3d63','land-stroke':'#3f6a9a',hover:'#4a7aaa',found:'#38d0c0','found-stroke':'#a0f0e6',target:'#ffd54a',text:'#e2eefb',muted:'#94b0cf',accent:'#38a8ff','accent-ink':'#08111f','home-grad1':'#122a45','home-grad2':'#08111f','card-grad':'#0c1a2e'}},
   leejun:{ko:'이준',en:'Yi Jun',ic:'👑',vars:{bg:'#120a1c',ocean1:'#1e1030',ocean2:'#120a1c',ocean3:'#0a0512',surface:'#1d1030',surface2:'#281642',surface3:'#331d54',border:'#3f2668',border2:'#4f3080',land:'#33204f','land-stroke':'#5a3f8a',hover:'#6a4a9a',found:'#c9a227','found-stroke':'#ffe9a0',target:'#ffd54a',text:'#f0e6ff',muted:'#b9a6d6',accent:'#c9a227','accent-ink':'#120a1c','home-grad1':'#241238','home-grad2':'#120a1c','card-grad':'#180d28'}},
+  sakura:{ko:'사쿠라',en:'Sakura',ic:'🌸',vars:{bg:'#1c0f16',ocean1:'#2a141f',ocean2:'#1c0f16',ocean3:'#12090e',surface:'#2a1420',surface2:'#3a1c2c',surface3:'#4a2438',border:'#5c2c44',border2:'#743858',land:'#4a2438','land-stroke':'#7c4266',hover:'#9a5080',found:'#ff8ac2','found-stroke':'#ffd6ea',target:'#ffe27a',text:'#fceef4',muted:'#d3a8bf',accent:'#ff6fb0','accent-ink':'#1c0f16','home-grad1':'#331726','home-grad2':'#1c0f16','card-grad':'#26111c'}},
+  galaxy:{ko:'갤럭시',en:'Galaxy',ic:'🌌',vars:{bg:'#080a1a',ocean1:'#101430',ocean2:'#080a1a',ocean3:'#050611',surface:'#111530',surface2:'#181d42',surface3:'#212856',border:'#2c3470',border2:'#39428c',land:'#242b5a','land-stroke':'#454f96',hover:'#525eaa',found:'#a98cff','found-stroke':'#dfd2ff',target:'#7ff0e0',text:'#e8eaff',muted:'#a4a8d8',accent:'#8c7bff','accent-ink':'#080a1a','home-grad1':'#14183a','home-grad2':'#080a1a','card-grad':'#0d1128'}},
+  sunsetsky:{ko:'선셋',en:'Sunset',ic:'🌇',vars:{bg:'#1a0d10',ocean1:'#2a1414',ocean2:'#1a0d10',ocean3:'#110809',surface:'#2a1512',surface2:'#3b1e18',surface3:'#4d281e',border:'#5f3324',border2:'#7a4230',land:'#4d281e','land-stroke':'#8a4c34',hover:'#a85c3e',found:'#ff9147','found-stroke':'#ffd3a3',target:'#ffe15c',text:'#fdeee4',muted:'#d3ac96',accent:'#ff7a3c','accent-ink':'#1a0d10','home-grad1':'#331a12','home-grad2':'#1a0d10','card-grad':'#26130f'}},
+  arctic:{ko:'아틱',en:'Arctic',ic:'❄️',vars:{bg:'#0a1520',ocean1:'#112433',ocean2:'#0a1520',ocean3:'#060e16',surface:'#112433',surface2:'#173246',surface3:'#1e4159',border:'#275a76',border2:'#31728f',land:'#1e4159','land-stroke':'#4a86a6',hover:'#5aa0c0',found:'#6fe3ff','found-stroke':'#c8f6ff',target:'#ffffff',text:'#e6f4fb',muted:'#9cc0d3',accent:'#38c6ff','accent-ink':'#0a1520','home-grad1':'#12293b','home-grad2':'#0a1520','card-grad':'#0d1e2c'}},
+  vapor:{ko:'베이퍼웨이브',en:'Vaporwave',ic:'🌴',vars:{bg:'#140a24',ocean1:'#221040',ocean2:'#140a24',ocean3:'#0c0618',surface:'#221040',surface2:'#301653',surface3:'#3f1e6a',border:'#522a82',border2:'#6a37a0',land:'#3f1e6a','land-stroke':'#7a4bb0',hover:'#9158c8',found:'#ff77e1','found-stroke':'#ffcaf3',target:'#6ff3ff',text:'#f3e9ff',muted:'#c3a8e0',accent:'#ff5ed6','accent-ink':'#140a24','home-grad1':'#271148','home-grad2':'#140a24','card-grad':'#1c0d33'}},
+  midas:{ko:'미다스',en:'Midas',ic:'🪙',vars:{bg:'#161206',ocean1:'#241d0b',ocean2:'#161206',ocean3:'#0e0b04',surface:'#241d0b',surface2:'#332810',surface3:'#433516',border:'#57451d',border2:'#6f5926',land:'#433516','land-stroke':'#7a6330',hover:'#96793a',found:'#ffcf3a','found-stroke':'#fff0b0',target:'#fff7d6',text:'#fbf3dd',muted:'#cdb984',accent:'#f5c421','accent-ink':'#161206','home-grad1':'#2b220c','home-grad2':'#161206','card-grad':'#1f1908'}},
 };
 const HIDDEN_VARS=['bg','ocean1','ocean2','ocean3','surface','surface2','surface3','border','border2','land','land-stroke','hover','found','found-stroke','target','text','muted','accent','accent-ink','home-grad1','home-grad2','card-grad'];
 function equippedHiddenTheme(){ const u=curUser(); const id=u&&u.stats&&u.stats.themeEquip; return (id&&HIDDEN_THEMES[id]&&u.stats.themes&&u.stats.themes[id])?id:null; }
@@ -3702,11 +3743,17 @@ function themeCount(){ const u=curUser(); return u&&u.stats&&u.stats.themes?Obje
 function shinyCount(){ return themeCount(); }   // legacy name used by banner/profile
 function unlockAch(id){ const u=curUser(); if(!u) return false; u.stats.ach=u.stats.ach||{}; if(u.stats.ach[id]) return false; u.stats.ach[id]=Date.now(); accSave(); renderProfile(); return true; }
 // rare chance to unlock a hidden theme; every category at Tier X boosts the odds by +10% (relative)
-function maybeUnlockTheme(){ const u=curUser(); if(!u) return; const locked=Object.keys(HIDDEN_THEMES).filter(k=>k!=='leejun' && !(u.stats.themes&&u.stats.themes[k]));
-  if(!locked.length) return; if(Math.random()>=0.012*(1+0.1*tierXCount(u))) return;
-  const id=locked[Math.floor(Math.random()*locked.length)]; u.stats.themes=u.stats.themes||{}; u.stats.themes[id]=Date.now(); accSave(); renderProfile();
-  const th=HIDDEN_THEMES[id]; celebrate(true, th.ic+' '+LT(th.ko,th.en));
-  setFeedback(LT('✨ 특별 테마 해금: '+th.ic+' '+th.ko+' · 설정에서 적용!','✨ Special theme unlocked: '+th.ic+' '+th.en+' — equip in Settings!'),'ok','check'); }
+// rare shiny drop: either a hidden theme (full palette) or a shiny highlight glow
+function maybeUnlockTheme(){ const u=curUser(); if(!u) return; u.stats.themes=u.stats.themes||{}; u.stats.cos=u.stats.cos||{};
+  const pool=Object.keys(HIDDEN_THEMES).filter(k=>k!=='leejun' && !u.stats.themes[k]).map(k=>({t:'theme',k}))
+    .concat(SHINY_GLOWS.filter(k=>!u.stats.cos[k]).map(k=>({t:'glow',k})));
+  if(!pool.length) return; if(Math.random()>=0.012*(1+0.1*tierXCount(u))) return;
+  const pick=pool[Math.floor(Math.random()*pool.length)];
+  if(pick.t==='theme'){ u.stats.themes[pick.k]=Date.now(); const th=HIDDEN_THEMES[pick.k]; celebrate(true, th.ic+' '+LT(th.ko,th.en));
+    setFeedback(LT('✨ 특별 테마 해금: '+th.ic+' '+th.ko+' · 설정에서 적용!','✨ Special theme unlocked: '+th.ic+' '+th.en+' — equip in Settings!'),'ok','check'); }
+  else { u.stats.cos[pick.k]=true; const c=HL_COSMETICS[pick.k]; celebrate(true, '✨ '+LT(c.ko,c.en));
+    setFeedback(LT('✨ 샤이니 하이라이트 해금: '+c.ko+' · 랭크전에서 적용!','✨ Shiny highlight unlocked: '+c.en+' — equip in Ranked!'),'ok','check'); }
+  accSave(); renderProfile(); }
 function secretLeejun(){ const u=curUser();
   if(!u){ celebrate(true,'👑 이준'); setFeedback(LT('✨ 비밀을 찾았어요! 로그인하면 보상이 저장돼요.','✨ You found a secret! Log in to keep the reward.'),'ok','check'); return; }
   u.stats.themes=u.stats.themes||{}; const fresh=!u.stats.themes.leejun; u.stats.themes.leejun=Date.now(); unlockAch('sec_leejun'); accSave(); renderProfile();
@@ -10453,7 +10500,7 @@ function startGame(m){ el.setup.classList.remove('show'); el.home.classList.remo
 function showHome(){
   abandonRankedIfActive();   // quitting a ranked match mid-way costs ELO
   stopTicker(); stopTrivia(); stopRankedTimer(); cancelDrag(); state.gen++; state.ended=true; state.running=false; state.ranked=false;
-  el.trivia.classList.remove('show'); el.compare.classList.remove('show'); el.minigame.classList.remove('show'); el.codex.classList.remove('show'); el.sym.classList.remove('show'); stopFall(); el.fall.classList.remove('show'); el.mines.classList.remove('show'); el.exam.classList.remove('show'); el.mbti.classList.remove('show'); el.rankhub.classList.remove('show'); el.studypanel.classList.add('hidden'); el.inputrow.classList.add('hidden');
+  el.trivia.classList.remove('show'); el.compare.classList.remove('show'); el.minigame.classList.remove('show'); el.codex.classList.remove('show'); el.sym.classList.remove('show'); stopFall(); el.fall.classList.remove('show'); el.mines.classList.remove('show'); el.exam.classList.remove('show'); el.mbti.classList.remove('show'); el.rankhub.classList.remove('show'); el.lbpage.classList.remove('show'); el.studypanel.classList.add('hidden'); el.inputrow.classList.add('hidden');
   el.setup.classList.remove('show'); hideOverlay(); clearMap(); clearLabels(); resetView();
   el.vsbar.classList.add('hidden'); el.timer.classList.remove('hidden');
   el.modetitle.textContent=''; el.homebtn.classList.add('hidden'); el.home.classList.add('show'); renderRankBanner();
@@ -11071,7 +11118,7 @@ function renderRankBanner(){
 function resolvePendingRanked(u){ const pd=u&&u.stats&&u.stats.rankedPending; if(!pd) return;
   if(!pd.exam && !pd.placement && pd.mode){ const m=pd.mode, old=(rmElo(u,m)!=null?rmElo(u,m):0); u.stats.rankElo=u.stats.rankElo||{}; u.stats.rankElo[m]=Math.max(0,old-20); u.stats.elo=rankPower(u); }
   u.stats.rankedPending=null; accSave(); }
-function lbHTML(){ const rows=state.lbRows;
+function lbHTML(rowsArg){ const rows=(rowsArg!==undefined)?rowsArg:state.lbRows;
   if(rows===undefined) return '<div class="rh-lb-empty">'+LT('불러오는 중…','Loading…')+'</div>';
   if(rows&&rows.error){ const miss=rows.missing;
     return '<div class="rh-lb-empty rh-lb-err">'+(miss
@@ -11088,6 +11135,41 @@ async function refreshLeaderboard(){ state.lbRows=undefined; const paint=()=>{ c
   const rows=await sbLeaderboard(50); state.lbRows=Array.isArray(rows)?rows:((rows&&rows.error)?rows:[]); paint(); }
 function openRankHub(){ const u=curUser(); if(u) resolvePendingRanked(u); renderRankHub(); el.home.classList.remove('show'); el.rankhub.classList.add('show'); el.rankhub.scrollTop=0; if(SUPA_ON) refreshLeaderboard(); }
 function closeRankHub(){ el.rankhub.classList.remove('show'); el.home.classList.add('show'); renderRankBanner(); }
+
+/* ===== Full leaderboard page: overall standings + a podium for every gamemode ===== */
+const RM_IC={quiz:'🌍',flag:'🚩',silhouette:'🗺️',capcountry:'🏛️',clue:'📜'};
+let lbPageRows=undefined;   // undefined=loading · {error,missing} · array of rows
+function openLeaderboardPage(){ el.rankhub.classList.remove('show'); el.home.classList.remove('show'); el.lbpage.classList.add('show'); el.lbpage.scrollTop=0;
+  lbPageRows=(Array.isArray(state.lbRows)&&state.lbRows.length)?state.lbRows:undefined; renderLeaderboardPage(); refreshLeaderboardPage(); }
+function closeLeaderboardPage(){ el.lbpage.classList.remove('show'); openRankHub(); }
+async function refreshLeaderboardPage(){ if(!SUPA_ON){ lbPageRows=[]; renderLeaderboardPage(); return; }
+  const rows=await sbLeaderboard(100); lbPageRows=Array.isArray(rows)?rows:((rows&&rows.error)?rows:[]); renderLeaderboardPage(); }
+function podiumFor(modeKey, rows){ return (rows||[]).filter(r=>r&&r.modes&&+(r.modes[modeKey]||0)>0)
+    .map(r=>({name:''+r.username, elo:Math.round(+r.modes[modeKey])})).sort((a,b)=>b.elo-a.elo).slice(0,3); }
+function renderLeaderboardPage(){
+  const rows=lbPageRows, meName=((curUser()||{}).name||'').toLowerCase();
+  let h='<div class="rh-hero"><span class="rh-badge">🏆</span><div><h2>'+LT('리더보드','Leaderboard')+'</h2>'
+    +'<div style="margin:5px 0 3px"><span class="season-badge">🏅 '+LT(SEASON.ko,SEASON.en)+'</span></div>'
+    +'<div class="rh-elo">'+LT('종합 순위와 종목별 시상대','Overall standings & per-mode podiums')+'</div></div></div>';
+  if(rows===undefined){ h+='<div class="rh-lb-empty">'+LT('불러오는 중…','Loading…')+'</div>'; el.lbBody.innerHTML=h; return; }
+  if(rows&&rows.error){ h+='<div class="rh-lb-empty rh-lb-err">'+(rows.missing
+      ?LT('리더보드 설정이 아직 안 됐어요 — 서버에 <code>leaderboard_top</code> 함수를 설치해야 해요.','Leaderboard isn\'t set up yet — the <code>leaderboard_top</code> function needs to be installed on the server.')
+      :LT('리더보드를 불러올 수 없어요','Couldn\'t load the leaderboard'))+' <span class="rh-lb-code">('+esc(rows.error)+')</span></div>'; el.lbBody.innerHTML=h; return; }
+  // overall standings (reuse the row renderer)
+  h+='<div class="rh-sec">'+LT('종합 순위 (전체 ELO)','Overall (total ELO)')+' <button class="rh-lb-refresh" id="lb-refresh" aria-label="'+LT('새로고침','Refresh')+'">↻</button></div><div class="rh-lb">'+lbHTML(rows)+'</div>';
+  // per-mode podiums
+  const medals=['🥇','🥈','🥉'], mcls=['pod-gold','pod-silver','pod-bronze'];
+  const hasModes=Array.isArray(rows)&&rows.some(r=>r&&r.modes);
+  const podHtml=RM.map(m=>{ const top=podiumFor(m.k, rows);
+    const body= top.length? top.map((p,i)=>'<div class="pod-row'+((meName&&p.name.toLowerCase()===meName)?' me':'')+'"><span class="pod-medal '+mcls[i]+'">'+medals[i]+'</span><span class="pod-nm">'+esc(p.name)+'</span><span class="pod-elo">'+p.elo.toLocaleString()+'</span></div>').join('')
+      : '<div class="pod-empty">'+LT('아직 기록이 없어요','No entries yet')+'</div>';
+    return '<div class="pod-card"><div class="pod-h"><span class="pod-mi">'+(RM_IC[m.k]||'🎯')+'</span>'+LT(m.ko,m.en)+'</div>'+body+'</div>'; }).join('');
+  h+='<div class="rh-sec">'+LT('종목별 시상대','Per-mode podiums')+'</div>'
+    +(hasModes?'':'<div class="pod-empty" style="margin-bottom:8px">'+LT('종목별 데이터가 아직 없어요 — 서버 함수를 업데이트하면 표시돼요.','No per-mode data yet — update the server function to show podiums.')+'</div>')
+    +'<div class="pod-wrap">'+podHtml+'</div>';
+  el.lbBody.innerHTML=h;
+  const rb=el.lbBody.querySelector('#lb-refresh'); if(rb) rb.onclick=()=>{ lbPageRows=undefined; renderLeaderboardPage(); refreshLeaderboardPage(); };
+}
 function renderRankHub(){
   const u=curUser();
   if(!u){ el.rhBody.innerHTML='<div class="rh-hero"><span class="rh-badge">🏆</span><div><h2>'+LT('랭크전','Ranked')+'</h2><div class="rh-elo">'+LT('로그인해야 이용할 수 있어요.','Log in to play ranked.')+'</div></div></div>'
@@ -11113,6 +11195,7 @@ function renderRankHub(){
     : ('<span style="font-size:13px;color:var(--faint)">'+LT('아직 없어요 — 랭크전 등에서 아주 낮은 확률로 해금','none yet — very small chance to unlock in Ranked and elsewhere')+'</span>');
   el.rhBody.innerHTML=
     '<div class="rh-hero"><span class="rh-badge">'+t.ic+'</span><div><h2>'+LT(t.ko,t.en)+'</h2>'
+    +'<div style="margin:5px 0 3px"><span class="season-badge">🏅 '+LT(SEASON.ko,SEASON.en)+'</span></div>'
     +'<div class="rh-elo">'+(placed?(LT('국가 이름 ELO ','Name ELO ')+(rmElo(u,'quiz')||0)):LT('아직 미배치','Unplaced'))+'</div></div></div>'
     +(!placed?'<button class="btn solid rh-play" id="rh-place">'+LT('배치고사 보기 · 국가 이름 '+RANKED_N+'문제','Take placement · '+RANKED_N+' name questions')+'</button>':'')
     +(placed && nextR!=null?('<div class="rh-sec">'+LT('다음 등급 ','Next rank ')+RANK_MAIN[nextR].ic+' '+LT(RANK_MAIN[nextR].ko,RANK_MAIN[nextR].en)+LT(' 승급 조건',' requirements')+'</div><div class="rh-modes">'+reqBars+'</div>'
@@ -11122,7 +11205,8 @@ function renderRankHub(){
     +'<button class="btn rh-play" id="rh-duel" style="margin-top:10px">⚔️ '+LT('실시간 1v1 (베타)','Live 1v1 (beta)')+'</button>'
     +'<div class="rh-sec">'+LT('하이라이트 코스메틱 (등급 보상)','Highlight cosmetics (rank rewards)')+'</div><div class="rh-row" id="rh-cos">'+cosHtml+'</div>'
     +'<div class="rh-sec">✨ '+LT('특별 테마 컬렉션','Special themes')+' ('+myThemes.length+'/'+Object.keys(HIDDEN_THEMES).length+')</div><div class="rh-shiny" id="rh-themes">'+themeHtml+'</div>'
-    +(SUPA_ON?('<div class="rh-sec">🏆 '+LT('리더보드','Leaderboard')+' <button class="rh-lb-refresh" id="rh-lb-refresh" aria-label="'+LT('새로고침','Refresh')+'">↻</button></div><div id="rh-lb" class="rh-lb">'+lbHTML()+'</div>'):'')
+    +(SUPA_ON?('<div class="rh-sec">🏆 '+LT('리더보드','Leaderboard')+' · '+LT(SEASON.ko,SEASON.en)+' <button class="rh-lb-refresh" id="rh-lb-refresh" aria-label="'+LT('새로고침','Refresh')+'">↻</button></div><div id="rh-lb" class="rh-lb">'+lbHTML()+'</div>'
+        +'<button class="lb-full-btn" id="rh-lb-full">🏆 '+LT('전체 순위 · 종목별 시상대','Full standings · per-mode podiums')+' ›</button>'):'')
     +'<p class="rh-note">'+LT('· 종목마다 ELO가 따로 올라요 · 어려운 유형은 상위 등급에서 열려요<br>· 승급하려면 필요한 종목 ELO를 채우고 승급 시험에 합격해야 해요<br>· 정확한 이름만 · 문제당 '+RANKED_QTIME+'초 · 기회 2번 · 중도 포기·탭 이탈 시 손해','· Each mode has its own ELO · harder types unlock at higher ranks<br>· To promote, meet the required mode ELOs and pass the promotion exam<br>· Exact names · '+RANKED_QTIME+'s/question · 2 tries · quitting or leaving the tab costs you')+'</p>';
   const place=el.rhBody.querySelector('#rh-place'); if(place) place.onclick=()=>{ state.rankedExam=false; state.rankedMode='quiz'; state.rankedPlacement=true; playRanked(); };
   const exam=el.rhBody.querySelector('#rh-exam'); if(exam) exam.onclick=()=>{ state.rankedExam=true; state.rankedPlacement=false; playRanked(); };
@@ -11130,6 +11214,7 @@ function renderRankHub(){
   el.rhBody.querySelectorAll('#rh-cos .rh-chip').forEach(b=>b.onclick=()=>{ if(b.classList.contains('lock')) return; u.stats.cosEquip=b.dataset.hl||''; accSave(); applyCosmetics(); renderRankHub(); });
   el.rhBody.querySelectorAll('#rh-themes .rh-theme').forEach(b=>b.onclick=()=>{ u.stats.themeEquip=b.dataset.th||''; accSave(); applyCosmetics(); renderRankHub(); });
   const lbr=el.rhBody.querySelector('#rh-lb-refresh'); if(lbr) lbr.onclick=refreshLeaderboard;
+  const lbf=el.rhBody.querySelector('#rh-lb-full'); if(lbf) lbf.onclick=openLeaderboardPage;
   const dbtn=el.rhBody.querySelector('#rh-duel'); if(dbtn) dbtn.onclick=openDuel;
 }
 let rloadT=null;
@@ -11146,6 +11231,7 @@ $('rl-cancel').onclick=cancelRankedLoad;
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&$('rload').classList.contains('show')) cancelRankedLoad(); });
 el.rankBanner.onclick=openRankHub;
 el.rhBack.onclick=closeRankHub;
+el.lbBack.onclick=closeLeaderboardPage;
 
 /* ================= Live 1v1 (Supabase Realtime — presence matchmaking + broadcast, no DB) ================= */
 const DUEL={sc:null,mm:null,ch:null,myId:null,st:'idle',match:null,host:false,seed:0,n:10,queue:[],idx:0,my:0,opp:0,oppName:'?',t0:0,timer:null,done:false,oppDone:false,myMs:0,oppMs:0};
