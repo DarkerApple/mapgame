@@ -294,6 +294,39 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 .card h2{font-size:17px;margin-bottom:3px;font-weight:700}
 .card .big{font-size:42px;font-weight:800;margin:10px 0;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 .card p{color:var(--muted);font-size:13px;margin-bottom:16px}
+/* end-screen extras: tier bar + miss list */
+#ov-extra{text-align:left}
+#ov-extra:empty{display:none}
+.ov-tier{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:12px}
+.ov-tier-h{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:7px}
+.tb-segs{display:flex;gap:3px;margin-bottom:7px}
+.tb-seg{flex:1;text-align:center;font-size:10px;font-weight:800;color:var(--faint);background:var(--surface3);border-radius:4px;padding:3px 0;border:1px solid transparent}
+.tb-seg.on{color:var(--accent-ink);background:var(--target);border-color:var(--target)}
+.tb-seg.cur{outline:2px solid var(--accent);outline-offset:1px}
+.tb-bar{height:7px;border-radius:99px;background:var(--surface3);overflow:hidden}
+.tb-bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--target));border-radius:99px}
+.tb-lab{font-size:12px;color:var(--muted);margin-top:6px}
+.ov-misses{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:4px}
+.ov-misses-h{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:7px}
+.ov-miss-wrap{display:flex;flex-wrap:wrap;gap:5px;max-height:132px;overflow-y:auto}
+.ov-miss{font-size:12.5px;font-weight:600;background:var(--surface3);border:1px solid var(--border2);border-radius:99px;padding:3px 9px}
+/* tier / rank cutscene */
+#cutscene{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;
+  background:radial-gradient(circle at 50% 42%, rgba(34,22,54,.88), rgba(6,6,10,.96))}
+#cutscene.show{display:flex;animation:fade .3s ease}
+.cs-rays{position:absolute;width:170vmax;height:170vmax;background:repeating-conic-gradient(from 0deg,rgba(255,215,90,.10) 0 8deg,transparent 8deg 16deg);animation:csSpin 9s linear infinite}
+@keyframes csSpin{to{transform:rotate(360deg)}}
+.cs-core{position:relative;text-align:center;padding:0 20px;animation:csPop .55s cubic-bezier(.2,.9,.3,1.4)}
+@keyframes csPop{from{opacity:0;transform:scale(.55) translateY(18px)}to{opacity:1;transform:none}}
+.cs-badge{font-size:92px;line-height:1;filter:drop-shadow(0 6px 22px rgba(255,200,80,.5));animation:csBadge 1s ease}
+@keyframes csBadge{0%{transform:scale(.2) rotate(-22deg);opacity:0}55%{transform:scale(1.16) rotate(6deg)}100%{transform:scale(1) rotate(0)}}
+.cs-medal{display:flex;align-items:center;justify-content:center;width:118px;height:118px;border-radius:50%;margin:0 auto;font-size:50px;font-weight:900;
+  color:#3a2a06;background:radial-gradient(circle at 40% 34%,#ffe89a,#f5c542 60%,#b8860b);border:4px solid #fff3c4;box-shadow:0 8px 30px rgba(245,197,66,.5)}
+.cs-head{margin-top:12px;font-size:14px;font-weight:800;letter-spacing:.34em;text-transform:uppercase;color:var(--target);text-indent:.34em}
+.cs-name{font-size:29px;font-weight:900;color:#fff;margin-top:4px;text-shadow:0 2px 14px rgba(0,0,0,.5)}
+.cs-note{font-size:13.5px;color:rgba(255,255,255,.82);margin-top:6px}
+.cs-conf{position:absolute;top:-14px;width:9px;height:14px;border-radius:2px;opacity:.9;animation:csFall linear forwards}
+@keyframes csFall{from{transform:translateY(-12vh) rotate(0)}to{transform:translateY(112vh) rotate(560deg)}}
 .card .btn{padding:11px 24px;font-size:14px}
 #durrow{display:flex;gap:5px;flex-wrap:wrap}
 #durrow button{background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:8px;
@@ -412,9 +445,19 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 .pc-share{width:100%;justify-content:center;font-weight:700}
 .share-img{display:block;width:100%;max-width:340px;margin:6px auto 12px;border-radius:14px;border:1px solid var(--border2)}
 /* auth modal */
-#auth,#settings{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:18px;
+#auth,#settings,#admin{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:18px;
   background:rgba(6,6,8,.74);backdrop-filter:blur(5px)}
-#auth.show,#settings.show{display:flex;animation:fade .2s ease}
+#auth.show,#settings.show,#admin.show{display:flex;animation:fade .2s ease}
+.adm-block{margin-top:14px;border-top:1px solid var(--border);padding-top:12px}
+.adm-h{font-size:12px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.adm-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px}
+.adm-btn{background:var(--surface2);border:1px solid var(--border2);border-radius:9px;padding:7px 11px;font:inherit;font-weight:700;font-size:12.5px;color:var(--text);cursor:pointer}
+.adm-btn:hover{border-color:var(--accent);color:var(--accent)}
+.adm-btn.danger:hover{border-color:#ff5a5a;color:#ff7a7a}
+.adm-in{width:74px;background:var(--surface3);border:1px solid var(--border2);border-radius:8px;padding:6px 8px;font:inherit;font-size:12.5px;color:var(--text)}
+.adm-sel{background:var(--surface3);border:1px solid var(--border2);border-radius:8px;padding:6px 8px;font:inherit;font-size:12.5px;color:var(--text)}
+.adm-note{font-size:11.5px;color:var(--muted);margin-top:2px}
+.adm-tag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-ink);background:var(--accent);border-radius:5px;padding:2px 6px;vertical-align:2px}
 .set-card{width:min(440px,94vw);max-height:88vh;overflow-y:auto}
 .set-block{margin-top:16px}
 .set-h{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
@@ -852,9 +895,12 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
     <h2 id="ovtitle">결과</h2>
     <div class="big" id="ovbig">0</div>
     <p id="ovsub"></p>
+    <div id="ov-extra"></div>
     <button class="btn solid" id="ovbtn">다시 하기</button>
   </div>
 </div>
+
+<div id="cutscene" aria-hidden="true"></div>
 
 <div id="auth" aria-hidden="true">
   <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">
@@ -867,6 +913,13 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
   <div class="auth-card set-card" role="dialog" aria-modal="true" aria-labelledby="set-title">
     <button class="auth-x" id="set-close" aria-label="닫기">✕</button>
     <div id="set-body"></div>
+  </div>
+</div>
+
+<div id="admin" aria-hidden="true">
+  <div class="auth-card set-card" role="dialog" aria-modal="true" aria-labelledby="adm-title">
+    <button class="auth-x" id="adm-close" aria-label="닫기">✕</button>
+    <div id="adm-body"></div>
   </div>
 </div>
 
@@ -914,7 +967,7 @@ const ICONS={
   landmark:svg('<path d="M12 3l8 4v2H4V7zM6 9v8M10 9v8M14 9v8M18 9v8M4 20h16M3 17h18"/>'),
   question:svg('<circle cx="12" cy="12" r="9"/><path d="M9.2 9.3a3 3 0 0 1 5.6 1.2c0 2-2.8 2.5-2.8 4M12 17h.01"/>'),
   brand:svg('<circle cx="10.5" cy="13" r="7.5"/><path d="M3 13h15M10.5 5.5c2.7 3 2.7 12 0 15M10.5 5.5c-2.7 3-2.7 12 0 15"/><path d="M18.7 2.7a3 3 0 0 0-3 3c0 2.2 3 4.8 3 4.8s3-2.6 3-4.8a3 3 0 0 0-3-3z"/><circle cx="18.7" cy="5.7" r=".7"/>'),
-  gear:svg('<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.2 5.2l2.1 2.1M16.7 16.7l2.1 2.1M18.8 5.2l-2.1 2.1M7.3 16.7l-2.1 2.1"/>'),
+  gear:svg('<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>'),
   shape:svg('<path d="M7 4l6 1 5 4-2 6-5 4-6-2-2-7z"/>'),
   rank:svg('<path d="M5 21V9l4-2 3 3 4-4 3 2v13z"/><path d="M3 21h18"/>'),
 };
@@ -2406,6 +2459,7 @@ function resetMode(){
   stopTicker(); stopTrivia(); hideOverlay(); clearLabels(); state.gen++; cancelDrag();
   state.ranked=(state.mode==='ranked');   // exact-name matching only inside Ranked
   state.running=false; state.ended=false; state.found=new Set(); state.score=0; state.findLock=false;
+  state.missed=[]; state.missedIds=new Set();   // countries stumbled on this session (for the end screen)
   state.elapsed=0; state.target=null; state.queue=[]; state.pool=[]; state.regionIds=null; state.regionTotal=0;
   clearMap(); el.studypanel.classList.add('hidden'); el.trivia.classList.remove('show'); el.compare.classList.remove('show');
   el.minigame.classList.remove('show'); el.codex.classList.remove('show'); el.sym.classList.remove('show'); stopFall(); el.fall.classList.remove('show');
@@ -3092,6 +3146,7 @@ function endLadder(){
   const best=state.ladderStreak;
   showOverlay(LT('연속 기록','Streak'),best,EN()?('You chained '+best+' in a row.'):(best+'개를 연속으로 맞혔어요.'));
   const r=recordResult('ladder',best); const sfx=resultSuffix(r,best); if(sfx){ const s=$('ovsub'); s.textContent+=sfx; }
+  renderOverlayExtras('ladder',best); if(r&&r.tierUp) playTierCutscene('game', modeName('ladder'), r.tierUp);
 }
 
 /* ---- Estimate (population / area) ---- */
@@ -3147,6 +3202,7 @@ function endEstimate(){
   if(state.ended) return; state.ended=true; state.running=false; stopTicker();
   showOverlay(LT('어림 점수','Estimate score'),state.score,EN()?('Over '+state.estTotal+' rounds.'):(state.estTotal+'라운드 합계.'));
   const r=recordResult('estimate',state.score); const sfx=resultSuffix(r,state.score); if(sfx){ const s=$('ovsub'); s.textContent+=sfx; }
+  renderOverlayExtras('estimate',state.score); if(r&&r.tierUp) playTierCutscene('game', modeName('estimate'), r.tierUp);
 }
 
 /* ---- Odd One Out ---- */
@@ -3271,6 +3327,7 @@ function endChain(){
   if(state.ended) return; state.ended=true; state.running=false; stopTicker(); el.q.disabled=true;
   showOverlay(LT('사슬 길이','Chain length'),state.chainLen,EN()?('You linked '+state.chainLen+' bordering countries.'):('국경을 맞댄 나라 '+state.chainLen+'개를 이었어요.'));
   const r=recordResult('chain',state.chainLen); const sfx=resultSuffix(r,state.chainLen); if(sfx){ const s=$('ovsub'); s.textContent+=sfx; }
+  renderOverlayExtras('chain',state.chainLen); if(r&&r.tierUp) playTierCutscene('game', modeName('chain'), r.tierUp);
 }
 
 /* ================= Country Codex (browsable reference) ================= */
@@ -3405,7 +3462,8 @@ function endDaily(){
     accSave();
     const s=$('ovsub'); s.textContent+=LT(' · 🔥 연속 '+u.stats.dailyStreak+'일',' · 🔥 '+u.stats.dailyStreak+'-day streak');
   }
-  recordResult('daily',state.score);
+  const r=recordResult('daily',state.score);
+  renderOverlayExtras('daily',state.score); if(r&&r.tierUp) playTierCutscene('game', modeName('daily'), r.tierUp);
 }
 
 /* ================= Ranked mode — chess-style ELO, placement, fever, shiny ================= */
@@ -3486,10 +3544,12 @@ function buildRankedMatch(base, elo, u, placement){
   else if(base==='silhouette') pool=pool.filter(e=>e.d);
   else pool=pool.filter(e=>e.i2);
   pool.forEach(e=>{ if(e._d==null) e._d=countryDifficulty(e); });
-  if(placement){ // spread across the whole difficulty range to calibrate
-    const sorted=pool.slice().sort((a,b)=>a._d-b._d), q=[];
-    for(let i=0;i<RANKED_N;i++){ const idx=Math.floor(i/(RANKED_N-1)*(sorted.length-1)); q.push({entry:sorted[idx],fever:false}); }
-    return q;
+  if(placement){ // spread across difficulty bands, but pick a random country in each band → a different test per person/attempt
+    const sorted=pool.slice().sort((a,b)=>a._d-b._d), n=sorted.length, q=[], used=new Set();
+    for(let i=0;i<RANKED_N;i++){ const lo=Math.floor(i/RANKED_N*n), hi=Math.max(lo+1,Math.floor((i+1)/RANKED_N*n));
+      let e=null; for(let tries=0;tries<8;tries++){ const cand=sorted[Math.min(n-1,lo+Math.floor(Math.random()*(hi-lo)))]; if(!used.has(cand.id)){ e=cand; break; } }
+      if(!e) e=sorted[Math.min(n-1,lo)]; used.add(e.id); q.push({entry:e,fever:false}); }
+    return shuffleArr(q);
   }
   // difficulty window scales with elo (obscurer countries as you climb)
   const near=pool.slice().sort((a,b)=>Math.abs(a._d-elo)-Math.abs(b._d-elo)).slice(0,55);
@@ -3554,7 +3614,7 @@ function rankedAnswer(correct){
   const e=state.rankedItem.entry, D=countryDifficulty(e), exp=expectedScore(D,state.rankedElo0);
   state.rankedDelta += ELO_K*((correct?1:0)-exp);
   if(correct){ state.rankedHit++; state.score++; updateScore(); trackCountry(e,true); maybeUnlockTheme(); }
-  else trackCountry(e,false);
+  else { trackCountry(e,false); noteMiss(e); }
   const nm=NM(e)+(state.rankedBase==='capcountry'?(' · '+capitalDisplay(e)):'');
   celebrate(correct, correct?LT('정답!','Correct!'):LT('땡!','Miss'));
   if(!(correct&&/특별 테마|Special theme/.test(el.feedback.textContent))) setFeedback(correct?(LT('정답! ','Correct! ')+nm):(LT('정답은 ','Answer: ')+nm), correct?'ok':'no', correct?'check':'x');
@@ -3567,7 +3627,7 @@ function endRanked(quit){
   if(quit){ for(let i=state.rankedIdx;i<state.rankedQueue.length;i++){ const e=state.rankedQueue[i].entry; deltaRaw += ELO_K*(0-expectedScore(countryDifficulty(e),state.rankedElo0)); } deltaRaw-=15; }
   if(state.rankedCheated) deltaRaw=Math.min(deltaRaw, 0);   // no ELO gain if you left the tab mid-match
   const u=curUser(); const placement=state.rankedPlacement; state.rankedPlacement=false;
-  let big, sub;
+  let big, sub, cut=null;
   if(u){ u.stats=u.stats||{games:0,best:{},plays:{},points:0};
     let old=(u.stats.elo!=null)?u.stats.elo:state.rankedElo0, nw;
     if(placement){ const rate=state.rankedHit/Math.max(1,state.rankedQueue.length); nw=Math.round(Math.max(700,Math.min(2200, 800+rate*1400))); u.stats.placed=true; }
@@ -3579,10 +3639,13 @@ function endRanked(quit){
     unlockTierCosmetics(nw); accSave(); renderProfile(); if(typeof checkAchievements==='function') checkAchievements(); if(typeof maybeUnlockTheme==='function') maybeUnlockTheme();
     const t=rankTierOf(nw), nt=rankNextTier(nw), promoted=(!placement && rankTierOf(old)!==t && nw>old);
     big=state.rankedHit+' / '+state.rankedQueue.length;
-    if(placement){ sub=LT('배치 완료! 시작 등급: ','Placed! Starting rank: ')+t.ic+' '+LT(t.ko,t.en)+' '+nw; }
-    else{ const d=Math.round(deltaRaw); sub=(d>=0?('ELO +'+d):('ELO '+d))+' · '+t.ic+' '+LT(t.ko,t.en)+' '+nw+(nt?(' · '+LT('다음까지 ','to next ')+(nt.elo-nw)):'')+(promoted?LT(' · ⬆️ 승급!',' · ⬆️ Promoted!'):'')+(quit?LT(' · ⚠️ 중도 포기',' · ⚠️ abandoned'):'')+(state.rankedCheated?LT(' · 🚫 탭 이탈',' · 🚫 left tab'):''); }
+    if(placement){ sub=LT('배치 완료! 시작 등급: ','Placed! Starting rank: ')+t.ic+' '+LT(t.ko,t.en)+' '+nw; cut={ic:t.ic,label:LT(t.ko,t.en),sub:LT('배치 완료','Placement complete')}; }
+    else{ const d=Math.round(deltaRaw); sub=(d>=0?('ELO +'+d):('ELO '+d))+' · '+t.ic+' '+LT(t.ko,t.en)+' '+nw+(nt?(' · '+LT('다음까지 ','to next ')+(nt.elo-nw)):'')+(promoted?LT(' · ⬆️ 승급!',' · ⬆️ Promoted!'):'')+(quit?LT(' · ⚠️ 중도 포기',' · ⚠️ abandoned'):'')+(state.rankedCheated?LT(' · 🚫 탭 이탈',' · 🚫 left tab'):'');
+      if(promoted) cut={ic:t.ic,label:LT(t.ko,t.en),sub:LT('승급!','Promoted!')}; }
   } else { big=state.rankedHit+' / '+state.rankedQueue.length; sub=LT('로그인해야 랭크가 저장돼요.','Log in to save your rank.'); }
   showOverlay(quit?LT('랭크 포기','Match abandoned'):(placement?LT('배치고사 결과','Placement result'):LT('랭크전 결과','Ranked result')), big, sub);
+  renderOverlayExtras('ranked', state.rankedHit);
+  if(cut) playTierCutscene('rank', cut.label, cut.sub, cut.ic);
 }
 function abandonRankedIfActive(){ if(state.mode==='ranked'&&state.rankedActive&&!state.ended){ const u=curUser();
   // apply the loss silently (no overlay) — quitting mid-match costs ELO
@@ -3645,6 +3708,7 @@ function endFall(){
   if(state.ended) return; state.ended=true; state.running=false; stopFall();
   showOverlay(LT('낙하 국기','Falling Flags'), state.score, EN()?('You cleared '+state.score+' flags.'):('국기 '+state.score+'개를 처리했어요.'));
   const r=recordResult('fall',state.score); const sfx=resultSuffix(r,state.score); if(sfx){ const s=$('ovsub'); s.textContent+=sfx; }
+  renderOverlayExtras('fall',state.score); if(r&&r.tierUp) playTierCutscene('game', modeName('fall'), r.tierUp);
 }
 
 /* ================= Flag Symbols (pick every flag with a symbol) ================= */
@@ -3695,6 +3759,7 @@ function endSym(){
   if(state.ended) return; state.ended=true; state.running=false;
   showOverlay(LT('국기 기호 찾기','Flag Symbols'), state.score+' / '+state.symTotal, EN()?('Perfect rounds: '+state.score+'/'+state.symTotal):(state.symTotal+'라운드 중 '+state.score+'라운드 완벽!'));
   const r=recordResult('sym',state.score); const sfx=resultSuffix(r,state.score); if(sfx){ const s=$('ovsub'); s.textContent+=sfx; }
+  renderOverlayExtras('sym',state.score); if(r&&r.tierUp) playTierCutscene('game', modeName('sym'), r.tierUp);
 }
 
 /* ================= war trivia (kahoot-style) ================= */
@@ -10077,7 +10142,7 @@ function handleFindClick(entry){
     state.found.add(entry.id); markFound(entry,true); tagCapture(entry); celebrate(true,LT('정답!','Correct!'));
     setFeedback(LT('정답! ','Correct! ')+NM(entry),'ok','check');
     if(state.vs){ state.findLock=true; setTimeout(()=>state.findLock=false,950); vsAfterAnswer(true); } else later(nextFindTarget,650);
-  } else { flashWrong(entry); const msg=EN()?('That’s '+NM(entry)+'. Try again.'):('여기는 '+entry.ko+' 예요. 다시 찾아보세요.');
+  } else { flashWrong(entry); noteMiss(state.target); const msg=EN()?('That’s '+NM(entry)+'. Try again.'):('여기는 '+entry.ko+' 예요. 다시 찾아보세요.');
     if(state.vs){ vsPenalty(); celebrate(false,LT('−1점','−1')); setFeedback(vsWrongMsg(msg),'no','x'); }
     else { celebrate(false,LT('아니에요','Nope')); setFeedback(msg,'no','x'); } }
 }
@@ -10097,7 +10162,7 @@ function submit(){
       state.found.add(entry.id); markFound(entry,true); tagCapture(entry); celebrate(true,LT('정답!','Correct!'));
       setFeedback(LT('정답! ','Correct! ')+entry.ko+' · '+entry.en,'ok','check'); el.q.value='';
       if(state.vs) vsAfterAnswer(true); else if(m==='daily') later(nextDailyTarget,700); else later(nextQuizTarget,650);
-    } else { shakeInput(); const msg=EN()?('Not '+NM(entry)+'. Look at the outlined country.'):(entry.ko+' 이(가) 아니에요. 표시된 나라를 보세요.');
+    } else { shakeInput(); noteMiss(state.target); const msg=EN()?('Not '+NM(entry)+'. Look at the outlined country.'):(entry.ko+' 이(가) 아니에요. 표시된 나라를 보세요.');
       if(state.vs){ vsPenalty(); celebrate(false,LT('−1점','−1')); el.q.value=''; setFeedback(vsWrongMsg(msg),'no','x'); }
       else setFeedback(msg,'no','x'); }
   }
@@ -10109,7 +10174,7 @@ function submit(){
       celebrate(true,LT('정답!','Correct!'));
       setFeedback(LT('정답! ','Correct! ')+flagEmoji(entry.i2)+' '+NM(entry),'ok','check'); el.q.value='';
       if(state.vs) vsAfterAnswer(true); else later(nextFlagTarget,650);
-    } else { shakeInput(); const msg=EN()?('Not '+NM(entry)+'.'):(entry.ko+' 이(가) 아니에요.');
+    } else { shakeInput(); noteMiss(state.target); const msg=EN()?('Not '+NM(entry)+'.'):(entry.ko+' 이(가) 아니에요.');
       if(state.vs){ vsPenalty(); celebrate(false,LT('−1점','−1')); el.q.value=''; setFeedback(vsWrongMsg(msg),'no','x'); }
       else setFeedback(msg,'no','x'); }
   }
@@ -10121,7 +10186,7 @@ function submit(){
       celebrate(true,LT('정답!','Correct!'));
       setFeedback(LT('정답! ','Correct! ')+NM(t)+' · '+capitalDisplay(t),'ok','check'); el.q.value='';
       if(state.vs) vsAfterAnswer(true); else later(nextCapitalTarget,650);
-    } else { shakeInput(); const msg=EN()?('Not the capital of '+NM(t)+'.'):(NM(t)+'의 수도가 아니에요.');
+    } else { shakeInput(); noteMiss(t); const msg=EN()?('Not the capital of '+NM(t)+'.'):(NM(t)+'의 수도가 아니에요.');
       if(state.vs){ vsPenalty(); celebrate(false,LT('−1점','−1')); el.q.value=''; setFeedback(vsWrongMsg(msg),'no','x'); }
       else setFeedback(msg,'no','x'); }
   }
@@ -10134,7 +10199,7 @@ function submit(){
       state.found.add(entry.id); markFound(entry,true); tagCapture(entry); celebrate(true,LT('정답!','Correct!'));
       setFeedback(LT('정답! ','Correct! ')+NM(entry)+(lm?(' · '+(EN()?lm.en:lm.ko)):''),'ok','check'); el.q.value='';
       if(state.vs) vsAfterAnswer(true); else later(nextLandmarkTarget,950);
-    } else { shakeInput(); const msg=EN()?('Not '+NM(entry)+'.'):(entry.ko+' 이(가) 아니에요.');
+    } else { shakeInput(); noteMiss(state.target); const msg=EN()?('Not '+NM(entry)+'.'):(entry.ko+' 이(가) 아니에요.');
       if(state.vs){ vsPenalty(); celebrate(false,LT('−1점','−1')); el.q.value=''; setFeedback(vsWrongMsg(msg),'no','x'); }
       else setFeedback(msg,'no','x'); }
   }
@@ -10147,7 +10212,7 @@ function submit(){
       celebrate(true,LT('정답!','Correct!'));
       setFeedback(LT('정답! ','Correct! ')+NM(entry)+(m==='capcountry'?(' · '+capitalDisplay(state.target)):''),'ok','check'); el.q.value='';
       if(state.vs) vsAfterAnswer(true); else later(nextT,800);
-    } else { shakeInput(); const msg=EN()?('Not '+NM(entry)+'.'):(entry.ko+' 이(가) 아니에요.');
+    } else { shakeInput(); noteMiss(state.target); const msg=EN()?('Not '+NM(entry)+'.'):(entry.ko+' 이(가) 아니에요.');
       if(state.vs){ vsPenalty(); celebrate(false,LT('−1점','−1')); el.q.value=''; setFeedback(vsWrongMsg(msg),'no','x'); }
       else setFeedback(msg,'no','x'); }
   }
@@ -10250,12 +10315,32 @@ function endGame(){
   // save the result for the logged-in profile & flag a new best
   const scoreMap={quiz:state.score,flag:state.score,capital:state.score,findmap:state.score,compare:state.score,oddone:state.score,landmark:state.score,silhouette:state.score,capcountry:state.score,
     countdown:sovFoundCount(),region:regionFoundCount(),conquer:state.conquerDone,place:state.placeTotal,locate:state.locTotal};
-  if(scoreMap[m]!==undefined){ const r=recordResult(m,scoreMap[m]); const sfx=resultSuffix(r,scoreMap[m]); if(sfx){ const s=$('ovsub'); s.textContent=s.textContent+sfx; } }
+  if(scoreMap[m]!==undefined){ const r=recordResult(m,scoreMap[m]); const sfx=resultSuffix(r,scoreMap[m]); if(sfx){ const s=$('ovsub'); s.textContent=s.textContent+sfx; }
+    renderOverlayExtras(m,scoreMap[m]); if(r&&r.tierUp) playTierCutscene('game', modeName(m), r.tierUp); }
+  else renderOverlayExtras(m,state.score);
 }
-function showOverlay(title,big,sub){ $('ovtitle').textContent=title; $('ovbig').textContent=big; $('ovsub').textContent=sub; overlay.classList.add('show'); }
+function showOverlay(title,big,sub){ $('ovtitle').textContent=title; $('ovbig').textContent=big; $('ovsub').textContent=sub; const ex=$('ov-extra'); if(ex) ex.innerHTML=''; overlay.classList.add('show'); }
 function hideOverlay(){ overlay.classList.remove('show'); }
 overlay.addEventListener('click',e=>{ if(e.target===overlay) hideOverlay(); });
 $('ovbtn').onclick=()=>resetMode();
+/* ---- tier / rank cutscene (plays over the end screen) ---- */
+let csT=null;
+const CS_COLORS=['#f5c542','#ff6a3a','#4ade80','#38a8ff','#c084fc','#ff8fb0'];
+function csConfetti(){ let h=''; for(let i=0;i<26;i++){ const l=Math.round(i/26*100)+Math.floor(Math.random()*4);
+    const c=CS_COLORS[i%CS_COLORS.length], dur=(1.6+Math.random()*1.4).toFixed(2), del=(Math.random()*0.9).toFixed(2);
+    h+='<span class="cs-conf" style="left:'+l+'%;background:'+c+';animation-duration:'+dur+'s;animation-delay:'+del+'s"></span>'; }
+  return h; }
+function playTierCutscene(kind, title, detail, extra){
+  if(SET&&SET.effects===false) return;   // respect "effects off"
+  const cs=$('cutscene'); if(!cs) return;
+  let head, name, note, badge;
+  if(kind==='rank'){ head=LT('등급 상승','RANK UP'); name=title; note=detail||''; badge='<div class="cs-badge">'+(extra||'🏅')+'</div>'; }
+  else { head=LT('티어 상승','TIER UP'); name=esc(title)+' · Tier '+(TIER_ROMAN[detail]||''); note=LT('새 등급 달성!','New tier reached!'); badge='<div class="cs-badge"><div class="cs-medal">'+(TIER_ROMAN[detail]||'★')+'</div></div>'; }
+  cs.innerHTML='<div class="cs-rays"></div><div class="cs-core">'+badge+'<div class="cs-head">'+head+'</div><div class="cs-name">'+name+'</div><div class="cs-note">'+esc(note)+'</div></div>'+csConfetti();
+  cs.classList.remove('show'); void cs.offsetWidth; cs.classList.add('show');
+  clearTimeout(csT); csT=setTimeout(()=>cs.classList.remove('show'), 2900);
+  cs.onclick=()=>{ cs.classList.remove('show'); clearTimeout(csT); };
+}
 
 /* ================= local 1v1 (pass-the-device, turn-based) ================= */
 function vsRoundsFor(m){ return m==='hint'?6:10; }
@@ -10449,6 +10534,74 @@ el.setbtn.onclick=openSettings; el.homeset.onclick=openSettings; el.setClose.onc
 el.settings.addEventListener('click',e=>{ if(e.target===el.settings) closeSettings(); });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&el.settings.classList.contains('show')) closeSettings(); });
 
+/* ================= secret admin / debug mode (Konami code: ↑↑↓↓←→←→ B A) ================= */
+const ADMIN_SEQ=['arrowup','arrowup','arrowdown','arrowdown','arrowleft','arrowright','arrowleft','arrowright','b','a'];
+let admBuf=[];
+document.addEventListener('keydown',e=>{
+  const ae=document.activeElement, tag=(ae&&ae.tagName)||'';
+  if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT') return;   // don't capture while typing
+  admBuf.push((e.key||'').toLowerCase()); if(admBuf.length>ADMIN_SEQ.length) admBuf.shift();
+  if(admBuf.length===ADMIN_SEQ.length && ADMIN_SEQ.every((k,i)=>admBuf[i]===k)){ admBuf=[]; openAdmin(); }
+});
+function admUser(){ let u=curUser(); if(u) return u; return null; }
+function admMakeTest(){ const key='dev'; ACC.users[key]={name:'dev',salt:'dev',hash:'dev',stats:{games:0,best:{},plays:{},points:0,xp:0}}; ACC.current=key; accSave(); renderProfile(); }
+function renderAdmin(){
+  const u=admUser(); const body=$('adm-body');
+  const tierModes=Object.keys(TIER_MAX);
+  const modeOpts=MODES_META.map(x=>'<option value="'+x.m+'">'+esc(EN()?(x.te||x.t):x.t)+'</option>').join('');
+  const tierOpts=tierModes.map(m=>'<option value="'+m+'">'+esc(modeName(m))+'</option>').join('');
+  let h='<h2 class="auth-title" id="adm-title">🛠️ '+LT('관리자 모드','Admin / Debug')+' <span class="adm-tag">dev</span></h2>'
+    +'<div class="adm-note">'+LT('기능 점검용 치트예요. 이 기기의 내 계정에만 적용돼요.','Cheats for testing features — affects only your account on this device.')+'</div>';
+  if(!u){ h+='<div class="adm-block"><div class="adm-h">'+LT('계정 없음','No account')+'</div><div class="adm-row"><button class="adm-btn" id="adm-mktest">'+LT('테스트 계정 만들기','Create test account')+'</button></div></div>';
+    body.innerHTML=h; $('adm-mktest').onclick=()=>{ admMakeTest(); renderAdmin(); }; return; }
+  const st=u.stats||{};
+  h+='<div class="adm-block"><div class="adm-h">'+LT('랭크 · 레벨','Rank & level')+'</div>'
+    +'<div class="adm-row">ELO <input class="adm-in" id="adm-elo" type="number" value="'+(st.elo!=null?Math.round(st.elo):1000)+'"><button class="adm-btn" id="adm-setelo">'+LT('적용','Set')+'</button>'
+    +'<button class="adm-btn" data-d="-100">-100</button><button class="adm-btn" data-d="250">+250</button></div>'
+    +'<div class="adm-row">Lv <input class="adm-in" id="adm-lvl" type="number" value="'+levelForXp(st.xp||0)+'"><button class="adm-btn" id="adm-setlvl">'+LT('레벨 적용','Set level')+'</button>'
+    +'<button class="adm-btn" id="adm-addxp">+500 XP</button></div></div>';
+  h+='<div class="adm-block"><div class="adm-h">'+LT('종목 등급 (티어 테스트)','Category tier')+'</div>'
+    +'<div class="adm-row"><select class="adm-sel" id="adm-mode">'+tierOpts+'</select>'
+    +'<input class="adm-in" id="adm-best" type="number" placeholder="best"><button class="adm-btn" id="adm-setbest">'+LT('점수 적용','Set best')+'</button></div>'
+    +'<div class="adm-row"><button class="adm-btn" id="adm-tierup">'+LT('한 티어 올리기 +컷신','Bump tier +cutscene')+'</button><button class="adm-btn" id="adm-maxtier">'+LT('티어 X로','Max (Tier X)')+'</button></div></div>';
+  h+='<div class="adm-block"><div class="adm-h">'+LT('해금','Unlocks')+'</div>'
+    +'<div class="adm-row"><button class="adm-btn" id="adm-themes">'+LT('모든 특별 테마','All themes')+'</button><button class="adm-btn" id="adm-cos">'+LT('모든 코스메틱','All cosmetics')+'</button><button class="adm-btn" id="adm-ach">'+LT('모든 뱃지','All badges')+'</button></div>'
+    +'<div class="adm-row"><button class="adm-btn" id="adm-all">🎁 '+LT('전부 주기','Grant everything')+'</button></div></div>';
+  h+='<div class="adm-block"><div class="adm-h">'+LT('미리보기','Preview')+'</div>'
+    +'<div class="adm-row"><button class="adm-btn" id="adm-csGame">'+LT('티어 컷신','Tier cutscene')+'</button><button class="adm-btn" id="adm-csRank">'+LT('승급 컷신','Rank cutscene')+'</button><button class="adm-btn" id="adm-fun">'+LT('보너스 라운드','Fun round')+'</button></div></div>';
+  h+='<div class="adm-block"><div class="adm-h">'+LT('이동 · 초기화','Jump & reset')+'</div>'
+    +'<div class="adm-row"><select class="adm-sel" id="adm-jump">'+modeOpts+'</select><button class="adm-btn" id="adm-go">'+LT('게임 시작','Start')+'</button></div>'
+    +'<div class="adm-row"><button class="adm-btn danger" id="adm-reset">'+LT('내 기록 초기화','Reset my stats')+'</button></div></div>';
+  body.innerHTML=h;
+  const re=()=>{ accSave(); renderProfile(); renderAdmin(); };
+  $('adm-setelo').onclick=()=>{ u.stats.elo=Math.max(0,Math.round(+$('adm-elo').value||0)); u.stats.placed=true; unlockTierCosmetics(u.stats.elo); re(); };
+  body.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{ u.stats.elo=Math.max(0,(u.stats.elo!=null?u.stats.elo:1000)+(+b.dataset.d)); u.stats.placed=true; re(); });
+  $('adm-setlvl').onclick=()=>{ u.stats.xp=xpForLevel(Math.max(0,Math.round(+$('adm-lvl').value||0))); re(); };
+  $('adm-addxp').onclick=()=>{ addXP(u,500); re(); };
+  $('adm-setbest').onclick=()=>{ const m=$('adm-mode').value, v=Math.max(0,Math.round(+$('adm-best').value||0)); u.stats.best=u.stats.best||{}; u.stats.best[m]=v; re(); };
+  $('adm-maxtier').onclick=()=>{ const m=$('adm-mode').value; u.stats.best=u.stats.best||{}; u.stats.best[m]=TIER_MAX[m]||50; re(); };
+  $('adm-tierup').onclick=()=>{ const m=$('adm-mode').value; u.stats.best=u.stats.best||{}; const cur=categoryTier(m,u.stats.best[m]||0), nx=Math.min(10,cur+1); u.stats.best[m]=tierThreshold(m,nx); accSave(); renderProfile(); playTierCutscene('game', modeName(m), nx); renderAdmin(); };
+  $('adm-themes').onclick=()=>{ u.stats.themes=u.stats.themes||{}; Object.keys(HIDDEN_THEMES).forEach(k=>u.stats.themes[k]=Date.now()); re(); };
+  $('adm-cos').onclick=()=>{ u.stats.cos=u.stats.cos||{}; Object.keys(HL_COSMETICS).forEach(k=>u.stats.cos[k]=true); re(); };
+  $('adm-ach').onclick=()=>{ u.stats.ach=u.stats.ach||{}; ACHIEVEMENTS.forEach(a=>u.stats.ach[a.id]=Date.now()); re(); };
+  $('adm-all').onclick=()=>{ u.stats.themes=u.stats.themes||{}; Object.keys(HIDDEN_THEMES).forEach(k=>u.stats.themes[k]=Date.now());
+    u.stats.cos=u.stats.cos||{}; Object.keys(HL_COSMETICS).forEach(k=>u.stats.cos[k]=true);
+    u.stats.ach=u.stats.ach||{}; ACHIEVEMENTS.forEach(a=>u.stats.ach[a.id]=Date.now());
+    u.stats.best=u.stats.best||{}; Object.keys(TIER_MAX).forEach(m=>u.stats.best[m]=Math.max(u.stats.best[m]||0, TIER_MAX[m]));
+    u.stats.elo=2400; u.stats.placed=true; u.stats.games=Math.max(u.stats.games||0,200); u.stats.points=Math.max(u.stats.points||0,9999);
+    u.stats.xp=Math.max(u.stats.xp||0, xpForLevel(30)); unlockTierCosmetics(u.stats.elo); re(); };
+  $('adm-csGame').onclick=()=>{ closeAdmin(); playTierCutscene('game', modeName('quiz'), 10); };
+  $('adm-csRank').onclick=()=>{ closeAdmin(); const t=rankTierOf(u.stats.elo!=null?u.stats.elo:1500); playTierCutscene('rank', LT(t.ko,t.en), LT('승급!','Promoted!'), t.ic); };
+  $('adm-fun').onclick=()=>{ closeAdmin(); state.rankedBase='quiz'; state.rankedPlacement=false; setMode('ranked'); setTimeout(()=>{ if(state.mode==='ranked'&&state.rankedQueue){ state.rankedQueue[state.rankedIdx]={fun:FUN_ROUNDS[Math.floor(Math.random()*FUN_ROUNDS.length)]}; rankedShowQuestion(); } },160); };
+  $('adm-go').onclick=()=>{ const m=$('adm-jump').value; closeAdmin(); if(m==='ranked'){ openRankHub(); } else { el.home.classList.remove('show'); el.homebtn.classList.remove('hidden'); setMode(m); } };
+  $('adm-reset').onclick=()=>{ if(!confirm(LT('내 모든 기록을 지울까요?','Wipe all my stats?'))) return; u.stats={games:0,best:{},plays:{},points:0,xp:0,xpMig:XP_MIG_VER}; re(); };
+}
+function openAdmin(){ if(el.settings.classList.contains('show')) closeSettings(); renderAdmin(); $('admin').classList.add('show'); $('admin').setAttribute('aria-hidden','false'); }
+function closeAdmin(){ $('admin').classList.remove('show'); $('admin').setAttribute('aria-hidden','true'); }
+$('adm-close').onclick=closeAdmin;
+$('admin').addEventListener('click',e=>{ if(e.target===$('admin')) closeAdmin(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&$('admin').classList.contains('show')) closeAdmin(); });
+
 /* ================= keyboard shortcuts (desktop) — inert while typing ================= */
 document.body.classList.add(IS_TOUCH?'is-touch':'is-desktop');
 document.addEventListener('keydown',e=>{
@@ -10542,14 +10695,25 @@ function randSalt(){ try{ const a=new Uint8Array(8); crypto.getRandomValues(a); 
 // record a SOLO result for the logged-in user → {isBest,best} | null
 /* ---- per-game tiers (I–X) + account XP / levels ---- */
 const TIER_ROMAN=['','I','II','III','IV','V','VI','VII','VIII','IX','X'];
-const TIER_MAX={quiz:50,countdown:60,region:55,daily:10,ladder:25,chain:25,compare:35,estimate:600,oddone:35,sym:10,fall:40,
-  place:45,locate:45,conquer:40,flag:40,capital:40,findmap:40,silhouette:35,capcountry:40,landmark:35};
-function tierThreshold(max,i){ return Math.max(1,Math.round(max*Math.pow(i/10,1.4))); }   // front-loaded, reachable
-function categoryTier(mode,best){ const max=TIER_MAX[mode]||40; let t=0; for(let i=1;i<=10;i++){ if((best||0)>=tierThreshold(max,i)) t=i; } return t; }
+// score to reach Tier X (elite ceiling per mode). High tiers are meant to be a hard grind; low tiers stay reachable.
+const TIER_MAX={quiz:60,countdown:145,region:54,daily:10,ladder:40,chain:40,compare:46,estimate:1000,oddone:40,sym:16,fall:65,
+  place:50,locate:50,conquer:46,flag:60,capital:55,findmap:60,silhouette:48,capcountry:52,landmark:45};
+// threshold for tier i (1..10): tx*(i/10)^1.2 — reachable at the bottom, close to the elite ceiling at the top, strictly increasing
+function tierThreshold(mode,i){ const tx=TIER_MAX[mode]||50; if(i>=10) return tx; return Math.max(i, Math.round(tx*Math.pow(i/10,1.2))); }
+function categoryTier(mode,best){ let t=0; for(let i=1;i<=10;i++){ if((best||0)>=tierThreshold(mode,i)) t=i; } return t; }
 function tierXCount(u){ const b=(u&&u.stats&&u.stats.best)||{}; let n=0; Object.keys(b).forEach(k=>{ if(categoryTier(k,b[k])>=10) n++; }); return n; }
 function xpForLevel(L){ return 50*L*L; }
 function levelForXp(xp){ return Math.max(0,Math.floor(Math.sqrt((xp||0)/50))); }
 function addXP(u,amt){ if(!u) return 0; u.stats=u.stats||{}; const b=levelForXp(u.stats.xp||0); u.stats.xp=(u.stats.xp||0)+Math.max(0,Math.round(amt||0)); return levelForXp(u.stats.xp)-b; }
+// one-time backfill so accounts that earned tiers/ELO before the XP system get levels that reflect their history
+const XP_MIG_VER=1;
+function xpFromHistory(u){ let g=0; const b=(u.stats&&u.stats.best)||{};
+  Object.keys(b).forEach(k=>{ const t=categoryTier(k,b[k]); for(let i=1;i<=t;i++) g+=i*20; });   // each tier i is worth 20·i XP
+  if(u.stats&&u.stats.elo!=null) g+=Math.max(0,Math.round((u.stats.elo-1000)/2));                 // ELO above the 1000 base
+  g+=(u.stats&&u.stats.games||0)*3;                                                                // a little per game played
+  return g; }
+function migrateXP(u){ if(!u||!u.stats) return; if(u.stats.xpMig>=XP_MIG_VER) return;
+  u.stats.xp=Math.max(u.stats.xp||0, xpFromHistory(u)); u.stats.xpMig=XP_MIG_VER; accSave(); }
 
 function recordResult(key,score){
   const u=curUser(); if(!u||key==null||state.vs) return null;
@@ -10572,6 +10736,28 @@ function resultSuffix(r,score){ if(!r) return ''; let x='';
   if(r.tierUp) x+=LT(' · ⬆️ 티어 '+TIER_ROMAN[r.tierUp],' · ⬆️ Tier '+TIER_ROMAN[r.tierUp]);
   if(r.lvUp>0) x+=LT(' · ✨ 레벨 업!',' · ✨ Level up!');
   return x; }
+// track a country the player stumbled on this session (for the end screen)
+function noteMiss(e){ if(!e||!e.id||state.vs) return; state.missedIds=state.missedIds||new Set(); if(state.missedIds.has(e.id)) return; state.missedIds.add(e.id); (state.missed=state.missed||[]).push(e); }
+function modeName(k){ const meta=MODE_LABEL[k]; return meta?(EN()?(meta.te||meta.t):meta.t):k; }
+// segmented I–X tier bar + progress toward the next tier for a category
+function tierBarHTML(mode,best){
+  const t=categoryTier(mode,best), cur=t>0?tierThreshold(mode,t):0, next=t<10?tierThreshold(mode,t+1):null;
+  const within=next?Math.max(0,Math.min(100,Math.round((best-cur)/(next-cur)*100))):100;
+  let seg=''; for(let i=1;i<=10;i++) seg+='<span class="tb-seg'+(i<=t?' on':'')+(i===t?' cur':'')+'">'+TIER_ROMAN[i]+'</span>';
+  const lab=t>=10?LT('최고 등급 달성 · Tier X','Max tier reached · Tier X')
+    :(LT('등급 ','Tier ')+(t?TIER_ROMAN[t]:'—')+' → '+TIER_ROMAN[t+1]+' · '+LT('다음 등급까지 ','next tier in ')+(next-best)+LT('점',' pts'));
+  return '<div class="ov-tier"><div class="ov-tier-h">'+esc(modeName(mode))+' · '+LT('등급','Tier')+'</div>'
+    +'<div class="tb-segs">'+seg+'</div><div class="tb-bar"><i style="width:'+within+'%"></i></div>'
+    +'<div class="tb-lab">'+lab+'</div></div>';
+}
+function missListHTML(){ const ms=state.missed||[]; if(!ms.length) return '';
+  const items=ms.slice(0,30).map(e=>'<span class="ov-miss">'+(e.i2?flagEmoji(e.i2):'🏳️')+' '+esc(NM(e))+'</span>').join('');
+  return '<div class="ov-misses"><div class="ov-misses-h">'+LT('아쉬웠던 나라','Ones you stumbled on')+' ('+ms.length+')</div><div class="ov-miss-wrap">'+items+'</div></div>';
+}
+// fill the #ov-extra block under the end-screen score with a tier bar (if logged in) + a miss list
+function renderOverlayExtras(mode,score){ const box=$('ov-extra'); if(!box) return; let h='';
+  const u=curUser(); if(u && TIER_MAX[mode]!=null){ const best=Math.max(score||0,(u.stats&&u.stats.best&&u.stats.best[mode])||0); h+=tierBarHTML(mode,best); }
+  h+=missListHTML(); box.innerHTML=h; }
 /* ---- per-country mastery tracking (Leitner-style boxes 0–5) ---- */
 function trackCountry(entry,correct){
   if(state.vs||!entry||!entry.i2) return;        // only track solo naming attempts
@@ -10808,6 +10994,7 @@ function roundRect(x,px,py,w,h,r){ x.beginPath(); x.moveTo(px+r,py); x.arcTo(px+
 
 function renderProfile(){
   const u=curUser();
+  if(u){ migrateXP(u); }   // backfill XP from existing tiers/ELO once
   el.profilebtnT.textContent=u?u.name:LT('로그인','Log in');
   el.profilebtn.setAttribute('aria-label',u?(LT('프로필: ','Profile: ')+u.name):LT('로그인 또는 회원가입','Log in or sign up'));
   if(typeof applyCosmetics==='function') applyCosmetics();
