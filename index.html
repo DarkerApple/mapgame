@@ -121,8 +121,11 @@ select#region:focus{outline:none;border-color:var(--border2)}
 #scoreval .p1cur{color:var(--p1)} #scoreval .p2cur{color:var(--p2)}
 #promptbar b{color:var(--text);font-weight:700}
 #promptbar .flag{display:block;font-size:34px;line-height:1;margin:0 0 5px;animation:cardIn .3s ease}
+#promptbar .flag-xl{font-size:clamp(72px,16vw,132px);margin:2px 0 6px;filter:drop-shadow(0 6px 16px rgba(0,0,0,.35))}
 #promptbar .cname{font-size:16px;color:var(--text);font-weight:700}
 #promptbar .lm-hint{display:block;color:var(--text);font-size:14.5px;font-weight:600;max-width:640px;margin:3px auto 0;line-height:1.5}
+#promptbar .sil-svg{display:block;width:clamp(150px,30vw,260px);height:clamp(110px,22vh,190px);margin:2px auto 4px;color:var(--accent);filter:drop-shadow(0 4px 12px rgba(0,0,0,.3))}
+#promptbar .cap-q{display:block;font-size:clamp(22px,5vw,34px);font-weight:800;color:var(--target);margin-bottom:2px}
 @keyframes fadeSlide{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
 @keyframes cardIn{from{opacity:0;transform:translateY(5px) scale(.94)}to{opacity:1;transform:none}}
 #inputrow{display:flex;gap:8px;padding:8px 16px 4px;max-width:680px;margin:0 auto;width:100%;justify-content:center}
@@ -365,9 +368,22 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 .pc-share{width:100%;justify-content:center;font-weight:700}
 .share-img{display:block;width:100%;max-width:340px;margin:6px auto 12px;border-radius:14px;border:1px solid var(--border2)}
 /* auth modal */
-#auth{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:18px;
+#auth,#settings{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:18px;
   background:rgba(6,6,8,.74);backdrop-filter:blur(5px)}
-#auth.show{display:flex;animation:fade .2s ease}
+#auth.show,#settings.show{display:flex;animation:fade .2s ease}
+.set-card{width:min(440px,94vw);max-height:88vh;overflow-y:auto}
+.set-block{margin-top:16px}
+.set-h{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+.set-seg{display:flex;gap:6px;background:var(--surface2);border-radius:12px;padding:4px}
+.set-seg.wrap{flex-wrap:wrap;background:none;padding:0}
+.set-chip{flex:1;background:none;border:1px solid transparent;color:var(--muted);font:inherit;font-weight:700;font-size:13.5px;
+  padding:9px 10px;border-radius:9px;cursor:pointer;transition:.13s;white-space:nowrap}
+.set-seg.wrap .set-chip{flex:0 0 auto;background:var(--surface2);border:1px solid var(--border2)}
+.set-chip:hover{color:var(--text)}
+.set-chip.on{background:var(--accent);color:var(--accent-ink)}
+.set-seg.wrap .set-chip.on{background:color-mix(in srgb,var(--found) 22%,var(--surface2));border-color:var(--found);color:var(--text)}
+.set-seg.wrap .set-chip.off{opacity:.5;text-decoration:line-through}
+.set-desc{font-size:12.5px;color:var(--muted);margin-top:7px;line-height:1.5}
 .auth-card{position:relative;background:var(--surface);border:1px solid var(--border2);border-radius:18px;
   padding:26px 26px 20px;width:min(400px,94vw);box-shadow:var(--shadow);animation:cardPop .3s cubic-bezier(.2,.9,.3,1.2)}
 .auth-x{position:absolute;top:12px;right:12px;background:none;border:none;color:var(--muted);font-size:17px;cursor:pointer;
@@ -606,6 +622,7 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
       <span class="modetitle" id="modetitle"></span>
       <button class="btn" id="themebtn" title="테마 / Theme" aria-label="테마 바꾸기" style="margin-left:auto"><span class="ti">🌙</span></button>
       <button class="btn" id="cbbtn" title="색약 모드 / Colorblind-safe" aria-label="색약 친화 색상 켜기/끄기">🎨</button>
+      <button class="btn" id="setbtn" title="설정 / Settings" aria-label="설정" data-icon="gear"></button>
       <button class="btn" id="langbtn" title="Language / 언어">EN</button>
     </div>
     <div class="bar bar-tools">
@@ -710,6 +727,7 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
       <div style="display:flex;gap:8px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end">
         <button class="home-chip" id="hometheme" title="테마 / Theme" aria-label="테마 바꾸기"><span class="ti">🌙</span></button>
         <button class="home-chip" id="homecb" title="색약 모드 / Colorblind-safe" aria-label="색약 친화 색상">🎨</button>
+        <button class="home-chip" id="homeset" title="설정 / Settings" aria-label="설정"><span data-icon="gear"></span></button>
         <button class="home-chip" id="homelang" title="Language / 언어">English</button>
       </div>
     </div>
@@ -745,6 +763,13 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
   <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">
     <button class="auth-x" id="auth-close" aria-label="닫기">✕</button>
     <div id="auth-body"></div>
+  </div>
+</div>
+
+<div id="settings" aria-hidden="true">
+  <div class="auth-card set-card" role="dialog" aria-modal="true" aria-labelledby="set-title">
+    <button class="auth-x" id="set-close" aria-label="닫기">✕</button>
+    <div id="set-body"></div>
   </div>
 </div>
 
@@ -792,6 +817,9 @@ const ICONS={
   landmark:svg('<path d="M12 3l8 4v2H4V7zM6 9v8M10 9v8M14 9v8M18 9v8M4 20h16M3 17h18"/>'),
   question:svg('<circle cx="12" cy="12" r="9"/><path d="M9.2 9.3a3 3 0 0 1 5.6 1.2c0 2-2.8 2.5-2.8 4M12 17h.01"/>'),
   brand:svg('<circle cx="10.5" cy="13" r="7.5"/><path d="M3 13h15M10.5 5.5c2.7 3 2.7 12 0 15M10.5 5.5c-2.7 3-2.7 12 0 15"/><path d="M18.7 2.7a3 3 0 0 0-3 3c0 2.2 3 4.8 3 4.8s3-2.6 3-4.8a3 3 0 0 0-3-3z"/><circle cx="18.7" cy="5.7" r=".7"/>'),
+  gear:svg('<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.2 5.2l2.1 2.1M16.7 16.7l2.1 2.1M18.8 5.2l-2.1 2.1M7.3 16.7l-2.1 2.1"/>'),
+  shape:svg('<path d="M7 4l6 1 5 4-2 6-5 4-6-2-2-7z"/>'),
+  rank:svg('<path d="M5 21V9l4-2 3 3 4-4 3 2v13z"/><path d="M3 21h18"/>'),
 };
 document.querySelectorAll('[data-icon]').forEach(e=>e.insertAdjacentHTML('afterbegin', ICONS[e.dataset.icon]||''));
 
@@ -828,6 +856,9 @@ MAPDATA.markers.forEach(entry=>{
   byEl.set(c,entry); addKeys(entry); allEntries.push(entry);
 });
 const idMap=new Map(allEntries.map(e=>[e.id,e]));
+// strict index: only the official Korean/English names (no codes/aliases) — used by "Exact" leniency & Ranked
+const exactIndex=new Map();
+allEntries.forEach(e=>{ [e.ko,e.en].forEach(nm=>{ const k=norm(nm||''); if(k && !exactIndex.has(k)) exactIndex.set(k,e); }); });
 const TOTAL_SOV=allEntries.filter(e=>e.sov).length;
 allEntries.forEach(e=>{ e.st = (e.i2 && MAPSTATS[e.i2]) || null; });
 // global area ranking (for the "top N by area" hint)
@@ -1960,7 +1991,13 @@ const state={mode:'free',running:false,found:new Set(),score:0,target:null,pool:
   vs:false,turn:0,p:[0,0],vsRounds:10,vsDone:0,
   cmpMetric:'pop',cmpA:null,cmpB:null,cmpLock:false,
   estMetric:'pop',ladderStreak:0,ladderBest:0,mgLock:false,chainCur:null,chainUsed:null,chainLen:0,
-  triviaSel:'all',triviaCount:6,triviaCats:null,triviaQueue:[],triviaIdx:0,triviaLocked:false};
+  triviaSel:'all',triviaCount:6,triviaCats:null,triviaQueue:[],triviaIdx:0,triviaLocked:false,
+  ranked:false,rankedBase:'quiz',rankedRule:'none',rankedHit:0,rankedMiss:0,silTarget:null};
+/* ================= persistent settings ================= */
+const SETKEY='wmh_settings_v1';
+const SET_DEFAULT={lenient:'normal',speech:true,effects:true,hidden:[]};
+let SET=(function(){ try{ return Object.assign({},SET_DEFAULT,JSON.parse(localStorage.getItem(SETKEY))||{}); }catch(e){ return Object.assign({},SET_DEFAULT); } })();
+function saveSet(){ try{ localStorage.setItem(SETKEY,JSON.stringify(SET)); }catch(e){} }
 // i18n helper: pick Korean or English string by current language
 function EN(){ return state.lang==='en'; }
 function LT(ko,en){ return state.lang==='en'?en:ko; }
@@ -1979,6 +2016,7 @@ const el={
   warsel:$('warsel'),trivia:$('trivia'),tvWar:$('tv-war'),tvProg:$('tv-prog'),tvBar:$('tv-barfill'),tvQ:$('tv-q'),tvOpts:$('tv-opts'),tvFact:$('tv-fact'),
   burst:$('burst'),burstIc:$('burst-ic'),burstTxt:$('burst-txt'),
   langbtn:$('langbtn'),homelang:$('homelang'),themebtn:$('themebtn'),cbbtn:$('cbbtn'),hometheme:$('hometheme'),homecb:$('homecb'),vsbar:$('vsbar'),
+  setbtn:$('setbtn'),homeset:$('homeset'),settings:$('settings'),setBody:$('set-body'),setClose:$('set-close'),
   compare:$('compare'),cmpQ:$('cmp-q'),cmpA:$('cmp-a'),cmpB:$('cmp-b'),cmpFact:$('cmp-fact'),
   minigame:$('minigame'),mgQ:$('mg-q'),mgBody:$('mg-body'),mgFact:$('mg-fact'),
   codex:$('codex'),cxSearch:$('cx-search'),cxCount:$('cx-count'),cxGrid:$('cx-grid'),cxDetail:$('cx-detail'),
@@ -1988,6 +2026,7 @@ const el={
 const ICO_CHECK=svg('<path d="M20 6 9 17l-5-5"/>'), ICO_X=svg('<path d="M18 6 6 18M6 6l12 12"/>');
 let burstT=null;
 function celebrate(good,text){
+  if(SET&&SET.effects===false) return;   // settings: effects off
   el.burstIc.innerHTML=good?ICO_CHECK:ICO_X; el.burstTxt.textContent=text||(good?'정답!':'오답');
   el.burst.classList.toggle('bad',!good); el.burst.classList.remove('show'); void el.burst.offsetWidth; el.burst.classList.add('show');
   clearTimeout(burstT); burstT=setTimeout(()=>el.burst.classList.remove('show'),900);
@@ -2024,9 +2063,9 @@ function sovFoundCount(){ let n=0; state.found.forEach(id=>{const e=idMap.get(id
 function regionFoundCount(){ let n=0; if(state.regionIds) state.found.forEach(id=>{ if(state.regionIds.has(id)) n++; }); return n; }
 function updateScore(){
   const m=state.mode;
-  if(state.vs && ['quiz','flag','findmap','hint','capital','oddone','compare','landmark'].includes(m)){ el.scoreval.innerHTML=vsScoreChip(); return; }
+  if(state.vs && ['quiz','flag','findmap','hint','capital','oddone','compare','landmark','silhouette','capcountry'].includes(m)){ el.scoreval.innerHTML=vsScoreChip(); return; }
   if(m==='free') el.scoreval.textContent=state.found.size;
-  else if(m==='quiz'||m==='findmap'||m==='flag'||m==='capital'||m==='compare'||m==='estimate'||m==='oddone'||m==='review'||m==='landmark'||m==='clue') el.scoreval.textContent=state.score;
+  else if(m==='quiz'||m==='findmap'||m==='flag'||m==='capital'||m==='compare'||m==='estimate'||m==='oddone'||m==='review'||m==='landmark'||m==='clue'||m==='silhouette'||m==='capcountry'||m==='ranked') el.scoreval.textContent=state.score;
   else if(m==='daily') el.scoreval.textContent=state.score+' / '+(state.dailyTotal||10);
   else if(m==='ladder') el.scoreval.textContent=state.ladderStreak;
   else if(m==='chain') el.scoreval.textContent=state.chainLen;
@@ -2060,7 +2099,7 @@ function nextFindTarget(){
 }
 function nextFlagTarget(){
   state.target=pickFromPool(state.pool); if(!state.target) return;
-  el.prompt.innerHTML='<span class="flag">'+flagEmoji(state.target.i2)+'</span>'+(EN()?'Type the name of this flag’s country.':'이 국기의 나라 이름을 입력하세요.');
+  el.prompt.innerHTML='<span class="flag flag-xl">'+flagEmoji(state.target.i2)+'</span>'+(EN()?'Type the name of this flag’s country.':'이 국기의 나라 이름을 입력하세요.');
 }
 function nextCapitalTarget(){
   state.target=pickFromPool(state.pool); if(!state.target) return;
@@ -2074,6 +2113,28 @@ function nextLandmarkTarget(){
   const emoji=lm?lm.emoji:'📍', hint=lm?(EN()?lm.hint_en:lm.hint_ko):'';
   el.prompt.innerHTML='<span class="flag">'+emoji+'</span>'+(EN()?'Which country is this landmark in?':'이 명소는 어느 나라에 있을까요?')
     +'<br><span class="lm-hint">'+esc(hint)+'</span>';
+}
+// ---- Silhouette quiz (guess the country from its outline) ----
+function silPool(){
+  let p=regionEntries(state.region).filter(e=>e.sov&&!e.isMarker&&e.d);
+  if(p.length<2) p=allEntries.filter(e=>e.sov&&!e.isMarker&&e.d);
+  return p.filter(e=>{ try{ const bb=e.el.getBBox(); return bb.width>0 && bb.width<VBW*0.55; }catch(_){ return true; } });
+}
+function silSvg(entry){
+  let bb; try{ bb=entry.el.getBBox(); }catch(_){ bb={x:0,y:0,width:10,height:10}; }
+  const pad=(Math.max(bb.width,bb.height)*0.12)||1;
+  const vb=(bb.x-pad).toFixed(2)+' '+(bb.y-pad).toFixed(2)+' '+(bb.width+pad*2).toFixed(2)+' '+(bb.height+pad*2).toFixed(2);
+  return '<svg class="sil-svg" viewBox="'+vb+'" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="'+entry.d+'" fill="currentColor"/></svg>';
+}
+function nextSilTarget(){
+  state.target=pickFromPool(state.pool); if(!state.target) return;
+  el.prompt.innerHTML=silSvg(state.target)+'<div>'+(EN()?'Which country has this outline?':'이 윤곽은 어느 나라일까요?')+'</div>';
+}
+// ---- Capital → Country ----
+function nextCapCountryTarget(){
+  state.target=pickFromPool(state.pool); if(!state.target) return;
+  const t=state.target, cap=EN()?(t.st.cape||t.st.cap):(t.st.cap||t.st.cape);
+  el.prompt.innerHTML='<span class="cap-q">'+esc(cap)+'</span><div>'+(EN()?'is the capital of which country?':'어느 나라의 수도일까요?')+'</div>';
 }
 function capitalMatch(raw,t){
   const q=norm(raw); if(!q||!t||!t.st) return false;
@@ -2105,11 +2166,11 @@ el.region.onchange=()=>{ state.region=el.region.value; resetMode(); };
 /* ================= input layout ================= */
 function setInputMode(kind){ // text | quiz | flag | click | study | place | hint | rank | conquer | trivia | locate
   el.inputrow.classList.toggle('hidden',['place','rank','conquer','trivia','compare','mini','codex','mastery'].includes(kind));
-  const showText=['text','quiz','flag','hint','capital','chain','landmark','clue'].includes(kind);
+  const showText=['text','quiz','flag','hint','capital','chain','landmark','clue','silhouette','capcountry','ranked'].includes(kind);
   el.q.classList.toggle('hidden',!showText);
   el.go.classList.toggle('hidden',!showText);
-  el.micbtn.classList.toggle('hidden',!(showText && voiceSupported()));
-  el.skip.classList.toggle('hidden',!(kind==='quiz'||kind==='flag'||kind==='click'||kind==='hint'||kind==='locate'||kind==='capital'||kind==='chain'||kind==='landmark'||kind==='clue'));
+  el.micbtn.classList.toggle('hidden',!(showText && voiceSupported() && SET.speech!==false));
+  el.skip.classList.toggle('hidden',!(kind==='quiz'||kind==='flag'||kind==='click'||kind==='hint'||kind==='locate'||kind==='capital'||kind==='chain'||kind==='landmark'||kind==='clue'||kind==='silhouette'||kind==='capcountry'||kind==='ranked'));
   { const st=el.skip.querySelector('.t'); if(st) st.textContent=(kind==='chain')?LT('끝내기','End'):LT('넘기기','Skip'); }
   // hint-reveal buttons live in the study panel (keeps the top input row uncluttered)
   el.spActions.classList.toggle('hidden',kind!=='hint');
@@ -2123,7 +2184,7 @@ function setInputMode(kind){ // text | quiz | flag | click | study | place | hin
 function setMode(mode){
   state.mode=mode;
   document.querySelectorAll('.mode').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
-  const scoped=['study','place','region','quiz','findmap','flag','hint','rank','conquer','locate','capital','compare','ladder','estimate','oddone','chain','codex','clue'].includes(mode);
+  const scoped=['study','place','region','quiz','findmap','flag','hint','rank','conquer','locate','capital','compare','ladder','estimate','oddone','chain','codex','clue','silhouette','capcountry'].includes(mode);
   el.region.classList.toggle('hidden',!scoped);
   el.regquiz.classList.toggle('hidden',mode!=='study');
   el.spToggle.classList.toggle('hidden',mode!=='study');
@@ -2148,7 +2209,10 @@ function setMode(mode){
   else if(mode==='chain'){ state.countUp=true; setInputMode('chain'); el.scorelbl.textContent=LT('사슬','Chain'); }
   else if(mode==='hint'){ state.countUp=true; setInputMode('hint'); el.scorelbl.textContent=LT('점수','Score'); }
   else if(mode==='landmark'){ state.countUp=false; state.duration=90; setInputMode('landmark'); el.scorelbl.textContent=LT('점수','Score'); }
+  else if(mode==='silhouette'){ state.countUp=false; state.duration=90; setInputMode('silhouette'); el.scorelbl.textContent=LT('점수','Score'); }
+  else if(mode==='capcountry'){ state.countUp=false; state.duration=90; setInputMode('capcountry'); el.scorelbl.textContent=LT('점수','Score'); }
   else if(mode==='clue'){ state.countUp=true; setInputMode('clue'); el.scorelbl.textContent=LT('점수','Score'); }
+  else if(mode==='ranked'){ state.countUp=false; setInputMode('ranked'); el.scorelbl.textContent=LT('정답','Correct'); }
   else if(mode==='conquer'){ state.countUp=false; setInputMode('conquer'); el.scorelbl.textContent=LT('정복','Conquered'); }
   else if(mode==='region'){ state.countUp=true; setInputMode('text'); el.scorelbl.textContent=LT('진행','Progress'); }
   else if(mode==='countdown'){ state.countUp=false; state.duration=[60,180,300].includes(state.duration)?state.duration:180; buildDurRow(state.duration); setInputMode('text'); el.scorelbl.textContent=LT('찾은 나라','Found'); }
@@ -2164,6 +2228,7 @@ function setMode(mode){
 
 function resetMode(){
   stopTicker(); stopTrivia(); hideOverlay(); clearLabels(); state.gen++; cancelDrag();
+  state.ranked=(state.mode==='ranked');   // exact-name matching only inside Ranked
   state.running=false; state.ended=false; state.found=new Set(); state.score=0; state.findLock=false;
   state.elapsed=0; state.target=null; state.queue=[]; state.pool=[]; state.regionIds=null; state.regionTotal=0;
   clearMap(); el.studypanel.classList.add('hidden'); el.trivia.classList.remove('show'); el.compare.classList.remove('show');
@@ -2172,7 +2237,7 @@ function resetMode(){
   el.q.disabled=false; el.q.value='';
   const m=state.mode, region=state.region;
   el.timer.classList.remove('hidden'); $('scorechip').classList.remove('hidden');
-  const vsMode = state.vs && ['quiz','flag','findmap','hint','capital','oddone','compare','landmark'].includes(m);
+  const vsMode = state.vs && ['quiz','flag','findmap','hint','capital','oddone','compare','landmark','silhouette','capcountry'].includes(m);
   if(!vsMode) el.vsbar.classList.add('hidden');
 
   if(m==='study'){ startStudy(); updateTimerDisplay(); return; }
@@ -2188,6 +2253,7 @@ function resetMode(){
   if(m==='oddone'){ startOddone(); updateTimerDisplay(); return; }
   if(m==='chain'){ startChain(); updateTimerDisplay(); return; }
   if(m==='codex'){ startCodex(); return; }
+  if(m==='ranked'){ startRanked(); updateTimerDisplay(); return; }
   if(m==='mastery'){ startMastery(); return; }
   if(m==='review'){ startReview(); updateTimerDisplay(); return; }
   if(m==='daily'){ startDaily(); updateTimerDisplay(); return; }
@@ -2234,6 +2300,20 @@ function resetMode(){
     else { state.duration=90; updateTimerDisplay();
       setFeedback(LT('첫 답을 입력하면 90초 타이머가 시작돼요.','the 90s timer starts on your first answer.'),'info'); }
     nextLandmarkTarget(); el.q.focus();
+  } else if(m==='silhouette'){
+    state.pool=silPool();
+    el.timer.classList.toggle('hidden',vsMode);
+    if(vsMode){ vsInit(); setFeedback(LT('1 대 1 · 번갈아 실루엣으로 나라를 맞히세요. 정답 +1점.','1v1 · take turns naming the country from its outline. +1 per correct.'),'info'); }
+    else { state.duration=scaledDur(state.pool.length); updateTimerDisplay();
+      setFeedback(regionName(region)+' · '+LT('첫 답을 입력하면 타이머가 시작돼요.','the timer starts on your first answer.'),'info'); }
+    nextSilTarget(); el.q.focus();
+  } else if(m==='capcountry'){
+    state.pool=regionEntries(region).filter(e=>e.st&&(e.st.cap||e.st.cape)); if(!state.pool.length) state.pool=allEntries.filter(e=>e.sov&&e.st&&e.st.cap);
+    el.timer.classList.toggle('hidden',vsMode);
+    if(vsMode){ vsInit(); setFeedback(LT('1 대 1 · 번갈아 수도로 나라를 맞히세요. 정답 +1점.','1v1 · take turns naming the country from its capital. +1 per correct.'),'info'); }
+    else { state.duration=scaledDur(state.pool.length); updateTimerDisplay();
+      setFeedback(regionName(region)+' · '+LT('첫 답을 입력하면 타이머가 시작돼요.','the timer starts on your first answer.'),'info'); }
+    nextCapCountryTarget(); el.q.focus();
   } else if(m==='region'){
     const pool=regionEntries(region); state.regionIds=new Set(pool.map(e=>e.id)); state.regionTotal=pool.length;
     updateScore();
@@ -2991,7 +3071,7 @@ function chainPrompt(){
   setFeedback(EN()?('Chain length: '+state.chainLen):('사슬 길이: '+state.chainLen),'info');
 }
 function chainGuess(raw){
-  const entry=lookup.get(norm(raw)); if(!entry){ notFound(raw); return; }
+  const entry=resolveName(raw); if(!entry){ notFound(raw); return; }
   if(state.chainUsed.has(entry.id)){ setFeedback(LT('이미 사슬에 있는 나라예요: ','Already in the chain: ')+NM(entry),'info'); shakeInput(); return; }
   if(!state.chainSet.has(entry.id)){ setFeedback(EN()?(NM(entry)+' is not in this region.'):(NM(entry)+' 은(는) 이 지역이 아니에요.'),'no','x'); shakeInput(); return; }
   const nb=chainNeighbors(idMap.get(state.chainCur));
@@ -3148,6 +3228,60 @@ function endDaily(){
     const s=$('ovsub'); s.textContent+=LT(' · 🔥 연속 '+u.stats.dailyStreak+'일',' · 🔥 '+u.stats.dailyStreak+'-day streak');
   }
   recordResult('daily',state.score);
+}
+
+/* ================= Ranked mode (exact names · rules · RP tiers) ================= */
+const RANKED_DUR=75;
+const RANK_TIERS=[
+  {rp:0,ko:'브론즈',en:'Bronze',ic:'🥉'},
+  {rp:800,ko:'실버',en:'Silver',ic:'🥈'},
+  {rp:1600,ko:'골드',en:'Gold',ic:'🥇'},
+  {rp:2600,ko:'플래티넘',en:'Platinum',ic:'💎'},
+  {rp:3800,ko:'다이아몬드',en:'Diamond',ic:'💠'},
+  {rp:5200,ko:'마스터',en:'Master',ic:'👑'},
+];
+function rankTierOf(rp){ let t=RANK_TIERS[0]; for(const x of RANK_TIERS){ if(rp>=x.rp) t=x; } return t; }
+function rankNextTier(rp){ for(const x of RANK_TIERS){ if(rp<x.rp) return x; } return null; }
+function myRP(){ const u=curUser(); return (u&&u.stats&&u.stats.rp)||0; }
+function rankTierLabel(rp){ const t=rankTierOf(rp); return t.ic+' '+LT(t.ko,t.en)+' '+rp+' RP'; }
+function rankedNext(){
+  clearMap(); clearLabels();
+  const fn={quiz:nextQuizTarget,flag:nextFlagTarget,silhouette:nextSilTarget,capcountry:nextCapCountryTarget}[state.rankedBase]||nextQuizTarget;
+  fn();
+}
+function startRanked(){
+  state.ranked=true; state.countUp=false; state.score=0; state.rankedHit=0; state.rankedMiss=0;
+  state.duration=RANKED_DUR; resetView();
+  let pool=allEntries.filter(e=>e.sov&&!e.isMarker);
+  if(state.rankedBase==='flag') pool=pool.filter(e=>e.i2);
+  else if(state.rankedBase==='capcountry') pool=pool.filter(e=>e.st&&(e.st.cap||e.st.cape));
+  else if(state.rankedBase==='silhouette') pool=pool.filter(e=>e.d);
+  if(state.rankedRule && state.rankedRule!=='none') pool=pool.filter(e=>e.c!==state.rankedRule);
+  state.pool=pool; state.queue=[];
+  el.timer.classList.remove('hidden'); updateScore(); updateTimerDisplay();
+  const baseTxt={quiz:LT('이름','Name'),flag:LT('국기','Flag'),silhouette:LT('실루엣','Outline'),capcountry:LT('수도','Capital')}[state.rankedBase];
+  const ruleTxt=(state.rankedRule&&state.rankedRule!=='none')?(' · 🚫 '+(EN()?(REGION_EN[state.rankedRule]||state.rankedRule):state.rankedRule)):'';
+  setFeedback(baseTxt+' · '+LT('정확한 이름만','exact names')+' · '+RANKED_DUR+LT('초','s')+ruleTxt+' · '+rankTierLabel(myRP()),'info');
+  rankedNext(); el.q.focus();
+}
+function endRanked(){
+  if(state.ended) return; state.ended=true; state.running=false; stopTicker(); el.q.disabled=true; state.ranked=false;
+  const hits=state.rankedHit||0;
+  const delta=Math.max(-120, hits*15 - 90 + (hits>=15?30:0));
+  const u=curUser();
+  let sub;
+  if(u){ u.stats=u.stats||{games:0,best:{},plays:{},points:0};
+    const old=u.stats.rp||0, nw=Math.max(0,old+delta); u.stats.rp=nw;
+    u.stats.best=u.stats.best||{}; if(hits>(u.stats.best.ranked||0)) u.stats.best.ranked=hits;
+    u.stats.plays=u.stats.plays||{}; u.stats.plays.ranked=(u.stats.plays.ranked||0)+1;
+    u.stats.games=(u.stats.games||0)+1; u.stats.points=(u.stats.points||0)+hits;
+    accSave(); renderProfile(); if(typeof checkAchievements==='function') checkAchievements();
+    const t=rankTierOf(nw), nt=rankNextTier(nw);
+    sub=(delta>=0?('RP +'+delta):('RP '+delta))+' · '+t.ic+' '+LT(t.ko,t.en)+' '+nw+(nt?(' · '+LT('다음 티어까지','to next')+' '+(nt.rp-nw)+' RP'):'');
+  } else {
+    sub=LT('로그인하면 랭크(RP·티어)가 저장돼요.','Log in to save your rank (RP & tier).');
+  }
+  showOverlay(LT('랭크전 결과','Ranked result'), (EN()?(hits+' correct'):(hits+'개 정답')), sub);
 }
 
 /* ================= war trivia (kahoot-style) ================= */
@@ -9325,6 +9459,8 @@ const MODES_META=[
  {m:'hint',t:'힌트 퀴즈',te:'Hint Quiz',d:'인접국·크기·수도 등 힌트로 추리',de:'Guess from neighbors, size, capital…',ic:'bulb',g:'퀴즈'},
  {m:'landmark',t:'랜드마크 퀴즈',te:'Landmark Quiz',d:'유명한 명소 설명을 보고 나라 맞히기',de:'Name the country from a famous landmark',ic:'landmark',g:'퀴즈'},
  {m:'clue',t:'스무고개',te:'Clue Hunt',d:'원하는 힌트를 골라 열고, 적게 열수록 고득점 (20점에서 시작)',de:'Buy the clues you want — fewer clues = more points (start at 20)',ic:'question',g:'퀴즈'},
+ {m:'silhouette',t:'실루엣 퀴즈',te:'Silhouette',d:'나라의 윤곽(모양)만 보고 이름 맞히기',de:'Name the country from its outline shape',ic:'shape',g:'퀴즈'},
+ {m:'capcountry',t:'수도로 나라 맞히기',te:'Capital → Country',d:'수도 이름을 보고 어느 나라인지 맞히기',de:'Name the country from its capital',ic:'star',g:'퀴즈'},
  {m:'compare',t:'더 큰 나라?',te:'Bigger?',d:'두 나라 중 더 큰(많은) 쪽 고르기',de:'Pick the bigger of two countries',ic:'scale',g:'비교·순위'},
  {m:'ladder',t:'업다운 사다리',te:'Higher–Lower',d:'다음 나라가 더 높을지 낮을지 이어서 맞히기',de:'Guess if the next country is higher or lower — keep the streak',ic:'bars',g:'비교·순위'},
  {m:'estimate',t:'어림하기',te:'Estimate',d:'인구·면적을 숫자로 어림해서 가까울수록 고득점',de:'Estimate population or area — closer guesses score more',ic:'gauge',g:'비교·순위'},
@@ -9332,6 +9468,7 @@ const MODES_META=[
  {m:'oddone',t:'하나 빼기',te:'Odd One Out',d:'넷 중 무리에 속하지 않는 하나 고르기',de:'Pick the country that does not belong',ic:'puzzle',g:'퀴즈'},
  {m:'chain',t:'국경 잇기',te:'Border Chain',d:'국경이 맞닿은 나라를 이어서 최대한 길게',de:'Chain countries that share a land border — go as long as you can',ic:'chain',g:'도전'},
  {m:'daily',t:'오늘의 도전',te:'Daily Challenge',d:'매일 바뀌는 10문제 · 전 세계가 같은 문제',de:'10 questions that change daily — everyone gets the same set',ic:'calendar',g:'도전'},
+ {m:'ranked',t:'랭크전',te:'Ranked',d:'정확한 이름만 인정 · 룰과 RP·티어가 있는 승부',de:'Exact names only · rules, RP and rank tiers',ic:'rank',g:'도전'},
  {m:'region',t:'지역별 도전',te:'Region Challenge',d:'고른 지역의 모든 나라 입력',de:'Name every country in a chosen region',ic:'layers',g:'도전'},
  {m:'countdown',t:'전세계 도전',te:'World Countdown',d:'제한 시간 안에 최대한 많이',de:'Name as many as you can before time runs out',ic:'clock',g:'도전'},
  {m:'conquer',t:'정복 모드',te:'Conquer',d:'나라를 반복해 눌러 칠하고 지역 정복',de:'Tap countries repeatedly to paint the region',ic:'trophy',g:'도전'},
@@ -9342,10 +9479,10 @@ function modeDesc(x){ return EN()?(x.de||x.d):x.d; }
 /* ---- pre-game setup (choose place/criteria before the timer starts) ---- */
 const SETUP_CFG={ study:['region'],place:['region'],
   quiz:['region','vs'],findmap:['region','vs'],flag:['region','vs'],hint:['region','hintkinds','vs'],landmark:['vs'],clue:['region'],
-  capital:['region','vs'],compare:['cmpmetric','region','vs'],
+  capital:['region','vs'],compare:['cmpmetric','region','vs'],silhouette:['region','vs'],capcountry:['region','vs'],
   ladder:['cmpmetric','region'],estimate:['estmetric','region'],oddone:['region','vs'],chain:['region'],
   conquer:['region'],region:['region'],countdown:['dur'],rank:['metric','region'],
-  locate:['region'],codex:['region'],
+  locate:['region'],codex:['region'],ranked:['rankedbase','rankedrule'],
   trivia:['war','triviacats','count','vs'] };
 const CMP_METRICS=[{k:'pop',t:'인구',te:'Population'},{k:'area',t:'면적',te:'Area'},{k:'gdp',t:'GDP',te:'GDP'}];
 function chipRow(labelText, items, isOn, onPick){
@@ -9383,6 +9520,14 @@ function setupControl(kind){
       [{v:'pop',t:LT('인구','Population')},{v:'area',t:LT('면적','Area')}],
       it=>state.estMetric===it.v,
       (it,b,wrap)=>{ state.estMetric=it.v; [...wrap.children].forEach(c=>c.classList.remove('on')); b.classList.add('on'); }); }
+  else if(kind==='rankedbase'){ return chipRow(LT('문제 유형','Question type'),
+      [{v:'quiz',t:LT('이름 (지도)','Name (map)')},{v:'flag',t:LT('국기','Flag')},{v:'silhouette',t:LT('실루엣','Outline')},{v:'capcountry',t:LT('수도','Capital')}],
+      it=>state.rankedBase===it.v,
+      (it,b,wrap)=>{ state.rankedBase=it.v; [...wrap.children].forEach(c=>c.classList.remove('on')); b.classList.add('on'); }); }
+  else if(kind==='rankedrule'){ return chipRow(LT('룰 · 대륙 밴','Rule · continent ban'),
+      [{v:'none',t:LT('밴 없음','No ban')}].concat(CONT_LIST.map(c=>({v:c,t:'🚫 '+(EN()?(REGION_EN[c]||c):c)}))),
+      it=>state.rankedRule===it.v,
+      (it,b,wrap)=>{ state.rankedRule=it.v; [...wrap.children].forEach(c=>c.classList.remove('on')); b.classList.add('on'); }); }
   else if(kind==='triviacats'){ if(!state.triviaCats) state.triviaCats=new Set(allCats());
     return chipRow(LT('카테고리 (눌러서 숨기기)','Categories (tap to hide)'),
       allCats().map(c=>({v:c,t:catName(c)})),
@@ -9410,6 +9555,7 @@ const GROUP_ACCENT={'배우기':'#34c777','이름·위치 맞히기':'#ffb454','
 function buildHome(){
   el.homeContent.innerHTML='';
   [...new Set(MODES_META.map(x=>x.g))].forEach((g,gi)=>{
+    if(SET.hidden && SET.hidden.includes(g)) return;   // settings: hidden home sections
     const gname=EN()?(GROUP_EN[g]||g):g, secId='sec-'+gi, accent=GROUP_ACCENT[g]||'#4ea1ff';
     const h=document.createElement('h2'); h.className='home-sec'; h.id=secId; h.textContent=gname; el.homeContent.appendChild(h);
     const grid=document.createElement('div'); grid.className='home-grid'; grid.setAttribute('role','list'); grid.setAttribute('aria-labelledby',secId);
@@ -9438,7 +9584,17 @@ el.setupStart.onclick=()=>startGame(state.pendingMode);
 el.setupBack.onclick=showHome;
 
 /* ================= answering ================= */
-function notFound(raw){ setFeedback('“'+raw+'” — '+LT('찾을 수 없어요. 이름이나 약자를 확인해 주세요.','not found. Check the name or code.'),'no','x'); shakeInput(); }
+function notFound(raw){ const exact=state.ranked||SET.lenient==='exact';
+  setFeedback('“'+raw+'” — '+(exact?LT('정확한 나라 이름을 입력하세요 (약자·오타 불가).','type the exact country name (no codes/typos).'):LT('찾을 수 없어요. 이름이나 약자를 확인해 주세요.','not found. Check the name or code.')),'no','x'); shakeInput(); }
+// resolve a typed guess to an entry, honoring the leniency setting (Ranked always = exact)
+function nameMode(){ return state.ranked ? 'exact' : (SET.lenient||'normal'); }
+function resolveName(raw){
+  const mode=nameMode();
+  if(mode==='exact') return exactIndex.get(norm(raw))||null;
+  const hit=lookup.get(norm(raw)); if(hit) return hit;
+  if(mode==='lenient') return looseFind(raw);
+  return null;
+}
 
 /* ===== lenient / fuzzy country matching (used for voice, which is imperfect) ===== */
 function editDist(a,b){ const m=a.length,n=b.length; if(!m)return n; if(!n)return m;
@@ -9512,7 +9668,7 @@ function handleFindClick(entry){
 function submit(){
   if(state.ended) return;
   const raw=el.q.value.trim(); if(!raw) return;
-  const entry=lookup.get(norm(raw)); const m=state.mode;
+  const entry=resolveName(raw); const m=state.mode;
   if(m==='chain'){ chainGuess(raw); return; }
   if(m==='free'){ if(!entry){notFound(raw);return;} revealFree(entry); el.q.value=''; }
   else if(m==='quiz'||m==='review'||m==='daily'){
@@ -9563,6 +9719,29 @@ function submit(){
     } else { shakeInput(); const msg=EN()?('Not '+NM(entry)+'.'):(entry.ko+' 이(가) 아니에요.');
       if(state.vs){ vsPenalty(); celebrate(false,LT('−1점','−1')); el.q.value=''; setFeedback(vsWrongMsg(msg),'no','x'); }
       else setFeedback(msg,'no','x'); }
+  }
+  else if(m==='silhouette'||m==='capcountry'){
+    if(!entry){notFound(raw);return;}
+    if(!state.vs && !state.running){ state.running=true; startTicker(); }
+    const nextT=m==='silhouette'?nextSilTarget:nextCapCountryTarget;
+    if(entry.id===state.target.id){
+      if(state.vs) vsAward(1); else { state.score++; updateScore(); trackCountry(state.target,true); }
+      celebrate(true,LT('정답!','Correct!'));
+      setFeedback(LT('정답! ','Correct! ')+NM(entry)+(m==='capcountry'?(' · '+capitalDisplay(state.target)):''),'ok','check'); el.q.value='';
+      if(state.vs) vsAfterAnswer(true); else later(nextT,800);
+    } else { shakeInput(); const msg=EN()?('Not '+NM(entry)+'.'):(entry.ko+' 이(가) 아니에요.');
+      if(state.vs){ vsPenalty(); celebrate(false,LT('−1점','−1')); el.q.value=''; setFeedback(vsWrongMsg(msg),'no','x'); }
+      else setFeedback(msg,'no','x'); }
+  }
+  else if(m==='ranked'){
+    if(!entry){notFound(raw);return;}
+    if(!state.running){ state.running=true; startTicker(); }
+    if(entry.id===state.target.id){
+      state.score++; state.rankedHit=(state.rankedHit||0)+1; updateScore(); trackCountry(state.target,true);
+      celebrate(true,LT('정답!','Correct!'));
+      setFeedback(LT('정답! ','Correct! ')+NM(entry),'ok','check'); el.q.value='';
+      later(rankedNext,600);
+    } else { shakeInput(); setFeedback(EN()?('Not '+NM(entry)+'. Exact name only.'):(entry.ko+' 이(가) 아니에요. 정확한 이름만 인정돼요.'),'no','x'); }
   }
   else if(m==='hint'){
     if(!entry){notFound(raw);return;}
@@ -9616,6 +9795,9 @@ el.skip.onclick=()=>{
   else if(m==='capital'){ const t=state.target; if(!state.vs) trackCountry(t,false); setFeedback(EN()?('The capital of '+NM(t)+' is '+capitalDisplay(t)+'.'):(NM(t)+'의 수도는 '+capitalDisplay(t)+' 예요.'),'info'); el.q.value=''; if(state.vs) vsAfterAnswer(false); else later(nextCapitalTarget,800); }
   else if(m==='hint'){ const t=state.hintTarget; if(!state.vs) trackCountry(t,false); setFeedback(ans(NM(t)),'info'); revealHintAnswer(t); el.q.value=''; if(state.vs) vsAfterAnswer(false); else later(nextHintTarget,1400); }
   else if(m==='landmark'){ const t=state.target, lm=state.landmarkCur; if(!state.vs) trackCountry(t,false); setFeedback(EN()?('It was '+NM(t)+(lm?(' · '+lm.en):'')+'.'):('정답은 '+NM(t)+(lm?(' · '+lm.ko):'')+' 였어요.'),'info'); el.q.value=''; if(state.vs) vsAfterAnswer(false); else later(nextLandmarkTarget,900); }
+  else if(m==='silhouette'){ const t=state.target; if(!state.vs) trackCountry(t,false); setFeedback(ans(NM(t)),'info'); el.q.value=''; if(state.vs) vsAfterAnswer(false); else later(nextSilTarget,800); }
+  else if(m==='capcountry'){ const t=state.target; if(!state.vs) trackCountry(t,false); setFeedback(EN()?('It was '+NM(t)+' ('+capitalDisplay(t)+').'):('정답은 '+NM(t)+' ('+capitalDisplay(t)+') 였어요.'),'info'); el.q.value=''; if(state.vs) vsAfterAnswer(false); else later(nextCapCountryTarget,800); }
+  else if(m==='ranked'){ const t=state.target; state.rankedMiss=(state.rankedMiss||0)+1; trackCountry(t,false); setFeedback(ans(NM(t)),'info'); el.q.value=''; later(rankedNext,700); }
   else if(m==='clue'){ const t=state.clueTarget; trackCountry(t,false); setFeedback(ans(NM(t)),'info'); revealHintAnswer(t); el.q.value=''; later(nextClueTarget,1400); }
   else if(m==='locate'){ const t=state.target; if(!t) return; t.el.classList.add('target'); t.el.parentNode.appendChild(t.el); focusEntry(t,2.4);
     setFeedback(EN()?(NM(t)+' is here.'):(NM(t)+' 은(는) 여기예요.'),'info');
@@ -9627,6 +9809,7 @@ el.skip.onclick=()=>{
 const overlay=$('overlay');
 function endGame(){
   if(state.ended) return;
+  if(state.mode==='ranked'){ endRanked(); return; }
   state.ended=true; state.running=false; stopTicker(); el.q.disabled=true;
   const m=state.mode;
   const TIMEUP=LT('시간 종료!','Time’s up!');
@@ -9635,6 +9818,8 @@ function endGame(){
   else if(m==='flag') showOverlay(TIMEUP,state.score,EN()?('You named '+state.score+' flags.'):('국기 '+state.score+'개를 맞혔어요.'));
   else if(m==='capital') showOverlay(TIMEUP,state.score,EN()?('You named '+state.score+' capitals.'):('수도 '+state.score+'개를 맞혔어요.'));
   else if(m==='landmark') showOverlay(TIMEUP,state.score,EN()?('You named '+state.score+' from landmarks.'):('명소로 '+state.score+'개를 맞혔어요.'));
+  else if(m==='silhouette') showOverlay(TIMEUP,state.score,EN()?('You named '+state.score+' from their outlines.'):('윤곽으로 '+state.score+'개를 맞혔어요.'));
+  else if(m==='capcountry') showOverlay(TIMEUP,state.score,EN()?('You named '+state.score+' from their capitals.'):('수도로 '+state.score+'개를 맞혔어요.'));
   else if(m==='compare') showOverlay(TIMEUP,state.score,EN()?('You got '+state.score+' comparisons right.'):('비교 '+state.score+'개를 맞혔어요.'));
   else if(m==='oddone') showOverlay(TIMEUP,state.score,EN()?('You solved '+state.score+' puzzles.'):('퍼즐 '+state.score+'개를 풀었어요.'));
   else if(m==='region'){ const n=regionFoundCount(),tot=state.regionTotal,done=n>=tot;
@@ -9646,7 +9831,7 @@ function endGame(){
       done? (EN()?('Painted every country in '+regionName(state.region)+' in '+fmtTime(state.elapsed)+'!'):(regionName(state.region)+'의 모든 나라를 '+fmtTime(state.elapsed)+' 만에 칠했어요!')) : (EN()?('Almost! '+state.conquerDone+' of '+state.conquerTotal+' painted.'):('조금만 더! '+state.conquerTotal+'개 중 '+state.conquerDone+'개 칠했어요.'))); }
   else { const sov=sovFoundCount(); showOverlay(TIMEUP,sov+' / '+TOTAL_SOV,EN()?('You found '+sov+' of '+TOTAL_SOV+' sovereign states!'):('주권국 '+TOTAL_SOV+'개 중 '+sov+'개를 찾았어요!')); }
   // save the result for the logged-in profile & flag a new best
-  const scoreMap={quiz:state.score,flag:state.score,capital:state.score,findmap:state.score,compare:state.score,oddone:state.score,landmark:state.score,
+  const scoreMap={quiz:state.score,flag:state.score,capital:state.score,findmap:state.score,compare:state.score,oddone:state.score,landmark:state.score,silhouette:state.score,capcountry:state.score,
     countdown:sovFoundCount(),region:regionFoundCount(),conquer:state.conquerDone,place:state.placeTotal,locate:state.locTotal};
   if(scoreMap[m]!==undefined){ const r=recordResult(m,scoreMap[m]);
     if(r&&r.isBest&&scoreMap[m]>0){ const s=$('ovsub'); s.textContent=s.textContent+LT(' · 🏆 최고 기록!',' · 🏆 New best!'); } }
@@ -9678,7 +9863,7 @@ function vsAfterAnswer(correct){
     if(state.vsDone>=state.vsRounds){ endVs(); return; }
     state.turn^=1; updateVsBar();
     const m=state.mode;
-    if(m==='quiz') nextQuizTarget(); else if(m==='flag') nextFlagTarget(); else if(m==='findmap') nextFindTarget(); else if(m==='hint') nextHintTarget(); else if(m==='capital') nextCapitalTarget(); else if(m==='landmark') nextLandmarkTarget();
+    if(m==='quiz') nextQuizTarget(); else if(m==='flag') nextFlagTarget(); else if(m==='findmap') nextFindTarget(); else if(m==='hint') nextHintTarget(); else if(m==='capital') nextCapitalTarget(); else if(m==='landmark') nextLandmarkTarget(); else if(m==='silhouette') nextSilTarget(); else if(m==='capcountry') nextCapCountryTarget();
     if(m!=='findmap') el.q.focus();
   }, correct?900:1150);
 }
@@ -9780,6 +9965,55 @@ function toggleCB(){ THEME.cb=!THEME.cb; saveTheme(); applyTheme(); }
 el.themebtn.onclick=toggleTheme; el.hometheme.onclick=toggleTheme;
 el.cbbtn.onclick=toggleCB; el.homecb.onclick=toggleCB;
 applyTheme();
+
+/* ================= settings modal (persisted to localStorage) ================= */
+function refreshMic(){ const textShown=el.q&&!el.q.classList.contains('hidden');
+  if(el.micbtn) el.micbtn.classList.toggle('hidden',!(textShown && voiceSupported() && SET.speech!==false)); }
+function refreshSettingsUI(){
+  const seg=(name,val)=>el.setBody.querySelectorAll('[data-set="'+name+'"] .set-chip').forEach(b=>b.classList.toggle('on',b.dataset.v===val));
+  seg('lenient', SET.lenient||'normal');
+  seg('speech', (SET.speech!==false)?'on':'off');
+  seg('effects', (SET.effects!==false)?'on':'off');
+  el.setBody.querySelectorAll('[data-set="groups"] .set-chip').forEach(b=>{ const hid=SET.hidden.includes(b.dataset.g); b.classList.toggle('off',hid); b.classList.toggle('on',!hid); });
+  const d=el.setBody.querySelector('#set-lenient-desc'); if(d) d.textContent={
+    lenient:LT('오타·약자·모호한 이름도 최대한 맞혀 줘요.','Accepts typos, codes, and fuzzy names.'),
+    normal:LT('이름과 약자(KR, US…)를 인식해요. (기본값)','Matches names and codes (KR, US…). (default)'),
+    exact:LT('정확한 정식 나라 이름만 인정해요 (랭크전과 동일).','Only the exact official country name (same as Ranked).')
+  }[SET.lenient||'normal'];
+}
+function renderSettings(){
+  const groups=[...new Set(MODES_META.map(x=>x.g))], voice=voiceSupported();
+  let h='<h2 class="auth-title" id="set-title">'+LT('설정','Settings')+'</h2>';
+  h+='<div class="set-block"><div class="set-h">'+LT('이름 판정','Name matching')+'</div>'
+    +'<div class="set-seg" data-set="lenient">'
+    +'<button class="set-chip" data-v="lenient">'+LT('매우 관대','Lenient')+'</button>'
+    +'<button class="set-chip" data-v="normal">'+LT('기본','Normal')+'</button>'
+    +'<button class="set-chip" data-v="exact">'+LT('정확히','Exact')+'</button></div>'
+    +'<div class="set-desc" id="set-lenient-desc"></div></div>';
+  h+='<div class="set-block"><div class="set-h">'+LT('음성 인식','Speech recognition')+'</div>'
+    +(voice?('<div class="set-seg" data-set="speech"><button class="set-chip" data-v="on">'+LT('켜기','On')+'</button><button class="set-chip" data-v="off">'+LT('끄기','Off')+'</button></div>')
+           :('<div class="set-desc">'+LT('이 브라우저·기기는 음성 인식을 지원하지 않아요.','This browser/device doesn’t support speech recognition.')+'</div>'))
+    +'</div>';
+  h+='<div class="set-block"><div class="set-h">'+LT('효과·애니메이션','Effects & motion')+'</div>'
+    +'<div class="set-seg" data-set="effects"><button class="set-chip" data-v="on">'+LT('켜기','On')+'</button><button class="set-chip" data-v="off">'+LT('끄기','Off')+'</button></div></div>';
+  h+='<div class="set-block"><div class="set-h">'+LT('홈 화면 섹션 (눌러서 숨기기)','Home sections (tap to hide)')+'</div>'
+    +'<div class="set-seg wrap" data-set="groups">'
+    + groups.map(g=>'<button class="set-chip" data-g="'+esc(g)+'">'+esc(EN()?(GROUP_EN[g]||g):g)+'</button>').join('')
+    +'</div></div>';
+  el.setBody.innerHTML=h;
+  refreshSettingsUI();
+  el.setBody.querySelectorAll('[data-set="lenient"] .set-chip').forEach(b=>b.onclick=()=>{ SET.lenient=b.dataset.v; saveSet(); refreshSettingsUI(); });
+  el.setBody.querySelectorAll('[data-set="speech"] .set-chip').forEach(b=>b.onclick=()=>{ SET.speech=(b.dataset.v==='on'); saveSet(); refreshSettingsUI(); refreshMic(); });
+  el.setBody.querySelectorAll('[data-set="effects"] .set-chip').forEach(b=>b.onclick=()=>{ SET.effects=(b.dataset.v==='on'); saveSet(); refreshSettingsUI(); });
+  el.setBody.querySelectorAll('[data-set="groups"] .set-chip').forEach(b=>b.onclick=()=>{ const g=b.dataset.g, i=SET.hidden.indexOf(g);
+    if(i>=0) SET.hidden.splice(i,1); else if(SET.hidden.length<groups.length-1) SET.hidden.push(g);   // keep at least one section
+    saveSet(); refreshSettingsUI(); buildHome(); });
+}
+function openSettings(){ renderSettings(); el.settings.classList.add('show'); el.settings.setAttribute('aria-hidden','false'); const f=el.setBody.querySelector('button'); if(f) f.focus(); }
+function closeSettings(){ el.settings.classList.remove('show'); el.settings.setAttribute('aria-hidden','true'); }
+el.setbtn.onclick=openSettings; el.homeset.onclick=openSettings; el.setClose.onclick=closeSettings;
+el.settings.addEventListener('click',e=>{ if(e.target===el.settings) closeSettings(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&el.settings.classList.contains('show')) closeSettings(); });
 
 /* ================= local profiles (saved in THIS browser only — no server) ================= */
 const AKEY='wmh_accounts_v1';
@@ -9983,6 +10217,8 @@ const ACHIEVEMENTS=[
   {id:'streak7', ic:'⭐', ko:'한 주 완주', en:'Week Warrior', dko:'데일리 7일 연속', den:'7-day daily streak', test:st=>(st.dailyStreak||0)>=7},
   {id:'chain10', ic:'⛓️', ko:'연결의 달인', en:'Chain Master', dko:'국경 잇기 10+', den:'Border chain of 10+', test:st=>((st.best&&st.best.chain)||0)>=10},
   {id:'ladder10', ic:'🪜', ko:'사다리 타기', en:'Ladder Legend', dko:'업다운 10연속', den:'Higher–Lower streak of 10', test:st=>((st.best&&st.best.ladder)||0)>=10},
+  {id:'rank_gold', ic:'🥇', ko:'골드 등반', en:'Gold Rank', dko:'랭크전 골드 티어', den:'Reached Gold in Ranked', test:st=>(st.rp||0)>=1600},
+  {id:'rank_diamond', ic:'💠', ko:'다이아 등반', en:'Diamond Rank', dko:'랭크전 다이아 티어', den:'Reached Diamond in Ranked', test:st=>(st.rp||0)>=3800},
 ];
 function achTitle(a){ return EN()?a.en:a.ko; }
 function achDesc(a){ return EN()?a.den:a.dko; }
@@ -10042,7 +10278,8 @@ function renderProfile(){
   el.profilecard.classList.remove('hidden');
   el.profilecard.innerHTML='<div class="pc-head">'
     +'<div class="pc-avatar">'+esc(u.name.charAt(0).toUpperCase())+'</div>'
-    +'<div><div class="pc-name">'+esc(u.name)+'</div><div class="pc-sub">'+LT('플레이 ','Games ')+(st.games||0)+' · '+LT('누적 점수 ','Total points ')+(st.points||0)+'</div></div>'
+    +'<div><div class="pc-name">'+esc(u.name)+'</div><div class="pc-sub">'+LT('플레이 ','Games ')+(st.games||0)+' · '+LT('누적 점수 ','Total points ')+(st.points||0)
+      +(st.rp!=null?(' · '+(function(t){return t.ic+' '+LT(t.ko,t.en)+' '+st.rp+' RP';})(rankTierOf(st.rp))):'')+'</div></div>'
     +'<button class="btn pc-logout" id="pc-logout"><span data-icon="logout"></span> <span>'+LT('로그아웃','Log out')+'</span></button>'
     +'</div>'
     +(bh?('<div class="pc-stats">'+bh+'</div>'):('<div class="pc-sub" style="margin-top:11px">'+LT('게임을 하면 최고 기록이 여기에 쌓여요.','Play a game and your best scores show up here.')+'</div>'))
