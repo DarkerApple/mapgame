@@ -757,6 +757,47 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
 .sym-fact{text-align:center;color:var(--muted);font-size:14px;min-height:20px;font-weight:700;max-width:760px;margin:0 auto}
 .sym-fact b{color:var(--target)}
 @media(max-width:520px){ .sym-grid{grid-template-columns:repeat(auto-fill,minmax(66px,1fr))} .sym-cell .sf{font-size:28px} }
+/* ---- Country Minesweeper ---- */
+#mines,#exam,#mbti{position:absolute;inset:0;z-index:7;background:var(--bg);display:none;flex-direction:column;padding:14px 16px calc(14px + env(safe-area-inset-bottom))}
+#mines.show,#exam.show,#mbti.show{display:flex}
+#exam,#mbti{overflow-y:auto}
+.panel-scroll{max-width:640px;width:100%;margin:0 auto}
+.mn-top{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;max-width:560px;width:100%;margin-left:auto;margin-right:auto}
+.mn-stat{background:var(--surface2);border:1px solid var(--border2);border-radius:9px;padding:7px 12px;font-weight:800;font-variant-numeric:tabular-nums}
+.mn-flagbtn.on{background:var(--target);color:var(--accent-ink);border-color:var(--target)}
+.mn-grid{display:grid;gap:3px;flex:1;min-height:0;align-content:center;justify-content:center;margin:0 auto;width:min(94vw,520px)}
+.mn-cell{aspect-ratio:1;min-width:0;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;cursor:pointer;font-size:min(4.4vw,22px);
+  display:flex;align-items:center;justify-content:center;padding:0;color:var(--text);transition:.08s;line-height:1}
+.mn-cell:hover{background:var(--surface3)}
+.mn-cell.rev{background:var(--surface);cursor:default;border-color:var(--border)}
+.mn-cell.flag{background:color-mix(in srgb,var(--target) 20%,var(--surface2))}
+.mn-cell .mn-fl{font-size:min(4.6vw,23px)}
+.mn-cell .mn-adj{font-weight:900}
+.mn-adj.a1{color:#5aa0ff}.mn-adj.a2{color:#4ade80}.mn-adj.a3{color:#ff7a7a}.mn-adj.a4{color:#c084fc}.mn-adj.a5{color:#ffb14a}.mn-adj.a6{color:#38d0c0}.mn-adj.a7{color:#e3b6ff}.mn-adj.a8{color:#ff9db4}
+.mn-msg{text-align:center;font-weight:800;font-size:15px;margin-top:12px;min-height:22px}
+/* ---- Exam / MBTI shared ---- */
+.qz-head{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:8px 0}
+.qz-prog{height:7px;border-radius:99px;background:var(--surface3);overflow:hidden;margin-bottom:16px}
+.qz-prog>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--target));transition:width .25s}
+.qz-q{font-size:clamp(18px,4.4vw,24px);font-weight:800;margin-bottom:6px;line-height:1.3}
+.qz-flag{font-size:64px;text-align:center;margin:4px 0}
+.qz-sub{color:var(--muted);font-size:13.5px;margin-bottom:16px}
+.qz-opts{display:flex;flex-direction:column;gap:9px}
+.qz-opt{text-align:left;background:var(--surface2);border:1.5px solid var(--border2);border-radius:12px;padding:14px 16px;font:inherit;font-weight:600;font-size:15px;color:var(--text);cursor:pointer;transition:.12s}
+.qz-opt:hover{border-color:var(--accent)}
+.qz-opt.right{border-color:var(--ok);background:var(--ok-dim)}
+.qz-opt.wrong{border-color:var(--bad);background:var(--bad-dim)}
+.qz-result{text-align:center}
+.qz-grade{font-size:64px;font-weight:900;margin:6px 0}
+.qz-verdict{font-size:22px;font-weight:800;margin-bottom:4px}
+.qz-break{display:flex;flex-direction:column;gap:8px;margin:18px 0;text-align:left}
+.qz-brow{display:flex;align-items:center;gap:10px}
+.qz-brow .n{min-width:96px;font-size:13px;font-weight:700}
+.qz-brow .bar{flex:1;height:8px;border-radius:99px;background:var(--surface3);overflow:hidden}
+.qz-brow .bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--target))}
+.qz-brow .v{min-width:52px;text-align:right;font-size:12.5px;color:var(--muted)}
+.mbti-badge{font-size:70px;margin:6px 0}
+.mbti-type{font-size:30px;font-weight:900;letter-spacing:.08em;margin-bottom:2px}
 
 @media(prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
 
@@ -889,6 +930,13 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
         <div class="sym-grid" id="sym-grid"></div>
         <div class="sym-fact" id="sym-fact"></div>
       </div>
+      <div id="mines">
+        <div class="mn-top" id="mn-top"></div>
+        <div class="mn-grid" id="mn-grid"></div>
+        <div class="mn-msg" id="mn-msg"></div>
+      </div>
+      <div id="exam"><div class="panel-scroll" id="exam-body"></div></div>
+      <div id="mbti"><div class="panel-scroll" id="mbti-body"></div></div>
     </div>
     <aside id="studypanel" class="hidden">
       <div class="sp-head">
@@ -2321,6 +2369,7 @@ const el={
   fall:$('fall'),fallArea:$('fall-area'),fallHud:$('fall-hud'),
   rankBanner:$('rank-banner'),rankhub:$('rankhub'),rhBody:$('rh-body'),rhBack:$('rh-back'),
   sym:$('sym'),symQ:$('sym-q'),symGo:$('sym-go'),symGrid:$('sym-grid'),symFact:$('sym-fact'),
+  mines:$('mines'),mnTop:$('mn-top'),mnGrid:$('mn-grid'),mnMsg:$('mn-msg'),exam:$('exam'),examBody:$('exam-body'),mbti:$('mbti'),mbtiBody:$('mbti-body'),
   profilebtn:$('profilebtn'),profilebtnT:$('profilebtn-t'),profilecard:$('profilecard'),
   auth:$('auth'),authBody:$('auth-body'),authClose:$('auth-close'),
 };
@@ -2537,7 +2586,7 @@ function resetMode(){
   state.missed=[]; state.missedIds=new Set();   // countries stumbled on this session (for the end screen)
   state.elapsed=0; state.target=null; state.queue=[]; state.pool=[]; state.regionIds=null; state.regionTotal=0;
   clearMap(); el.studypanel.classList.add('hidden'); el.trivia.classList.remove('show'); el.compare.classList.remove('show');
-  el.minigame.classList.remove('show'); el.codex.classList.remove('show'); el.sym.classList.remove('show'); stopFall(); el.fall.classList.remove('show');
+  el.minigame.classList.remove('show'); el.codex.classList.remove('show'); el.sym.classList.remove('show'); stopFall(); el.fall.classList.remove('show'); el.mines.classList.remove('show'); el.exam.classList.remove('show'); el.mbti.classList.remove('show');
   el.prompt.classList.remove('hidden'); el.feedback.classList.remove('hidden');
   el.q.disabled=false; el.q.value='';
   const m=state.mode, region=state.region;
@@ -2560,6 +2609,9 @@ function resetMode(){
   if(m==='codex'){ startCodex(); return; }
   if(m==='fall'){ startFall(); return; }
   if(m==='sym'){ startSym(); return; }
+  if(m==='mines'){ startMines(); return; }
+  if(m==='exam'){ startExam(); return; }
+  if(m==='mbti'){ startMbti(); return; }
   if(m==='ranked'){ startRanked(); updateTimerDisplay(); return; }
   if(m==='mastery'){ startMastery(); return; }
   if(m==='review'){ startReview(); updateTimerDisplay(); return; }
@@ -3585,10 +3637,11 @@ function expectedScore(D,elo){ return 1/(1+Math.pow(10,(D-elo)/400)); }
 const RANK_MODES=[{k:'quiz',ko:'이름',en:'Name'},{k:'flag',ko:'국기',en:'Flag'},{k:'silhouette',ko:'실루엣',en:'Outline'},{k:'capcountry',ko:'수도',en:'Capital'},{k:'clue',ko:'히스토리',en:'History'}];
 function modeReq(i){ return Math.max(0, Math.round(i*3)); }   // per-mode correct ranked answers needed to certify tier index i
 function tierIndexOf(elo){ let idx=0; for(let i=0;i<RANK_TIERS.length;i++){ if(elo>=RANK_TIERS[i].elo) idx=i; } return idx; }
-function certTierIndex(u){ const rp=(u&&u.stats&&u.stats.modeRP)||{}; let cap=0; for(let i=1;i<RANK_TIERS.length;i++){ if(RANK_MODES.every(m=>(rp[m.k]||0)>=modeReq(i))) cap=i; else break; } return cap; }
-function effTierIndex(u){ const elo=(u&&u.stats&&u.stats.elo!=null)?u.stats.elo:ELO_START; return Math.min(tierIndexOf(elo), certTierIndex(u)); }
-function rankTierEff(u){ return RANK_TIERS[effTierIndex(u)]; }        // display tier — capped by mode progress
-function rankGated(u){ return isPlaced()&&tierIndexOf((u&&u.stats&&u.stats.elo)||ELO_START) > certTierIndex(u); }   // ELO wants higher but modes hold you back
+const RANK_GATE_FROM=12;   // mode-gating only applies at Diamond III and above — everything below is pure ELO
+function certTierIndex(u){ const rp=(u&&u.stats&&u.stats.modeRP)||{}; let cap=RANK_GATE_FROM-1; for(let i=RANK_GATE_FROM;i<RANK_TIERS.length;i++){ if(RANK_MODES.every(m=>(rp[m.k]||0)>=modeReq(i))) cap=i; else break; } return cap; }
+function effTierIndex(u){ const elo=(u&&u.stats&&u.stats.elo!=null)?u.stats.elo:ELO_START; const idx=tierIndexOf(elo); return (idx<RANK_GATE_FROM)?idx:Math.min(idx, certTierIndex(u)); }
+function rankTierEff(u){ return RANK_TIERS[effTierIndex(u)]; }        // display tier — only Diamond+ is capped by mode progress
+function rankGated(u){ return isPlaced() && tierIndexOf((u&&u.stats&&u.stats.elo)||ELO_START) > effTierIndex(u); }   // ELO wants higher but modes hold you back
 function rankTierLabel(elo){ const t=rankTierOf(elo); return t.ic+' '+LT(t.ko,t.en)+' '+Math.round(elo); }
 // unlock the highlight cosmetic for every tier at/below your EFFECTIVE (mode-gated) rank
 function unlockTierCosmetics(){ const u=curUser(); if(!u) return; u.stats.cos=u.stats.cos||{}; const eff=effTierIndex(u);
@@ -3723,8 +3776,9 @@ function rankedShowQuestion(){
   if(state.rankedItem.fun) rankedRenderFun(state.rankedItem.fun);
   else if(state.rankedItem.sym) rankedRenderSym(state.rankedItem.sym);
   else rankedRenderQ(state.rankedItem.base||'quiz', state.rankedItem.entry);
-  el.q.value=''; state.rankedQEnd=perfNow()+RANKED_QTIME*1000; state.rankedAwaiting=true; startRankedTimer();
+  el.q.value=''; state.rankedTries=0; state.rankedQEnd=perfNow()+RANKED_QTIME*1000; state.rankedAwaiting=true; startRankedTimer();
 }
+const RANKED_MAX_TRIES=2;   // only two chances per ranked question
 function rankedAnswer(correct){
   if(!state.rankedActive||state.ended||!state.rankedAwaiting) return; state.rankedAwaiting=false; stopRankedTimer();
   if(state.rankedItem.fun){   // bonus round: gain ELO on a correct answer, never lose any
@@ -3896,6 +3950,179 @@ function endSym(){
   showOverlay(LT('국기 기호 찾기','Flag Symbols'), state.score+' / '+state.symTotal, EN()?('Perfect rounds: '+state.score+'/'+state.symTotal):(state.symTotal+'라운드 중 '+state.score+'라운드 완벽!'));
   const r=recordResult('sym',state.score); const sfx=resultSuffix(r,state.score); if(sfx){ const s=$('ovsub'); s.textContent+=sfx; }
   renderOverlayExtras('sym',state.score); if(r&&r.tierUp) playTierCutscene('game', modeName('sym'), r.tierUp);
+}
+
+/* ================= Country Minesweeper ================= */
+function startMines(){
+  [el.trivia,el.compare,el.minigame,el.codex,el.fall,el.sym,el.exam,el.mbti].forEach(x=>x.classList.remove('show')); el.studypanel.classList.add('hidden');
+  el.prompt.classList.add('hidden'); el.feedback.classList.add('hidden'); el.timer.classList.add('hidden'); el.inputrow.classList.add('hidden');
+  el.mines.classList.add('show'); state.mnFlagMode=false; newMines();
+}
+function newMines(){
+  const N=9, M=12; state.mnN=N; state.mnM=M; state.mnOver=false; state.mnStart=0; state.mnFlags=0; state.ended=false;
+  const pool=shuffleArr(allEntries.filter(e=>e.sov&&e.i2));
+  const cells=[]; for(let i=0;i<N*N;i++) cells.push({mine:false,rev:false,flag:false,adj:0,e:pool[i%pool.length]});
+  let placed=0; while(placed<M){ const i=Math.floor(Math.random()*N*N); if(!cells[i].mine){ cells[i].mine=true; placed++; } }
+  const idx=(r,c)=>r*N+c;
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){ if(cells[idx(r,c)].mine) continue; let a=0;
+    for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){ if(!dr&&!dc)continue; const nr=r+dr,nc=c+dc; if(nr>=0&&nr<N&&nc>=0&&nc<N&&cells[idx(nr,nc)].mine) a++; }
+    cells[idx(r,c)].adj=a; }
+  state.mnCells=cells; renderMinesTop(); renderMines();
+  el.mnMsg.textContent=LT('칸을 눌러 여세요 · 안전한 칸엔 국기가! · 지뢰 '+M+'개','Tap to reveal · safe cells show flags · '+M+' mines');
+}
+function renderMinesTop(){
+  const revealed=state.mnCells.filter(c=>c.rev&&!c.mine).length, safe=state.mnN*state.mnN-state.mnM;
+  el.mnTop.innerHTML='<span class="mn-stat">🚩 '+(state.mnM-state.mnFlags)+'</span>'
+    +'<button class="btn mn-flagbtn'+(state.mnFlagMode?' on':'')+'" id="mn-flag">🚩 '+LT('지뢰 표시','Flag mode')+'</button>'
+    +'<span class="mn-stat">'+revealed+' / '+safe+'</span>'
+    +'<button class="btn" id="mn-new">'+LT('새 판','New board')+'</button>';
+  $('mn-flag').onclick=()=>{ state.mnFlagMode=!state.mnFlagMode; renderMinesTop(); };
+  $('mn-new').onclick=newMines;
+}
+function renderMines(){
+  const N=state.mnN; el.mnGrid.style.gridTemplateColumns='repeat('+N+',1fr)'; el.mnGrid.innerHTML='';
+  state.mnCells.forEach((c,i)=>{ const b=document.createElement('button'); b.className='mn-cell'+(c.rev?' rev':'')+(c.flag?' flag':'');
+    if(c.rev){ b.innerHTML=c.mine?'💥':(c.adj?('<span class="mn-adj a'+c.adj+'">'+c.adj+'</span>'):('<span class="mn-fl" title="'+esc(NM(c.e))+'">'+flagEmoji(c.e.i2)+'</span>')); }
+    else if(c.flag) b.textContent='🚩';
+    b.onclick=()=>mnClick(i); b.oncontextmenu=(ev)=>{ ev.preventDefault(); mnFlag(i); };
+    el.mnGrid.appendChild(b); });
+}
+function mnClick(i){ if(state.mnOver) return; const c=state.mnCells[i];
+  if(state.mnFlagMode){ mnFlag(i); return; }
+  if(c.flag||c.rev) return; if(!state.mnStart) state.mnStart=Date.now();
+  if(c.mine){ mnLose(); return; }
+  mnFlood(i); renderMines(); renderMinesTop(); mnCheckWin();
+}
+function mnFlag(i){ if(state.mnOver) return; const c=state.mnCells[i]; if(c.rev) return; c.flag=!c.flag; state.mnFlags+=c.flag?1:-1; renderMines(); renderMinesTop(); }
+function mnFlood(i){ const N=state.mnN, cells=state.mnCells, st=[i];
+  while(st.length){ const j=st.pop(); const c=cells[j]; if(c.rev||c.flag||c.mine) continue; c.rev=true;
+    if(c.adj===0){ const r=Math.floor(j/N), col=j%N;
+      for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){ const nr=r+dr,nc=col+dc; if(nr>=0&&nr<N&&nc>=0&&nc<N){ const nj=nr*N+nc; if(!cells[nj].rev) st.push(nj); } } } } }
+function mnCheckWin(){ const safe=state.mnN*state.mnN-state.mnM, rev=state.mnCells.filter(c=>c.rev&&!c.mine).length; if(rev>=safe) mnWin(); }
+function mnWin(){ state.mnOver=true; state.mnCells.forEach(c=>{ if(c.mine) c.flag=true; }); renderMines();
+  const secs=Math.round((Date.now()-state.mnStart)/1000), score=Math.max(1,190-secs*2);
+  el.mnMsg.innerHTML='🏆 '+LT('클리어! '+secs+'초 · +'+score+'점','Cleared in '+secs+'s · +'+score);
+  celebrate(true,LT('클리어!','Cleared!')); const r=recordResult('mines',score); if(r&&r.tierUp) playTierCutscene('game', modeName('mines'), r.tierUp);
+}
+function mnLose(){ state.mnOver=true; state.mnCells.forEach(c=>{ if(c.mine) c.rev=true; }); renderMines();
+  el.mnMsg.innerHTML='💥 '+LT('지뢰를 밟았어요! “새 판”으로 다시 도전.','Boom — you hit a mine! Try “New board”.'); celebrate(false,LT('지뢰!','Boom!')); }
+
+/* ================= Geography Exam (multi-section, graded) ================= */
+function examMakeQ(){
+  const en=EN(), pool=allEntries.filter(e=>e.sov&&!e.isMarker&&e.i2);
+  const pick=arr=>arr[Math.floor(Math.random()*arr.length)];
+  const others=(e,f,n)=>{ const out=[]; const used=new Set([e.id]); let g=0; while(out.length<n&&g++<200){ const x=pick(pool); if(!used.has(x.id)&&f(x)){ used.add(x.id); out.push(x); } } return out; };
+  const gens=[
+    ()=>{ const e=pick(pool); const opts=shuffleArr([e].concat(others(e,()=>true,3))); return {cat:'flag', q:'', flag:e.i2, sub:LT('이 국기는 어느 나라?','Whose flag is this?'), opts:opts.map(x=>NM(x)), ans:opts.indexOf(e)}; },
+    ()=>{ const cands=pool.filter(e=>e.st&&(e.st.cap||e.st.cape)); const e=pick(cands); const cap=en?(e.st.cape||e.st.cap):(e.st.cap||e.st.cape); const opts=shuffleArr([e].concat(others(e,x=>x.st&&(x.st.cap||x.st.cape),3))); return {cat:'capital', q:esc(cap), sub:LT('은(는) 어느 나라의 수도?','is the capital of which country?'), opts:opts.map(x=>NM(x)), ans:opts.indexOf(e)}; },
+    ()=>{ const e=pick(pool); const reg=regionOf(e); const regs=[...new Set(pool.map(regionOf))]; const opts=shuffleArr([reg].concat(shuffleArr(regs.filter(r=>r!==reg)).slice(0,3))); return {cat:'geography', q:NM(e), sub:LT('은(는) 어느 지역에 있을까요?','is located in which region?'), opts, ans:opts.indexOf(reg)}; },
+    ()=>{ const a=pick(pool), b=pick(pool.filter(x=>x.id!==a.id&&x.st&&x.st.pop&&a.st&&a.st.pop)); if(!b) return null; const opts=shuffleArr([a,b]); const bigger=(a.st.pop>=b.st.pop)?a:b; return {cat:'stats', q:'', sub:LT('인구가 더 많은 나라는?','Which country has more people?'), opts:opts.map(x=>NM(x)), ans:opts.indexOf(bigger)}; },
+    ()=>{ const cands=pool.filter(e=>e.st&&e.st.nb&&e.st.nb.length); const e=pick(cands); const nbNames=new Set((e.st.nb||[]).concat(e.st.nbe||[]));
+      const neighbor=pool.find(x=>(x.ko&&nbNames.has(x.ko))||(x.en&&nbNames.has(x.en))); if(!neighbor) return null;
+      const opts=shuffleArr([neighbor].concat(others(e,x=>x.id!==neighbor.id&&!nbNames.has(x.ko)&&!nbNames.has(x.en),3)));
+      return {cat:'geography', q:NM(e), sub:LT('와(과) 국경을 맞댄 나라는?','borders which country?'), opts:opts.map(x=>NM(x)), ans:opts.indexOf(neighbor)}; },
+  ];
+  const qs=[]; let guard=0; while(qs.length<20 && guard++<400){ const q=pick(gens)(); if(q&&q.opts.every(Boolean)&&q.ans>=0) qs.push(q); } return qs;
+}
+function startExam(){
+  [el.trivia,el.compare,el.minigame,el.codex,el.fall,el.sym,el.mines,el.mbti].forEach(x=>x.classList.remove('show')); el.studypanel.classList.add('hidden');
+  el.prompt.classList.add('hidden'); el.feedback.classList.add('hidden'); el.timer.classList.add('hidden'); el.inputrow.classList.add('hidden');
+  el.exam.classList.add('show'); state.ended=false;
+  state.examQ=examMakeQ(); state.examIdx=0; state.examScore=0; state.examCat={}; state.examLock=false; renderExamQ();
+}
+function renderExamQ(){
+  const q=state.examQ[state.examIdx], n=state.examQ.length; state.examLock=false;
+  el.examBody.innerHTML='<div class="qz-head">'+LT('지리 시험','Geography Exam')+' · '+(state.examIdx+1)+' / '+n+'</div>'
+    +'<div class="qz-prog"><i style="width:'+Math.round(state.examIdx/n*100)+'%"></i></div>'
+    +(q.flag?('<div class="qz-flag">'+flagEmoji(q.flag)+'</div>'):'')
+    +(q.q?('<div class="qz-q">'+esc(q.q)+'</div>'):'')
+    +'<div class="qz-sub">'+q.sub+'</div>'
+    +'<div class="qz-opts" id="exam-opts">'+q.opts.map((o,i)=>'<button class="qz-opt" data-i="'+i+'">'+esc(o)+'</button>').join('')+'</div>';
+  el.examBody.querySelectorAll('.qz-opt').forEach(b=>b.onclick=()=>examAnswer(+b.dataset.i));
+}
+function examAnswer(i){
+  if(state.examLock) return; state.examLock=true;
+  const q=state.examQ[state.examIdx], opts=el.examBody.querySelectorAll('.qz-opt'); const correct=(i===q.ans);
+  opts[q.ans].classList.add('right'); if(!correct) opts[i].classList.add('wrong');
+  state.examCat[q.cat]=state.examCat[q.cat]||{r:0,t:0}; state.examCat[q.cat].t++; if(correct){ state.examScore++; state.examCat[q.cat].r++; }
+  celebrate(correct, correct?LT('정답','Correct'):LT('오답','Wrong'));
+  const g=state.gen; setTimeout(()=>{ if(state.gen!==g||state.mode!=='exam'||state.ended) return; state.examIdx++;
+    if(state.examIdx>=state.examQ.length) endExam(); else renderExamQ(); }, 800);
+}
+function endExam(){
+  state.ended=true; const n=state.examQ.length, pct=Math.round(state.examScore/n*100);
+  const V=[[90,'🌍',LT('세계 지리 마스터','World Cartographer')],[75,'🧭',LT('세계 여행자','Globetrotter')],[55,'🗺️',LT('지도 탐험가','Map Explorer')],[35,'📚',LT('지리 학생','Geography Student')],[0,'🌱',LT('지리 입문자','Geography Beginner')]];
+  const v=V.find(x=>pct>=x[0]);
+  const CATN={flag:LT('국기','Flags'),capital:LT('수도','Capitals'),geography:LT('지리·위치','Geography'),stats:LT('통계·비교','Stats')};
+  const breaks=Object.keys(state.examCat).map(k=>{ const c=state.examCat[k], p=Math.round(c.r/c.t*100);
+    return '<div class="qz-brow"><span class="n">'+(CATN[k]||k)+'</span><span class="bar"><i style="width:'+p+'%"></i></span><span class="v">'+c.r+'/'+c.t+'</span></div>'; }).join('');
+  el.examBody.innerHTML='<div class="qz-result"><div class="qz-head">'+LT('시험 결과','Exam result')+'</div>'
+    +'<div class="qz-grade">'+v[1]+' '+pct+'%</div><div class="qz-verdict">'+v[2]+'</div>'
+    +'<div class="qz-sub">'+state.examScore+' / '+n+LT(' 정답',' correct')+'</div>'
+    +'<div class="qz-break">'+breaks+'</div>'
+    +'<button class="btn solid rh-play" id="exam-again">'+LT('다시 시험 보기','Take it again')+'</button>'
+    +'<button class="btn rh-play" id="exam-home" style="margin-top:8px">'+LT('홈으로','Home')+'</button></div>';
+  const r=recordResult('exam',state.examScore);
+  $('exam-again').onclick=startExam; $('exam-home').onclick=showHome;
+}
+
+/* ================= Country MBTI (fun) ================= */
+const MBTI_Q=[
+  {ax:'EI',ko:'여행 스타일은?',en:'Your travel style?',a:{ko:'북적이는 대도시',en:'Buzzing big city',s:'E'},b:{ko:'조용한 시골·자연',en:'Quiet countryside',s:'I'}},
+  {ax:'EI',ko:'주말엔?',en:'Weekends are for…',a:{ko:'축제·사람들',en:'Festivals & crowds',s:'E'},b:{ko:'집·소수의 친구',en:'Home & a few friends',s:'I'}},
+  {ax:'SN',ko:'끌리는 풍경은?',en:'Which landscape?',a:{ko:'익숙한 해변',en:'A familiar beach',s:'S'},b:{ko:'신비로운 오지',en:'A mysterious frontier',s:'N'}},
+  {ax:'SN',ko:'박물관에서?',en:'At a museum you…',a:{ko:'사실·유물 관찰',en:'Study facts & relics',s:'S'},b:{ko:'이야기·의미 상상',en:'Imagine the stories',s:'N'}},
+  {ax:'TF',ko:'나라를 고르는 기준?',en:'You pick a country by…',a:{ko:'경제·통계',en:'Economy & data',s:'T'},b:{ko:'분위기·사람들',en:'Vibe & people',s:'F'}},
+  {ax:'TF',ko:'길을 잃으면?',en:'Lost abroad, you…',a:{ko:'지도로 최적 경로',en:'Optimal route by map',s:'T'},b:{ko:'현지인에게 물어봐요',en:'Ask a friendly local',s:'F'}},
+  {ax:'JP',ko:'여행 계획은?',en:'Your trip is…',a:{ko:'분 단위 일정표',en:'Planned to the minute',s:'J'},b:{ko:'그날 기분대로',en:'Go with the flow',s:'P'}},
+  {ax:'JP',ko:'짐은?',en:'Packing means…',a:{ko:'체크리스트 완비',en:'A tidy checklist',s:'J'},b:{ko:'가방에 툭툭',en:'Toss it in the bag',s:'P'}},
+];
+const MBTI_MAP={
+  ISTJ:['🇩🇪','Germany',LT('철저하고 믿음직 — 시간표처럼 정확해요.','Thorough & dependable — punctual as a timetable.')],
+  ISFJ:['🇯🇵','Japan',LT('섬세하고 배려심 깊은 전통주의자.','Gentle, caring, and quietly traditional.')],
+  INFJ:['🇳🇴','Norway',LT('고요하지만 깊은 이상주의자.','Calm on the surface, deep idealist within.')],
+  INTJ:['🇸🇬','Singapore',LT('전략가 — 작지만 무섭게 효율적.','A strategist — small but ruthlessly efficient.')],
+  ISTP:['🇨🇭','Switzerland',LT('과묵한 만능 해결사.','A quiet, do-it-all problem solver.')],
+  ISFP:['🇳🇿','New Zealand',LT('자유롭고 자연을 사랑하는 예술가.','Free-spirited nature-loving artist.')],
+  INFP:['🇮🇪','Ireland',LT('몽상가 — 이야기와 초록빛을 사랑해요.','A dreamer who loves stories and green hills.')],
+  INTP:['🇫🇮','Finland',LT('호기심 많은 사색가.','A curious, understated thinker.')],
+  ESTP:['🇧🇷','Brazil',LT('에너지 폭발 — 지금 이 순간을 즐겨요.','Pure energy — lives for the moment.')],
+  ESFP:['🇪🇸','Spain',LT('파티의 중심 — 흥이 넘쳐요.','Life of the party, full of flair.')],
+  ENFP:['🇲🇽','Mexico',LT('따뜻하고 축제 같은 낙천가.','Warm, festive, endlessly optimistic.')],
+  ENTP:['🇺🇸','USA',LT('아이디어와 논쟁을 즐기는 개척자.','A debater and inventor who loves big ideas.')],
+  ESTJ:['🇬🇧','United Kingdom',LT('질서와 전통의 관리자.','An organizer of order and tradition.')],
+  ESFJ:['🇮🇹','Italy',LT('사교적이고 정 많은 호스트.','Sociable and warm — the perfect host.')],
+  ENFJ:['🇰🇷','South Korea',LT('사람을 이끄는 따뜻한 리더.','A warm leader who brings people together.')],
+  ENTJ:['🇨🇳','China',LT('큰 그림을 그리는 지도자.','A commander who thinks at grand scale.')],
+};
+function startMbti(){
+  [el.trivia,el.compare,el.minigame,el.codex,el.fall,el.sym,el.mines,el.exam].forEach(x=>x.classList.remove('show')); el.studypanel.classList.add('hidden');
+  el.prompt.classList.add('hidden'); el.feedback.classList.add('hidden'); el.timer.classList.add('hidden'); el.inputrow.classList.add('hidden');
+  el.mbti.classList.add('show'); state.ended=false; state.mbIdx=0; state.mbScore={E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0}; renderMbtiQ();
+}
+function renderMbtiQ(){
+  const q=MBTI_Q[state.mbIdx], n=MBTI_Q.length;
+  el.mbtiBody.innerHTML='<div class="qz-head">'+LT('나라 MBTI (재미로!)','Country MBTI (just for fun)')+' · '+(state.mbIdx+1)+' / '+n+'</div>'
+    +'<div class="qz-prog"><i style="width:'+Math.round(state.mbIdx/n*100)+'%"></i></div>'
+    +'<div class="qz-q">'+LT(q.ko,q.en)+'</div>'
+    +'<div class="qz-opts">'
+    +'<button class="qz-opt" data-s="'+q.a.s+'">'+LT(q.a.ko,q.a.en)+'</button>'
+    +'<button class="qz-opt" data-s="'+q.b.s+'">'+LT(q.b.ko,q.b.en)+'</button></div>';
+  el.mbtiBody.querySelectorAll('.qz-opt').forEach(b=>b.onclick=()=>{ state.mbScore[b.dataset.s]++; state.mbIdx++;
+    if(state.mbIdx>=MBTI_Q.length) endMbti(); else renderMbtiQ(); });
+}
+function endMbti(){
+  state.ended=true; const s=state.mbScore;
+  const type=(s.E>=s.I?'E':'I')+(s.S>=s.N?'S':'N')+(s.T>=s.F?'T':'F')+(s.J>=s.P?'J':'P');
+  const m=MBTI_MAP[type]||['🌍','?','—'];
+  el.mbtiBody.innerHTML='<div class="qz-result"><div class="qz-head">'+LT('당신의 나라 유형','Your country type')+'</div>'
+    +'<div class="mbti-badge">'+m[0]+'</div><div class="mbti-type">'+type+'</div>'
+    +'<div class="qz-verdict">'+esc(EN()?m[1]:(NM(lookup.get(norm(m[1]))||{ko:m[1],en:m[1]})))+'</div>'
+    +'<div class="qz-sub" style="max-width:420px;margin:8px auto 0">'+m[2]+'</div>'
+    +'<div class="qz-sub" style="font-size:11.5px;margin-top:10px">'+LT('※ 과학적 근거 없음 · 순수 재미용','※ Not scientific — purely for fun')+'</div>'
+    +'<button class="btn solid rh-play" id="mb-again" style="margin-top:14px">'+LT('다시 하기','Retake')+'</button>'
+    +'<button class="btn rh-play" id="mb-home" style="margin-top:8px">'+LT('홈으로','Home')+'</button></div>';
+  $('mb-again').onclick=startMbti; $('mb-home').onclick=showHome; celebrate(true,m[0]);
 }
 
 /* ================= war trivia (kahoot-style) ================= */
@@ -10065,6 +10292,7 @@ const MODES_META=[
  {m:'codex',t:'국가 도감',te:'Country Codex',d:'나라별 국기·수도·인구·역사를 찾아보는 도감',de:'Browse every country: flag, capital, stats, history',ic:'book',g:'배우기'},
  {m:'mastery',t:'마스터리 지도',te:'Mastery Map',d:'내가 익힌 나라를 지도에 색으로 표시',de:'See which countries you have mastered on the map',ic:'trophy',g:'내 학습'},
  {m:'review',t:'오답 복습',te:'Mistake Review',d:'자주 틀린 나라를 간격 반복으로 복습',de:'Spaced review of the countries you miss most',ic:'reset',g:'내 학습'},
+ {m:'exam',t:'지리 시험',te:'Geography Exam',d:'여러 유형 20문제로 내 지리 실력을 정밀 진단',de:'A 20-question, multi-section exam that grades your geography',ic:'book',g:'내 학습'},
  {m:'quiz',t:'이름 맞히기',te:'Name It',d:'표시된 나라 이름을 90초 안에',de:'Type the name of the highlighted country',ic:'target',g:'이름·위치 맞히기'},
  {m:'findmap',t:'지도에서 찾기',te:'Find on Map',d:'제시된 이름을 지도에서 눌러 찾기',de:'Click the named country on the map',ic:'search',g:'이름·위치 맞히기'},
  {m:'place',t:'이름표 놓기',te:'Drag & Drop',d:'이름표를 알맞은 땅으로 드래그',de:'Drag each label onto the right land',ic:'tag',g:'이름·위치 맞히기'},
@@ -10088,7 +10316,9 @@ const MODES_META=[
  {m:'region',t:'지역별 도전',te:'Region Challenge',d:'고른 지역의 모든 나라 입력',de:'Name every country in a chosen region',ic:'layers',g:'도전'},
  {m:'countdown',t:'전세계 도전',te:'World Countdown',d:'제한 시간 안에 최대한 많이',de:'Name as many as you can before time runs out',ic:'clock',g:'도전'},
  {m:'conquer',t:'정복 모드',te:'Conquer',d:'나라를 반복해 눌러 칠하고 지역 정복',de:'Tap countries repeatedly to paint the region',ic:'trophy',g:'도전'},
+ {m:'mines',t:'나라 지뢰찾기',te:'Country Minesweeper',d:'지뢰를 피해 칸을 열면 나라 국기가 나와요',de:'Clear the board without hitting a mine — safe cells reveal flags',ic:'target',g:'도전'},
  {m:'trivia',t:'전쟁 트리비아',te:'War Trivia',d:'전쟁·주제별 4지선다 퀴즈(Kahoot 스타일)',de:'Kahoot-style multiple-choice war quiz',ic:'shield',g:'트리비아'},
+ {m:'mbti',t:'나라 MBTI (재미)',te:'Country MBTI (fun)',d:'취향 질문에 답하면 어울리는 나라를 알려줘요',de:'Answer preference questions to get your matching country',ic:'puzzle',g:'트리비아'},
 ];
 function modeTitle(x){ return EN()?(x.te||x.t):x.t; }
 function modeDesc(x){ return EN()?(x.de||x.d):x.d; }
@@ -10191,7 +10421,7 @@ function startGame(m){ el.setup.classList.remove('show'); el.home.classList.remo
 function showHome(){
   abandonRankedIfActive();   // quitting a ranked match mid-way costs ELO
   stopTicker(); stopTrivia(); stopRankedTimer(); cancelDrag(); state.gen++; state.ended=true; state.running=false; state.ranked=false;
-  el.trivia.classList.remove('show'); el.compare.classList.remove('show'); el.minigame.classList.remove('show'); el.codex.classList.remove('show'); el.sym.classList.remove('show'); stopFall(); el.fall.classList.remove('show'); el.rankhub.classList.remove('show'); el.studypanel.classList.add('hidden'); el.inputrow.classList.add('hidden');
+  el.trivia.classList.remove('show'); el.compare.classList.remove('show'); el.minigame.classList.remove('show'); el.codex.classList.remove('show'); el.sym.classList.remove('show'); stopFall(); el.fall.classList.remove('show'); el.mines.classList.remove('show'); el.exam.classList.remove('show'); el.mbti.classList.remove('show'); el.rankhub.classList.remove('show'); el.studypanel.classList.add('hidden'); el.inputrow.classList.add('hidden');
   el.setup.classList.remove('show'); hideOverlay(); clearMap(); clearLabels(); resetView();
   el.vsbar.classList.add('hidden'); el.timer.classList.remove('hidden');
   el.modetitle.textContent=''; el.homebtn.classList.add('hidden'); el.home.classList.add('show'); renderRankBanner();
@@ -10362,11 +10592,15 @@ function submit(){
       return; }
     if(state.rankedItem && state.rankedItem.sym){
       if(entry && state.rankedItem.sym.iso2.indexOf(entry.i2)>=0) rankedAnswer(true);
-      else { shakeInput(); setFeedback(LT('그 나라 국기엔 이 기호가 없어요 — 다시!','That flag doesn’t have this symbol — try again!'),'no','x'); el.q.value=''; }
+      else { state.rankedTries=(state.rankedTries||0)+1;
+        if(state.rankedTries>=RANKED_MAX_TRIES) rankedAnswer(false);
+        else { shakeInput(); setFeedback(LT('그 국기엔 없어요 — 마지막 기회!','Not that flag — last try!'),'no','x'); el.q.value=''; } }
       return; }
     if(!entry){ notFound(raw); return; }
     if(state.target && entry.id===state.target.id){ rankedAnswer(true); }
-    else { shakeInput(); setFeedback(EN()?('Not '+NM(entry)+' — keep trying (exact name).'):(NM(entry)+' 이(가) 아니에요 — 정확한 이름으로 계속!'),'no','x'); el.q.value=''; }
+    else { state.rankedTries=(state.rankedTries||0)+1;
+      if(state.rankedTries>=RANKED_MAX_TRIES) rankedAnswer(false);
+      else { shakeInput(); setFeedback(EN()?('Not '+NM(entry)+' — last try!'):(NM(entry)+' 이(가) 아니에요 — 마지막 기회!'),'no','x'); el.q.value=''; } }
   }
   else if(m==='hint'){
     if(!entry){notFound(raw);return;}
@@ -10803,7 +11037,7 @@ function renderRankHub(){
   if(placed){ unlockTierCosmetics(); accSave(); }   // reflect cosmetics already earned by current ELO
   const prog=nt?Math.max(0,Math.min(100,Math.round((elo-t.elo)/(nt.elo-t.elo)*100))):100;
   const cidx=certTierIndex(u), reqNext=modeReq(cidx+1), rp=(u.stats&&u.stats.modeRP)||{};
-  const modeBars=(placed && cidx+1<RANK_TIERS.length)? RANK_MODES.map(m=>{ const have=rp[m.k]||0, pct=Math.round(Math.min(have,reqNext)/Math.max(1,reqNext)*100), full=have>=reqNext;
+  const modeBars=(placed && tierIndexOf(elo)>=RANK_GATE_FROM-3 && cidx+1<RANK_TIERS.length)? RANK_MODES.map(m=>{ const have=rp[m.k]||0, pct=Math.round(Math.min(have,reqNext)/Math.max(1,reqNext)*100), full=have>=reqNext;
     return '<div class="rh-mp"><span class="rh-mp-n">'+LT(m.ko,m.en)+(full?' ✓':'')+'</span><span class="rh-mp-bar"><i style="width:'+pct+'%"></i></span><span class="rh-mp-v">'+have+'/'+reqNext+'</span></div>'; }).join('') : '';
   const cos=(u.stats&&u.stats.cos)||{}, equip=(u.stats&&u.stats.cosEquip)||'';
   let cosHtml='<button class="rh-chip'+(equip?'':' on')+'" data-hl="">'+LT('기본','Default')+'</button>';
@@ -10828,7 +11062,7 @@ function renderRankHub(){
     +'<div class="rh-sec">'+LT('하이라이트 코스메틱 (티어 보상)','Highlight cosmetics (tier rewards)')+'</div><div class="rh-row" id="rh-cos">'+cosHtml+'</div>'
     +'<div class="rh-sec">✨ '+LT('특별 테마 컬렉션','Special themes')+' ('+myThemes.length+'/'+Object.keys(HIDDEN_THEMES).length+')</div><div class="rh-shiny" id="rh-themes">'+themeHtml+'</div>'
     +(SUPA_ON?('<div class="rh-sec">🏆 '+LT('리더보드','Leaderboard')+' <button class="rh-lb-refresh" id="rh-lb-refresh" aria-label="'+LT('새로고침','Refresh')+'">↻</button></div><div id="rh-lb" class="rh-lb">'+lbHTML()+'</div>'):'')
-    +'<p class="rh-note">'+LT('· 정확한 이름만 · 문제당 '+RANKED_QTIME+'초 · 건너뛰기 없음<br>· 중도 포기 시 ELO를 잃어요 · 붙여넣기 차단·탭 이탈 감지(부정행위 방지)<br>· ELO가 오를수록 더 어렵고 낯선 나라가 나와요','· Exact names · '+RANKED_QTIME+'s/question · no skips<br>· Quitting mid-match loses ELO · paste blocked & tab-switch forfeits (anti-cheat)<br>· Higher ELO = harder, more obscure countries')+'</p>';
+    +'<p class="rh-note">'+LT('· 정확한 이름만 · 문제당 '+RANKED_QTIME+'초 · 문제당 기회 2번 · 건너뛰기 없음<br>· 중도 포기 시 ELO를 잃어요 · 붙여넣기 차단·탭 이탈 감지(부정행위 방지)<br>· ELO가 오를수록 더 어렵고 낯선 나라가 나와요','· Exact names · '+RANKED_QTIME+'s/question · 2 tries per question · no skips<br>· Quitting mid-match loses ELO · paste blocked & tab-switch forfeits (anti-cheat)<br>· Higher ELO = harder, more obscure countries')+'</p>';
   const play=el.rhBody.querySelector('#rh-play'); if(play) play.onclick=()=>{ state.rankedPlacement=false; playRanked(); };
   const place=el.rhBody.querySelector('#rh-place'); if(place) place.onclick=()=>{ state.rankedPlacement=true; playRanked(); };
   el.rhBody.querySelectorAll('#rh-cos .rh-chip').forEach(b=>b.onclick=()=>{ if(b.classList.contains('lock')) return; u.stats.cosEquip=b.dataset.hl||''; accSave(); applyCosmetics(); renderRankHub(); });
@@ -11041,7 +11275,7 @@ function randSalt(){ try{ const a=new Uint8Array(8); crypto.getRandomValues(a); 
 const TIER_ROMAN=['','I','II','III','IV','V','VI','VII','VIII','IX','X'];
 // score to reach Tier X (elite ceiling per mode). High tiers are meant to be a hard grind; low tiers stay reachable.
 const TIER_MAX={quiz:60,countdown:145,region:54,daily:10,ladder:40,chain:40,compare:46,estimate:1000,oddone:40,sym:16,fall:65,
-  place:50,locate:50,conquer:46,flag:60,capital:55,findmap:60,silhouette:48,capcountry:52,landmark:45};
+  place:50,locate:50,conquer:46,flag:60,capital:55,findmap:60,silhouette:48,capcountry:52,landmark:45,mines:170,exam:20};
 // threshold for tier i (1..10): tx*(i/10)^1.2 — reachable at the bottom, close to the elite ceiling at the top, strictly increasing
 function tierThreshold(mode,i){ const tx=TIER_MAX[mode]||50; if(i>=10) return tx; return Math.max(i, Math.round(tx*Math.pow(i/10,1.2))); }
 function categoryTier(mode,best){ let t=0; for(let i=1;i<=10;i++){ if((best||0)>=tierThreshold(mode,i)) t=i; } return t; }
