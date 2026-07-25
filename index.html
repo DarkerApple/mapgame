@@ -25,6 +25,28 @@
   --shadow:0 16px 48px rgba(0,0,0,.6);
   --font:'Gowun Dodum',system-ui,-apple-system,'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',Segoe UI,Roboto,sans-serif;
 }
+/* ---------- light theme ---------- */
+html[data-theme="light"]{
+  --bg:#eef1f6; --ocean1:#dde4ee; --ocean2:#eaeef4; --ocean3:#cdd6e3;
+  --home-grad1:#ffffff; --home-grad2:#f2f5fa; --card-grad:#e9edf4;
+  --surface:#ffffff; --surface2:#eef1f6; --surface3:#e2e7f0;
+  --border:#d5dbe4; --border2:#c1c9d5;
+  --land:#c6cdd9; --land-stroke:#98a1b2; --hover:#7f8a9c;
+  --found:#1a9e57; --found-stroke:#0b6f3c;
+  --target:#dca100;
+  --text:#161a20; --muted:#59616e; --faint:#8992a1;
+  --accent:#171b22; --accent-ink:#ffffff;
+  --p1:#2f7fe0; --p2:#e0722a;
+  --shadow:0 16px 48px rgba(30,40,60,.18);
+}
+/* ---------- colorblind-safe accents (Okabe–Ito) ---------- */
+html[data-cb="1"]{
+  --found:#009e73; --found-stroke:#7fe8c8;
+  --target:#e69f00;
+  --p1:#0072b2; --p1-dim:rgba(0,114,178,.18); --p2:#d55e00; --p2-dim:rgba(213,94,0,.18);
+  --fever:#cc79a7;
+}
+html[data-cb="1"][data-theme="light"]{ --found-stroke:#0b6f4c; }
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
 body{
@@ -79,6 +101,8 @@ select#region:focus{outline:none;border-color:var(--border2)}
 .btn:active{transform:translateY(1px)}
 .btn.solid{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
 .btn.solid:hover{filter:brightness(.94)}
+.btn.on{background:color-mix(in srgb,var(--found) 22%,var(--surface2));border-color:var(--found)}
+#themebtn,#cbbtn{padding:8px 11px}
 
 /* ---------- prompt + input ---------- */
 #promptbar{
@@ -189,7 +213,7 @@ select#metric:focus{outline:none;border-color:var(--border2)}
 
 /* ---------- map ---------- */
 #mapwrap{position:relative;flex:1;min-height:0;overflow:hidden;
-  background:radial-gradient(120% 90% at 50% -10%,var(--ocean1),var(--ocean2) 72%,#060608 100%);}
+  background:radial-gradient(120% 90% at 50% -10%,var(--ocean1),var(--ocean2) 72%,var(--ocean3,#060608) 100%);}
 #map{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab;display:block}
 #map.grabbing{cursor:grabbing}
 #map path,#map circle{
@@ -264,7 +288,7 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 
 /* ---------- home screen (modern app-launcher grid) ---------- */
 #home{position:fixed;inset:0;z-index:40;overflow-y:auto;display:none;
-  background:radial-gradient(130% 90% at 50% -20%,#181b22 0%,#101216 42%,var(--bg) 100%)}
+  background:radial-gradient(130% 90% at 50% -20%,var(--home-grad1,#181b22) 0%,var(--home-grad2,#101216) 42%,var(--bg) 100%)}
 #home.show{display:block}
 .home-inner{position:relative;max-width:1120px;margin:0 auto;padding:40px 24px calc(56px + env(safe-area-inset-bottom))}
 .home-title{display:flex;align-items:center;gap:12px;font-size:clamp(26px,4.4vw,34px);font-weight:800;letter-spacing:-.03em}
@@ -275,7 +299,7 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 .home-sec::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--border) 0%,transparent 100%)}
 .home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:14px}
 .gcard{display:flex;align-items:center;gap:15px;text-align:left;padding:17px 18px;border-radius:16px;
-  background:linear-gradient(180deg,var(--surface) 0%,#111318 100%);border:1px solid var(--border);
+  background:linear-gradient(180deg,var(--surface) 0%,var(--card-grad,#111318) 100%);border:1px solid var(--border);
   cursor:pointer;color:var(--text);font:inherit;position:relative;overflow:hidden;
   transition:transform .16s cubic-bezier(.2,.8,.3,1.2),border-color .16s,box-shadow .2s}
 .gcard::before{content:"";position:absolute;inset:0;border-radius:16px;padding:1px;pointer-events:none;opacity:0;
@@ -303,6 +327,7 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 .home-chip{display:inline-flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border2);
   color:var(--text);font:inherit;font-size:13.5px;font-weight:700;padding:8px 14px;border-radius:999px;cursor:pointer;transition:.14s}
 .home-chip:hover{background:var(--surface3);border-color:var(--muted)}
+.home-chip.on{background:color-mix(in srgb,var(--found) 22%,var(--surface2));border-color:var(--found)}
 .home-chip .ic{width:16px;height:16px}
 /* profile / stats card */
 #profilecard{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:16px 18px;margin:4px 0 10px}
@@ -350,7 +375,7 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 .auth-signedin .pc-avatar{margin:4px auto 10px;width:56px;height:56px;font-size:24px}
 /* keyboard focus visibility */
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
-.gcard:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.gcard:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 
 /* ---------- pre-game setup screen ---------- */
@@ -455,8 +480,11 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
   #mapctrl .btn{width:42px;height:42px}
   footer{display:none}
   #stage{flex-direction:column}
-  #mapwrap{min-height:44vh}
-  #studypanel{flex:0 0 44%;width:auto;border-left:none;border-top:1px solid var(--border)}
+  /* when a side panel is showing, split the stage so its list scrolls and all hints are visible;
+     when it's hidden (quiz/find/trivia/compare…), the map fills the whole stage */
+  #mapwrap{flex:1 1 40%;min-height:0}
+  #studypanel{flex:1 1 46%;width:auto;border-left:none;border-top:1px solid var(--border);min-height:0}
+  #trivia,#compare{overflow-y:auto;justify-content:flex-start;padding-top:24px;gap:14px}
   .sp-flag{font-size:20px;width:26px}
   .sp-name{font-size:14px}
 }
@@ -475,7 +503,9 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
       <button class="btn hidden" id="homebtn" data-icon="home"><span class="t">홈</span></button>
       <div class="brand" id="brand"><span data-icon="globe"></span> 지오라마</div>
       <span class="modetitle" id="modetitle"></span>
-      <button class="btn" id="langbtn" title="Language / 언어" style="margin-left:auto">EN</button>
+      <button class="btn" id="themebtn" title="테마 / Theme" aria-label="테마 바꾸기" style="margin-left:auto"><span class="ti">🌙</span></button>
+      <button class="btn" id="cbbtn" title="색약 모드 / Colorblind-safe" aria-label="색약 친화 색상 켜기/끄기">🎨</button>
+      <button class="btn" id="langbtn" title="Language / 언어">EN</button>
     </div>
     <div class="bar bar-tools">
       <div class="chip" id="timer"><span class="lbl">시간</span><span class="val" id="timerval">0:00</span></div>
@@ -561,7 +591,11 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
   <div class="home-inner">
     <div class="home-top">
       <button class="home-chip" id="profilebtn" aria-haspopup="dialog"><span data-icon="user"></span> <span id="profilebtn-t">로그인</span></button>
-      <button class="home-chip" id="homelang" title="Language / 언어">English</button>
+      <div style="display:flex;gap:8px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end">
+        <button class="home-chip" id="hometheme" title="테마 / Theme" aria-label="테마 바꾸기"><span class="ti">🌙</span></button>
+        <button class="home-chip" id="homecb" title="색약 모드 / Colorblind-safe" aria-label="색약 친화 색상">🎨</button>
+        <button class="home-chip" id="homelang" title="Language / 언어">English</button>
+      </div>
     </div>
     <h1 class="home-title"><span data-icon="globe"></span> 지오라마</h1>
     <p class="home-sub">지도로 배우고 겨루는 지리 게임 모음 · 원하는 놀이를 골라 보세요</p>
@@ -920,7 +954,7 @@ const state={mode:'free',running:false,found:new Set(),score:0,target:null,pool:
   t0:0,elapsed:0,duration:0,ended:false,queue:[],countUp:true,region:'전세계',
   regionIds:null,regionTotal:0,cards:[],cardIdx:0,gen:0,
   metric:'pop',rankAsc:false,rankList:null,hintQueue:[],hintTarget:null,hints:[],hintShown:0,
-  feverHints:[],feverShown:0,hintCost:0,roundBase:10,
+  feverHints:[],feverShown:0,hintCost:0,roundBase:10,hintKinds:new Set(['hist','geo','stat','fever']),
   lv:{},conquerK:5,conquerTotal:0,conquerDone:0,
   lang:'ko',
   vs:false,turn:0,p:[0,0],vsRounds:10,vsDone:0,
@@ -943,7 +977,7 @@ const el={
   setup:$('setup'),setupIc:$('setup-ic'),setupTitle:$('setup-title'),setupDesc:$('setup-desc'),setupBody:$('setup-body'),setupStart:$('setup-start'),setupBack:$('setup-back'),
   warsel:$('warsel'),trivia:$('trivia'),tvWar:$('tv-war'),tvProg:$('tv-prog'),tvBar:$('tv-barfill'),tvQ:$('tv-q'),tvOpts:$('tv-opts'),tvFact:$('tv-fact'),
   burst:$('burst'),burstIc:$('burst-ic'),burstTxt:$('burst-txt'),
-  langbtn:$('langbtn'),homelang:$('homelang'),vsbar:$('vsbar'),
+  langbtn:$('langbtn'),homelang:$('homelang'),themebtn:$('themebtn'),cbbtn:$('cbbtn'),hometheme:$('hometheme'),homecb:$('homecb'),vsbar:$('vsbar'),
   compare:$('compare'),cmpQ:$('cmp-q'),cmpA:$('cmp-a'),cmpB:$('cmp-b'),cmpFact:$('cmp-fact'),
   profilebtn:$('profilebtn'),profilebtnT:$('profilebtn-t'),profilecard:$('profilecard'),
   auth:$('auth'),authBody:$('auth-body'),authClose:$('auth-close'),
@@ -1062,7 +1096,7 @@ function setInputMode(kind){ // text | quiz | flag | click | study | place | hin
   el.micbtn.classList.toggle('hidden',!(showText && voiceSupported()));
   el.skip.classList.toggle('hidden',!(kind==='quiz'||kind==='flag'||kind==='click'||kind==='hint'||kind==='locate'||kind==='capital'));
   el.hintbtn.classList.toggle('hidden',kind!=='hint');
-  el.feverbtn.classList.toggle('hidden',kind!=='hint');
+  el.feverbtn.classList.toggle('hidden',kind!=='hint' || !(state.hintKinds&&state.hintKinds.has('fever')));
   const step=(kind==='study');
   [el.prev,el.shuffle,el.next].forEach(b=>b.classList.toggle('hidden',!step));
 }
@@ -1376,45 +1410,52 @@ function areaRankClue(e){
 // Returns {normal:[...clues...], fever:[...strong clues...]}. Strong identifying clues
 // (history / dispute) lead; the generic clues are shuffled so the order still varies.
 function buildHints(e){
-  const s=e.st||{}, en=EN(), lead=[], gen=[], F=[];
+  const s=e.st||{}, en=EN(), lead=[], geo=[], stat=[], F=[];
   const nbs=en?(s.nbe||[]):(s.nb||[]);
-  // ---------- strong identifying clues (shown first) ----------
+  const K=state.hintKinds||new Set(['hist','geo','stat','fever']);
+  // ---------- 📜 history / ⚔️ dispute (strong identifying) ----------
   const HF=(e.i2&&HISTFACTS[e.i2])||null;
   if(HF&&HF.hist) lead.push('📜 '+(en?HF.hist.en:HF.hist.ko));
   if(HF&&HF.dispute) lead.push('⚔️ '+(en?HF.dispute.en:HF.dispute.ko));
-  // ---------- generic clues (shuffled) ----------
-  gen.push(en?('This country is in <b>'+regionOf(e)+'</b>.'):('이 나라는 <b>'+regionOf(e)+'</b>에 있어요.'));
-  { const ar=areaRankClue(e); if(ar) gen.push(ar); }
+  // ---------- geography ----------
+  geo.push(en?('This country is in <b>'+regionOf(e)+'</b>.'):('이 나라는 <b>'+regionOf(e)+'</b>에 있어요.'));
+  { const ar=areaRankClue(e); if(ar) geo.push(ar); }
   { const loc=[];
     if(s.lat!=null) loc.push(en?(s.lat>=0?'Northern Hemisphere':'Southern Hemisphere'):(s.lat>=0?'북반구':'남반구'));
     if(s.land!=null) loc.push(en?(s.land?'landlocked':'has a coastline'):(s.land?'내륙국(바다에 접하지 않음)':'바다에 접한 나라'));
-    if(loc.length) gen.push(en?('Location: <b>'+loc.join('</b>, <b>')+'</b>.'):('위치: <b>'+loc.join('</b>, <b>')+'</b>.')); }
-  if(s.temp!=null) gen.push(en?('Its average yearly temperature is about <b>'+s.temp+'℃</b>.'):('연평균 기온은 약 <b>'+s.temp+'℃</b>예요.'));
-  if(s.pop) gen.push(en?('Its population is about <b>'+fmtPop(s.pop)+'</b>.'):('인구는 약 <b>'+fmtPop(s.pop)+'</b>이에요.'));
-  if(s.dens) gen.push(en?('Its population density is about <b>'+fmtInt(s.dens)+' /km²</b>.'):('인구 밀도는 약 <b>'+fmtInt(s.dens)+' 명/km²</b>이에요.'));
-  if(en?s.gove:s.gov) gen.push(en?('Its government is a <b>'+s.gove+'</b>.'):('정부 형태는 <b>'+s.gov+'</b>이에요.'));
+    if(loc.length) geo.push(en?('Location: <b>'+loc.join('</b>, <b>')+'</b>.'):('위치: <b>'+loc.join('</b>, <b>')+'</b>.')); }
+  if(s.temp!=null) geo.push(en?('Its average yearly temperature is about <b>'+s.temp+'℃</b>.'):('연평균 기온은 약 <b>'+s.temp+'℃</b>예요.'));
+  if(s.elev!=null) geo.push(en?('Its average elevation is about <b>'+fmtInt(s.elev)+' m</b>.'):('평균 고도는 약 <b>'+fmtInt(s.elev)+' m</b>예요.'));
+  if(nbs.length) geo.push(en?('It shares land borders with <b>'+nbs.length+'</b> countries.'):('육지 국경을 맞댄 나라가 <b>'+nbs.length+'</b>개예요.'));
+  else if(s.land===0) geo.push(en?('It is an <b>island nation</b> with no land borders.'):('육지 국경이 없는 <b>섬나라</b>예요.'));
+  // ---------- population / economy stats ----------
+  if(s.pop) stat.push(en?('Its population is about <b>'+fmtPop(s.pop)+'</b>.'):('인구는 약 <b>'+fmtPop(s.pop)+'</b>이에요.'));
+  if(s.dens) stat.push(en?('Its population density is about <b>'+fmtInt(s.dens)+' /km²</b>.'):('인구 밀도는 약 <b>'+fmtInt(s.dens)+' 명/km²</b>이에요.'));
+  if(en?s.gove:s.gov) stat.push(en?('Its government is a <b>'+s.gove+'</b>.'):('정부 형태는 <b>'+s.gov+'</b>이에요.'));
   if(s.gdp||s.gpc){ const t=[]; if(s.gdp)t.push(en?('GDP about '+fmtUSD(s.gdp)):('GDP 약 '+fmtUSD(s.gdp))); if(s.gpc)t.push(en?('GDP per capita about $'+fmtInt(s.gpc)):('1인당 GDP 약 $'+fmtInt(s.gpc)));
-    gen.push(en?('Economy: <b>'+t.join('</b>, <b>')+'</b>.'):('경제: <b>'+t.join('</b>, <b>')+'</b>.')); }
-  if(s.elev!=null) gen.push(en?('Its average elevation is about <b>'+fmtInt(s.elev)+' m</b>.'):('평균 고도는 약 <b>'+fmtInt(s.elev)+' m</b>예요.'));
-  if(nbs.length) gen.push(en?('It shares land borders with <b>'+nbs.length+'</b> countries.'):('육지 국경을 맞댄 나라가 <b>'+nbs.length+'</b>개예요.'));
-  else if(s.land===0) gen.push(en?('It is an <b>island nation</b> with no land borders.'):('육지 국경이 없는 <b>섬나라</b>예요.'));
-  // ---------- fever clues (very revealing, cost more points) ----------
+    stat.push(en?('Economy: <b>'+t.join('</b>, <b>')+'</b>.'):('경제: <b>'+t.join('</b>, <b>')+'</b>.')); }
+  // ---------- 🔥 fever (very revealing) ----------
   if(en && e.en) F.push('Its English name starts with <b>'+e.en.charAt(0).toUpperCase()+'</b>.');
   else if(!en && e.ko) F.push('이름은 <b>'+e.ko.charAt(0)+'</b>(으)로 시작해요.');
   if(nbs.length) F.push(en?('It borders <b>'+nbs.join(', ')+'</b>.'):('<b>'+(s.nb||[]).join('·')+'</b> 와(과) 국경을 맞대고 있어요.'));
   if(en?s.cape:s.cap) F.push(en?('Its capital is <b>'+s.cape+'</b>.'):('수도는 <b>'+s.cap+'</b>이에요.'));
   if(e.i2) F.push((en?'This is its flag: ':'이 나라의 국기예요: ')+'<span style="font-size:1.55em;vertical-align:-3px">'+flagEmoji(e.i2)+'</span>');
+  // keep only the chosen kinds (always leave at least the region/geo clue)
+  const useLead = K.has('hist') ? lead : [];
+  let gen = (K.has('geo')?geo:[]).concat(K.has('stat')?stat:[]);
+  if(!gen.length) gen=geo;                 // never leave zero normal clues
+  const fever = K.has('fever') ? F : [];
   // Difficulty mix: the strong identifying clues (history/dispute) are placed differently
   // each round so some are easy (big clue first) and some are genuinely hard (vague first).
   let normal, tier;
-  if(!lead.length){ tier='vague'; normal=shuffleArr(gen); }
+  if(!useLead.length){ tier='vague'; normal=shuffleArr(gen); }
   else{
     const r=Math.random();
-    if(r<0.34){ tier='easy'; normal=shuffleArr(lead).concat(shuffleArr(gen)); }          // big clue up front
-    else if(r<0.67){ tier='mixed'; normal=shuffleArr(lead.concat(gen)); }                 // everything jumbled
-    else{ tier='hard'; normal=shuffleArr(gen).concat(shuffleArr(lead)); }                 // vague first, strong clue last
+    if(r<0.34){ tier='easy'; normal=shuffleArr(useLead).concat(shuffleArr(gen)); }        // big clue up front
+    else if(r<0.67){ tier='mixed'; normal=shuffleArr(useLead.concat(gen)); }              // everything jumbled
+    else{ tier='hard'; normal=shuffleArr(gen).concat(shuffleArr(useLead)); }              // vague first, strong clue last
   }
-  return {normal, fever:shuffleArr(F), tier};
+  return {normal, fever:shuffleArr(fever), tier};
 }
 function hintPotential(){ return Math.max(1, (state.roundBase||10) - (state.hintCost||0)); }
 function startHint(){
@@ -7783,7 +7824,7 @@ function modeTitle(x){ return EN()?(x.te||x.t):x.t; }
 function modeDesc(x){ return EN()?(x.de||x.d):x.d; }
 /* ---- pre-game setup (choose place/criteria before the timer starts) ---- */
 const SETUP_CFG={ study:['region'],place:['region'],
-  quiz:['region','vs'],findmap:['region','vs'],flag:['region','vs'],hint:['region','vs'],
+  quiz:['region','vs'],findmap:['region','vs'],flag:['region','vs'],hint:['region','hintkinds','vs'],
   capital:['region','vs'],compare:['cmpmetric','region'],
   conquer:['region'],region:['region'],countdown:['dur'],rank:['metric','region'],
   locate:['region'],
@@ -7825,6 +7866,12 @@ function setupControl(kind){
       allCats().map(c=>({v:c,t:catName(c)})),
       it=>state.triviaCats.has(it.v),
       (it,b)=>{ if(state.triviaCats.has(it.v)){ if(state.triviaCats.size<=1) return; state.triviaCats.delete(it.v);} else state.triviaCats.add(it.v); b.classList.toggle('on',state.triviaCats.has(it.v)); }); }
+  else if(kind==='hintkinds'){ if(!state.hintKinds) state.hintKinds=new Set(['hist','geo','stat','fever']);
+    const NORMAL=['hist','geo','stat']; // at least one non-fever category must stay on
+    return chipRow(LT('힌트 종류 (눌러서 켜고 끄기)','Hint types (tap to toggle)'),
+      [{v:'hist',t:LT('📜 역사·분쟁','📜 History/dispute')},{v:'geo',t:LT('🗺️ 지리','🗺️ Geography')},{v:'stat',t:LT('📊 통계','📊 Stats')},{v:'fever',t:LT('🔥 확실한 힌트','🔥 Sure hints')}],
+      it=>state.hintKinds.has(it.v),
+      (it,b)=>{ if(state.hintKinds.has(it.v)){ if(NORMAL.includes(it.v) && NORMAL.filter(k=>state.hintKinds.has(k)).length<=1) return; state.hintKinds.delete(it.v);} else state.hintKinds.add(it.v); b.classList.toggle('on',state.hintKinds.has(it.v)); }); }
   return row;
 }
 function showSetup(mode){
@@ -8163,6 +8210,25 @@ function applyLang(){
 function toggleLang(){ state.lang=EN()?'ko':'en'; applyLang(); }
 el.langbtn.onclick=toggleLang;
 el.homelang.onclick=toggleLang;
+
+/* ================= theme (dark / light) + colorblind-safe accents ================= */
+const THKEY='wmh_theme_v1';
+let THEME=(function(){ try{ return JSON.parse(localStorage.getItem(THKEY))||{}; }catch(e){ return {}; } })();
+function applyTheme(){
+  const light=THEME.mode==='light';
+  document.documentElement.setAttribute('data-theme', light?'light':'dark');
+  if(THEME.cb) document.documentElement.setAttribute('data-cb','1'); else document.documentElement.removeAttribute('data-cb');
+  const tm=document.querySelector('meta[name="theme-color"]'); if(tm) tm.setAttribute('content', light?'#eef1f6':'#0b0b0d');
+  const alabel=LT(light?'어두운 테마로':'밝은 테마로', light?'Switch to dark':'Switch to light');
+  [el.themebtn,el.hometheme].forEach(btn=>{ if(btn){ const ti=btn.querySelector('.ti'); if(ti) ti.textContent=light?'☀️':'🌙'; btn.setAttribute('aria-label',alabel); } });
+  [el.cbbtn,el.homecb].forEach(btn=>{ if(btn){ btn.classList.toggle('on',!!THEME.cb); btn.setAttribute('aria-pressed', THEME.cb?'true':'false'); } });
+}
+function saveTheme(){ try{ localStorage.setItem(THKEY,JSON.stringify(THEME)); }catch(e){} }
+function toggleTheme(){ THEME.mode=(THEME.mode==='light')?'dark':'light'; saveTheme(); applyTheme(); }
+function toggleCB(){ THEME.cb=!THEME.cb; saveTheme(); applyTheme(); }
+el.themebtn.onclick=toggleTheme; el.hometheme.onclick=toggleTheme;
+el.cbbtn.onclick=toggleCB; el.homecb.onclick=toggleCB;
+applyTheme();
 
 /* ================= local profiles (saved in THIS browser only — no server) ================= */
 const AKEY='wmh_accounts_v1';
