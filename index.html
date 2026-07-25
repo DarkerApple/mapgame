@@ -325,6 +325,34 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 .gcard:hover{transform:translateY(-3px);border-color:transparent;box-shadow:0 12px 30px rgba(0,0,0,.45)}
 .gcard:hover::before{opacity:.9}
 .gcard:active{transform:translateY(-1px)}
+/* ranked banner + hub */
+.rank-banner{display:flex;align-items:center;gap:15px;width:100%;margin:0 0 24px;padding:16px 20px;border-radius:16px;cursor:pointer;
+  background:linear-gradient(120deg,color-mix(in srgb,#ff8a4c 22%,var(--surface)),var(--surface));border:1px solid var(--border2);color:var(--text);font:inherit;text-align:left;transition:.15s}
+.rank-banner:hover{transform:translateY(-2px);border-color:#ff8a4c;box-shadow:0 10px 26px rgba(0,0,0,.35)}
+.rank-banner .rb-ic{font-size:32px;flex:0 0 auto}
+.rank-banner .rb-main{flex:1;min-width:0}
+.rank-banner .rb-t{font-size:17px;font-weight:800}
+.rank-banner .rb-s{font-size:13px;color:var(--muted);margin-top:2px}
+.rank-banner .rb-go{flex:0 0 auto;font-weight:800;color:#ff8a4c}
+#rankhub{position:fixed;inset:0;z-index:42;overflow-y:auto;display:none;background:radial-gradient(130% 90% at 50% -20%,var(--home-grad1,#181b22) 0,var(--bg) 60%)}
+#rankhub.show{display:block}
+.rh-inner{max-width:820px;margin:0 auto;padding:30px 22px calc(50px + env(safe-area-inset-bottom))}
+.rh-back{margin-bottom:16px}
+.rh-hero{display:flex;align-items:center;gap:18px;background:var(--surface);border:1px solid var(--border2);border-radius:18px;padding:20px 22px;margin-bottom:6px}
+.rh-badge{font-size:52px;line-height:1}
+.rh-hero h2{font-size:25px;font-weight:800}
+.rh-elo{color:var(--muted);font-weight:700;font-size:14px;margin-top:3px}
+.rh-bar{height:8px;border-radius:99px;background:var(--surface3);overflow:hidden;margin-top:10px;max-width:340px}
+.rh-bar i{display:block;height:100%;background:#ff8a4c}
+.rh-sec{margin:20px 0 9px;font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.rh-row{display:flex;flex-wrap:wrap;gap:8px}
+.rh-chip{background:var(--surface2);border:1px solid var(--border2);border-radius:999px;padding:9px 15px;font:inherit;font-weight:700;font-size:13.5px;color:var(--text);cursor:pointer;transition:.13s}
+.rh-chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.rh-chip.lock{opacity:.45;cursor:not-allowed}
+.rh-play{width:100%;margin-top:18px;justify-content:center;font-size:16px;padding:14px}
+.rh-note{color:var(--faint);font-size:12px;margin-top:16px;line-height:1.6}
+.rh-shiny{display:flex;flex-wrap:wrap;gap:5px;max-height:130px;overflow-y:auto;margin-top:4px}
+.rh-shiny span{font-size:23px}
 .gicon{flex:0 0 auto;width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;
   background:color-mix(in srgb,var(--gc,#4ea1ff) 16%,transparent);color:var(--gc,#4ea1ff);
   border:1px solid color-mix(in srgb,var(--gc,#4ea1ff) 30%,transparent);transition:transform .16s}
@@ -401,6 +429,9 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 .auth-msg.err{color:var(--bad)} .auth-msg.ok{color:var(--ok)}
 .auth-submit{width:100%;padding:12px;font-size:15px}
 .auth-note{color:var(--faint);font-size:11.5px;margin-top:13px;text-align:center;line-height:1.5}
+.auth-users{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:-6px 0 10px;font-size:11.5px;color:var(--muted)}
+.auth-userchip{background:var(--surface2);border:1px solid var(--border2);border-radius:999px;padding:4px 11px;font:inherit;font-size:12px;font-weight:700;color:var(--text);cursor:pointer}
+.auth-userchip:hover{border-color:var(--accent)}
 .auth-sub2{color:var(--muted);font-size:13px;line-height:1.5;margin:8px 0 12px;text-align:center}
 .auth-xfer{display:flex;gap:8px;margin-top:12px;justify-content:center;flex-wrap:wrap}
 .auth-mini{flex:1;min-width:120px;padding:10px 12px;font-size:13px;justify-content:center}
@@ -775,7 +806,15 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
     <h1 class="home-title"><span data-icon="brand"></span> 지오라마</h1>
     <p class="home-sub">지도로 배우고 겨루는 지리 게임 모음 · 원하는 놀이를 골라 보세요</p>
     <section id="profilecard" class="hidden" aria-label="내 기록"></section>
+    <button id="rank-banner" class="rank-banner" aria-label="랭크전"></button>
     <div id="home-content"></div>
+  </div>
+</main>
+
+<main id="rankhub" aria-label="랭크전 페이지">
+  <div class="rh-inner">
+    <button class="home-chip rh-back" id="rh-back">‹ <span id="rh-back-t">홈</span></button>
+    <div id="rh-body"></div>
   </div>
 </main>
 
@@ -906,6 +945,13 @@ allEntries.forEach(e=>{ e.st = (e.i2 && MAPSTATS[e.i2]) || null; });
 const AREA_RANKED=allEntries.filter(e=>e.st&&e.st.area!=null).sort((a,b)=>b.st.area-a.st.area);
 AREA_RANKED.forEach((e,i)=>{ e.areaRank=i+1; });
 const AREA_TOTAL=AREA_RANKED.length;
+// population-obscurity ranking → per-country "difficulty rating" for Ranked ELO
+const POP_RANKED=allEntries.filter(e=>e.sov&&e.st&&e.st.pop!=null).sort((a,b)=>b.st.pop-a.st.pop);
+POP_RANKED.forEach((e,i)=>{ e.popRank=i; });
+const POP_TOTAL=POP_RANKED.length||1;
+// famous/populous → ~900 (easy), obscure/tiny → ~2400 (hard)
+function countryDifficulty(e){ const r=(e&&e.popRank!=null)?e.popRank:Math.round(POP_TOTAL*0.7);
+  return Math.round(900 + (r/Math.max(1,POP_TOTAL-1))*1500); }
 // curated historical-fact / current-dispute clues (bilingual), keyed by iso2
 const HISTFACTS={"US":{"hist":{"ko":"이 나라는 1776년 영국의 식민 지배에서 벗어나 독립을 선언했어요.","en":"This country declared independence from British colonial rule in 1776."}},"CA":{"hist":{"ko":"이 나라는 1867년에 연방을 이루었고, 영어와 프랑스어를 공용어로 함께 써요.","en":"Confederated in 1867, this country uses both English and French as official languages."}},"MX":{"hist":{"ko":"이 나라 땅에는 아스텍과 마야 문명의 웅장한 유적이 곳곳에 남아 있어요.","en":"The grand ruins of the Aztec and Maya civilizations are found across this country."}},"CU":{"hist":{"ko":"이 나라는 1959년 혁명으로 사회주의 정권이 들어선 카리브해의 섬나라예요.","en":"A 1959 revolution brought a socialist government to this Caribbean island nation."},"dispute":{"ko":"이 나라 영토 안에는 미국이 조차해 운영하는 관타나모만 해군기지가 있어요.","en":"The United States leases and operates the Guantanamo Bay naval base on this country's territory."}},"GT":{"hist":{"ko":"이 나라의 밀림 속에는 고대 마야 문명의 피라미드 유적이 숨어 있어요.","en":"Ancient Maya pyramids stand hidden in this country's jungles."},"dispute":{"ko":"이 나라는 이웃한 벨리즈의 상당 부분에 대해 오랜 영유권 주장을 이어왔어요.","en":"It has long claimed sovereignty over much of neighboring Belize."}},"PA":{"hist":{"ko":"이 나라를 가로지르는 운하가 1914년 개통되어 태평양과 대서양을 잇게 되었어요.","en":"A canal cut across this country opened in 1914, linking the Pacific and Atlantic oceans."}},"CR":{"hist":{"ko":"이 나라는 1948년 군대를 폐지한 것으로 잘 알려진 중앙아메리카의 나라예요.","en":"This Central American country is well known for having abolished its army in 1948."}},"HT":{"hist":{"ko":"이 나라는 1804년 노예 봉기 끝에 프랑스에서 독립한, 세계 최초의 흑인 공화국이에요.","en":"Born from a slave revolt, this country won independence from France in 1804 as the world's first Black republic."}},"DO":{"hist":{"ko":"이 나라는 히스파니올라섬의 동쪽 절반을 차지하며, 서쪽의 다른 나라와 섬을 나눠 써요.","en":"This country occupies the eastern half of Hispaniola, sharing the island with another nation to its west."}},"BR":{"hist":{"ko":"이 나라는 포르투갈의 식민지였다가 1822년 독립했으며, 아마존 열대우림의 대부분을 품고 있어요.","en":"Once a Portuguese colony, this country became independent in 1822 and holds most of the Amazon rainforest."}},"AR":{"hist":{"ko":"이 나라는 19세기 초 스페인에서 독립했으며, 광활한 팜파스 초원과 목축으로 유명해요.","en":"This country broke free from Spain in the early 19th century and is famous for the vast Pampas grasslands and cattle ranching."},"dispute":{"ko":"이 나라는 1982년 남대서양의 한 군도(포클랜드/말비나스)를 두고 영국과 전쟁을 벌였어요.","en":"In 1982 it fought Britain over a South Atlantic archipelago (the Falklands/Malvinas)."}},"CL":{"hist":{"ko":"이 나라는 1973년 군사 쿠데타 이후 17년간 이어진 군부 독재를 겪었으며, 남북으로 길게 뻗은 국토를 가졌어요.","en":"After a 1973 coup this long, narrow country endured 17 years of military dictatorship."}},"CO":{"hist":{"ko":"이 나라는 반군과 마약 카르텔로 인한 무장 분쟁을 수십 년간 겪었으며, 두 대양에 모두 면해 있어요.","en":"This country endured decades of armed conflict involving guerrillas and drug cartels, and borders two oceans."}},"PE":{"hist":{"ko":"이 나라의 안데스 산지에는 잉카 문명의 공중도시 마추픽추가 자리하고 있어요.","en":"The Inca mountain citadel of Machu Picchu sits in this country's Andes."}},"VE":{"hist":{"ko":"이 나라는 세계에서 가장 많은 석유 매장량을 지녔으며, 남미 독립운동의 영웅 시몬 볼리바르의 고향이에요.","en":"Home to the world's largest oil reserves, this country was the birthplace of independence hero Simón Bolívar."},"dispute":{"ko":"이 나라는 이웃 나라 서부의 에세키보 지역에 대한 영유권을 오랫동안 주장해 왔어요.","en":"It has long claimed the Essequibo region in the west of a neighboring country."}},"BO":{"hist":{"ko":"이 나라는 19세기 태평양 전쟁에서 해안 지역을 잃고 내륙국이 되었으며, 안데스 고원에 행정 중심지가 있어요.","en":"This landlocked country lost its coastline in the 19th-century War of the Pacific and has its seat of government high in the Andes."},"dispute":{"ko":"이 나라는 잃어버린 태평양 연안으로의 바다 접근권을 두고 이웃 나라와 오랜 갈등을 이어오고 있어요.","en":"It has a long-standing dispute with a neighbor over regaining access to the Pacific coast it lost."}},"EC":{"hist":{"ko":"다윈이 진화론의 영감을 얻은 갈라파고스 제도가 이 나라에 속해 있어요.","en":"The Galápagos Islands, where Darwin drew inspiration for his theory of evolution, belong to this country."}},"PY":{"hist":{"ko":"이 나라는 19세기 삼국동맹 전쟁에서 인구의 상당 부분을 잃은 내륙국이에요.","en":"This landlocked country lost a huge share of its population in the 19th-century War of the Triple Alliance."}},"UY":{"hist":{"ko":"이 나라는 1930년 최초의 국제 축구 월드컵을 개최하고 우승했어요.","en":"This country hosted and won the very first football World Cup in 1930."}},"GY":{"hist":{"ko":"이 나라는 남아메리카에서 드물게 영어를 공용어로 쓰며, 과거 영국의 식민지였어요.","en":"A former British colony, this is one of the few South American countries with English as its official language."},"dispute":{"ko":"이 나라는 서부의 에세키보 지역을 두고 이웃 나라와 오랜 영유권 분쟁을 겪고 있어요.","en":"This country is locked in a long territorial dispute with a neighbor over its western Essequibo region."}},"GB":{"hist":{"ko":"이 나라는 산업혁명이 처음 시작된 곳이며, 한때 지구상에서 가장 넓은 식민 제국을 다스렸어요.","en":"The Industrial Revolution began here, and this country once ruled the largest colonial empire on earth."},"dispute":{"ko":"이 나라는 이베리아반도 남단의 지브롤터를 통치하며 스페인과 오랜 영유권 이견이 있어요.","en":"It governs Gibraltar at the southern tip of the Iberian Peninsula, a long-standing point of contention with Spain."}},"IE":{"hist":{"ko":"이 나라는 19세기 감자 대기근으로 인구가 크게 줄었고, 1922년 영국에서 독립했어요.","en":"Ravaged by a 19th-century potato famine, this country gained independence from Britain in 1922."},"dispute":{"ko":"이 섬의 북부 여섯 개 주는 영국령으로 남아 있어 섬이 둘로 나뉘어 있어요.","en":"Six counties in the north of the island remain under British rule, leaving the island divided."}},"FR":{"hist":{"ko":"이 나라는 1789년 대혁명으로 왕정을 무너뜨리고 '자유·평등·박애'를 내세웠어요.","en":"In 1789 this country's revolution toppled the monarchy under the banner of liberty, equality, and fraternity."}},"DE":{"hist":{"ko":"이 나라는 제2차 세계대전 후 동서로 분단되었다가, 장벽이 무너진 뒤 1990년에 재통일되었어요.","en":"Divided into East and West after WWII, this country was reunified in 1990 after its wall came down."}},"IT":{"hist":{"ko":"이 나라의 반도에서 고대 로마 제국이 일어났고, 훗날 이곳에서 르네상스가 꽃피었어요.","en":"The ancient Roman Empire rose on this country's peninsula, which later became the cradle of the Renaissance."}},"ES":{"hist":{"ko":"이 나라는 아메리카 대부분을 지배한 거대한 식민 제국을 이뤘고, 1930년대에 참혹한 내전을 겪었어요.","en":"This country built a vast colonial empire across the Americas and endured a brutal civil war in the 1930s."},"dispute":{"ko":"이 나라 북동부의 카탈루냐 지역에서는 분리 독립을 요구하는 운동이 이어지고 있어요.","en":"In the northeastern Catalonia region, a movement for independence continues."}},"PT":{"hist":{"ko":"이 나라의 항해자들은 대항해시대를 열어 인도로 가는 바닷길을 처음으로 개척했어요.","en":"This country's navigators launched the Age of Discovery, pioneering the sea route to India."}},"NL":{"hist":{"ko":"이 나라는 국토의 상당 부분이 해수면보다 낮아 제방과 풍차로 바다를 막고 땅을 넓혀 왔어요.","en":"Much of this country lies below sea level, reclaimed from the sea with dikes and windmills."}},"BE":{"hist":{"ko":"이 나라에는 유럽연합의 주요 기관들이 자리하며, 과거 아프리카의 콩고를 식민 지배했어요.","en":"This country hosts the main institutions of the European Union and once colonized the Congo in Africa."}},"CH":{"hist":{"ko":"이 나라는 오랜 영세중립을 지켜온 알프스의 나라로, 국제 적십자가 이곳에서 창설되었어요.","en":"A long-neutral Alpine country, this is where the International Red Cross was founded."}},"AT":{"hist":{"ko":"이 나라는 유럽을 호령한 합스부르크 왕가의 중심이었고, 작곡가 모차르트의 고향이에요.","en":"This country was the heart of the Europe-spanning Habsburg dynasty and the homeland of the composer Mozart."}},"PL":{"hist":{"ko":"이 나라는 18세기에 이웃 강대국들에 의해 여러 차례 분할되었고, 제2차 세계대전이 이 나라에 대한 침공으로 시작되었어요.","en":"Partitioned repeatedly by neighboring powers in the 18th century, this country was where World War II began with an invasion in 1939."}},"CZ":{"hist":{"ko":"이 나라는 1989년 '벨벳 혁명'으로 공산 정권을 무너뜨렸고, 1993년 이웃 나라와 평화롭게 갈라섰어요.","en":"This country toppled its communist regime in the 1989 Velvet Revolution and peacefully split from its neighbor in 1993."}},"SK":{"hist":{"ko":"이 나라는 1993년 이웃 나라와 평화롭게 분리되어 독립한 중부 유럽의 내륙국이에요.","en":"This landlocked Central European country became independent in 1993 through a peaceful split from its neighbor."}},"HU":{"hist":{"ko":"이 나라는 1956년 소련의 지배에 맞서 봉기를 일으켰고, 제1차 세계대전 후 영토의 3분의 2를 잃었어요.","en":"This country rose up against Soviet control in 1956 and had lost two-thirds of its territory after World War I."}},"RO":{"hist":{"ko":"이 나라는 1989년 유혈 혁명으로 독재자 차우셰스쿠 정권이 무너졌으며, 트란실바니아 지방이 유명해요.","en":"A bloody 1989 revolution overthrew the dictator Ceaușescu in this country, home to the Transylvania region."}},"BG":{"hist":{"ko":"이 나라는 약 500년간 오스만 제국의 지배를 받다가 1878년에 해방되었어요.","en":"This country was freed in 1878 after nearly five centuries under Ottoman rule."}},"GR":{"hist":{"ko":"이 나라는 서양 문명과 민주주의의 발상지로 여겨지며, 1821년 오스만 제국에 맞서 독립 전쟁을 일으켰어요.","en":"Seen as the birthplace of Western civilization and democracy, this country launched a war of independence against the Ottomans in 1821."},"dispute":{"ko":"이 나라는 에게해의 여러 섬과 영해·영공을 두고 이웃 나라와 오랜 긴장을 겪어 왔어요.","en":"It has long-standing tensions with a neighbor over islands and maritime boundaries in the Aegean Sea."}},"SE":{"hist":{"ko":"이 나라는 바이킹의 본거지 중 하나였으며, 200년 넘게 전쟁에 참여하지 않은 중립 전통으로 유명해요.","en":"One of the old Viking homelands, this country is known for a tradition of neutrality unbroken for over two centuries."}},"NO":{"hist":{"ko":"이 나라는 빙하가 깎아낸 피오르 해안으로 유명하며, 1905년 이웃 나라와의 연합에서 벗어나 독립했어요.","en":"Famous for its glacier-carved fjords, this country left a union with its neighbor to become independent in 1905."}},"FI":{"hist":{"ko":"이 나라는 1917년 러시아로부터 독립했고, 1939년 소련의 침공에 맞서 '겨울 전쟁'을 치렀어요.","en":"This country gained independence from Russia in 1917 and fought the Winter War against a Soviet invasion in 1939."}},"DK":{"hist":{"ko":"이 나라는 세계에서 가장 큰 섬을 자치령으로 두고 있으며, 유럽에서 가장 오래된 왕실 중 하나를 이어오고 있어요.","en":"This country holds the world's largest island as an autonomous territory and has one of Europe's oldest monarchies."}},"IS":{"hist":{"ko":"이 나라는 930년에 세워진 세계에서 가장 오래된 의회 전통을 지닌, 화산과 빙하의 섬이에요.","en":"This volcanic, glacier-covered island has the world's oldest parliamentary tradition, dating to the year 930."}},"RU":{"hist":{"ko":"이 나라는 1917년 혁명으로 세계 최초의 공산주의 국가가 되었고, 1991년 거대한 연방이 해체되었어요.","en":"A 1917 revolution made this the world's first communist state, and its vast union broke apart in 1991."},"dispute":{"ko":"이 나라는 2014년 크림반도를 병합했으며, 여러 이웃 나라와 영토 분쟁을 겪고 있어요.","en":"This country annexed the Crimean Peninsula in 2014 and is involved in territorial disputes with several neighbors."}},"UA":{"hist":{"ko":"이 나라는 1932~33년 대기근을 겪었고, 1986년 체르노빌 원전 사고가 이곳에서 일어났으며, 1991년 소련 해체와 함께 독립했어요.","en":"This country suffered a great famine in 1932–33, was the site of the 1986 Chernobyl disaster, and gained independence when the Soviet Union dissolved in 1991."},"dispute":{"ko":"이 나라는 2014년 이후 크림반도와 동부 지역을 두고 러시아와 전쟁을 겪고 있어요.","en":"Since 2014 it has been at war with Russia over the Crimean Peninsula and its eastern regions."}},"BY":{"hist":{"ko":"이 나라는 제2차 세계대전에서 인구의 약 4분의 1을 잃었고, 1991년 소련 해체로 독립한 내륙국이에요.","en":"This landlocked country lost about a quarter of its population in WWII and became independent when the Soviet Union collapsed in 1991."}},"LT":{"hist":{"ko":"이 나라는 중세에 유럽에서 손꼽히게 넓은 나라였으며, 1990년 소련에서 가장 먼저 독립을 선언했어요.","en":"Once one of medieval Europe's largest states, this country was the first to declare independence from the Soviet Union in 1990."}},"EE":{"hist":{"ko":"이 나라는 '노래 혁명'을 통해 1991년 소련으로부터 독립을 되찾은 발트해 연안국이에요.","en":"Through its 'Singing Revolution,' this Baltic country regained independence from the Soviet Union in 1991."}},"LV":{"hist":{"ko":"이 나라는 발트해에 면한 나라로, 1991년 소련 해체와 함께 독립을 회복했어요.","en":"This Baltic country restored its independence when the Soviet Union broke apart in 1991."}},"RS":{"hist":{"ko":"이 나라는 옛 유고슬라비아 연방의 중심이었으며, 1990년대 연방 해체 과정에서 여러 전쟁에 휘말렸어요.","en":"This country was the core of the former Yugoslav federation and was drawn into several wars as it broke apart in the 1990s."},"dispute":{"ko":"이 나라는 2008년 독립을 선언한 남부 코소보 지역을 자국 영토로 여기며 인정하지 않고 있어요.","en":"It refuses to recognize its southern region of Kosovo, which declared independence in 2008, and still regards it as its own territory."}},"HR":{"hist":{"ko":"이 나라는 1991년 유고슬라비아 연방에서 독립하며 전쟁을 겪었고, 아드리아해의 긴 해안선으로 유명해요.","en":"This country fought a war of independence as it broke from Yugoslavia in 1991 and is famous for its long Adriatic coastline."}},"BA":{"hist":{"ko":"이 나라는 1990년대 유고슬라비아 해체 과정에서 참혹한 전쟁과 스레브레니차 학살을 겪었어요.","en":"This country endured a brutal war and the Srebrenica massacre during the breakup of Yugoslavia in the 1990s."}},"SI":{"hist":{"ko":"이 나라는 1991년 유고슬라비아 연방에서 가장 먼저 독립한 알프스 자락의 작은 나라예요.","en":"This small Alpine country was the first to break away from the Yugoslav federation in 1991."}},"MK":{"hist":{"ko":"이 나라는 1991년 유고슬라비아 연방에서 평화롭게 독립한 발칸반도의 내륙국이에요.","en":"This landlocked Balkan country peacefully gained independence from Yugoslavia in 1991."},"dispute":{"ko":"이 나라는 국명을 두고 이웃 나라와 오랜 분쟁을 벌인 끝에 2019년 정식 국명을 바꿨어요.","en":"After a long dispute with a neighbor over its name, this country officially changed its name in 2019."}},"AL":{"hist":{"ko":"이 나라는 냉전기에 극도로 폐쇄적이었던 강경 공산주의 국가로, 수많은 벙커를 지은 것으로 유명해요.","en":"During the Cold War this country was an intensely isolated hardline communist state, famous for building thousands of bunkers."}},"CY":{"hist":{"ko":"이 지중해 동부의 섬나라는 1960년 영국에서 독립했어요.","en":"This eastern Mediterranean island nation gained independence from Britain in 1960."},"dispute":{"ko":"이 섬나라는 1974년 이후 남북으로 분단되어, 북쪽은 오직 튀르키예만 인정하는 지역이에요.","en":"This island nation has been divided since 1974, with its north recognized only by Türkiye."}},"GE":{"hist":{"ko":"이 캅카스 산맥 남쪽의 나라는 세계에서 손꼽히게 일찍 기독교를 받아들였고, 1991년 소련에서 독립했어요.","en":"South of the Caucasus Mountains, this country was among the earliest to adopt Christianity and became independent from the Soviet Union in 1991."},"dispute":{"ko":"이 나라는 압하지야와 남오세티야 분리 지역을 두고 러시아와 갈등을 빚어 2008년 전쟁까지 벌였어요.","en":"This country clashed with Russia over the breakaway regions of Abkhazia and South Ossetia, even going to war in 2008."}},"AM":{"hist":{"ko":"이 나라는 301년경 세계에서 가장 먼저 기독교를 국교로 삼은 나라로, 20세기 초 대학살의 아픈 역사를 지녔어요.","en":"Around 301 AD this country became the first to adopt Christianity as its state religion, and it carries the painful history of an early-20th-century genocide."},"dispute":{"ko":"이 나라는 이웃 나라와 나고르노카라바흐 산악 지역을 두고 여러 차례 전쟁을 벌였어요.","en":"It has fought several wars with a neighbor over the mountainous Nagorno-Karabakh region."}},"AZ":{"hist":{"ko":"이 나라는 카스피해의 풍부한 석유로 일찍부터 유전 개발이 이뤄진 캅카스의 나라예요.","en":"Rich in Caspian Sea oil, this Caucasus country was one of the world's earliest oil-drilling regions."},"dispute":{"ko":"이 나라는 이웃 나라와 나고르노카라바흐 지역을 두고 오랜 전쟁을 벌여 왔어요.","en":"It has waged a long war with a neighbor over the Nagorno-Karabakh region."}},"KZ":{"hist":{"ko":"이 나라는 세계에서 가장 넓은 내륙국으로, 옛 소련의 우주선 발사 기지가 이곳에 있어요.","en":"The world's largest landlocked country, this nation hosts the former Soviet space-launch cosmodrome."}},"UZ":{"hist":{"ko":"이 나라에는 실크로드의 교역과 학문의 중심지였던 사마르칸트가 있어요.","en":"This country is home to Samarkand, a great hub of trade and learning on the Silk Road."}},"TR":{"hist":{"ko":"이 나라는 한때 세 대륙에 걸친 오스만 제국의 중심이었으며, 1923년 제국을 무너뜨리고 공화국을 세웠어요.","en":"This country was the heart of the Ottoman Empire that spanned three continents, and it founded a republic on the empire's ruins in 1923."},"dispute":{"ko":"이 나라는 1974년 이웃 섬나라의 북부에 군대를 보내 점령했고, 그 분단이 지금까지 이어지고 있어요.","en":"In 1974 it sent troops into the north of a neighboring island nation, a division that persists to this day."}},"SA":{"hist":{"ko":"이 나라에는 이슬람교에서 가장 성스러운 두 도시가 있으며, 세계 최대급의 석유 수출국이에요.","en":"This country contains Islam's two holiest cities and is one of the world's largest oil exporters."}},"IR":{"hist":{"ko":"이 나라는 고대 페르시아 제국을 이어받은 곳으로, 1979년 이슬람 혁명으로 왕정이 무너졌어요.","en":"Heir to the ancient Persian Empire, this country saw its monarchy overthrown in the 1979 Islamic Revolution."}},"IQ":{"hist":{"ko":"이 나라는 두 강 사이 고대 메소포타미아 문명의 발상지이며, 2003년 미국 주도의 침공으로 정권이 무너졌어요.","en":"The cradle of ancient Mesopotamian civilization between two rivers, this country's regime fell in a US-led invasion in 2003."}},"IL":{"hist":{"ko":"이 나라는 1948년에 건국되었으며, 그 이후 이웃 아랍 국가들과 여러 차례 전쟁을 치렀어요.","en":"Founded in 1948, this country has since fought several wars with its Arab neighbors."},"dispute":{"ko":"이 나라는 점령지의 정착촌과 팔레스타인 영토 문제를 둘러싸고 오랜 분쟁을 겪고 있어요.","en":"It is embroiled in a long-running conflict over settlements in occupied territory and Palestinian lands."}},"PS":{"hist":{"ko":"이 지역은 가자 지구와 요르단강 서안으로 나뉘어 있으며, 독립 국가 수립을 추구하고 있어요.","en":"Split between the Gaza Strip and a territory west of the Jordan River, this territory seeks to establish an independent state."},"dispute":{"ko":"이 지역은 이스라엘과 영토·주권을 둘러싸고 20세기 중반부터 이어진 분쟁의 중심에 있어요.","en":"It lies at the center of a conflict with Israel over land and sovereignty going back to the mid-20th century."}},"SY":{"hist":{"ko":"이 나라는 2011년부터 오랜 내전을 겪었으며, 팔미라 등 고대 문명의 유적이 많은 곳이에요.","en":"This country has endured a long civil war since 2011 and is dotted with ancient ruins such as Palmyra."}},"JO":{"hist":{"ko":"이 나라에는 붉은 바위를 깎아 만든 고대 도시 페트라가 있어요.","en":"This country is home to Petra, an ancient city carved into red rock."}},"LB":{"hist":{"ko":"이 나라는 1975년부터 15년간 이어진 내전을 겪었고, 고대 페니키아 문명의 본거지였어요.","en":"This country endured a 15-year civil war beginning in 1975 and was the homeland of the ancient Phoenician civilization."}},"EG":{"hist":{"ko":"이 나라는 피라미드와 파라오, 스핑크스로 대표되는 나일강 유역 고대 문명의 발상지예요.","en":"This country is the cradle of an ancient Nile civilization famed for its pyramids, pharaohs, and Sphinx."}},"KW":{"hist":{"ko":"이 나라는 1990년 이웃 나라의 침공을 받아 걸프전이 벌어졌던 석유 부국이에요.","en":"This oil-rich country was invaded by a neighbor in 1990, sparking the Gulf War."}},"YE":{"hist":{"ko":"이 나라는 아라비아반도 남쪽 끝에 있으며, 오랜 내전과 인도주의 위기를 겪고 있어요.","en":"At the southern tip of the Arabian Peninsula, this country is mired in a long civil war and humanitarian crisis."}},"AF":{"hist":{"ko":"이 나라는 1979년 소련의 침공을 받았고, 이후 수십 년간 이어진 전쟁과 탈레반의 부상을 겪었어요.","en":"Invaded by the Soviet Union in 1979, this country has since seen decades of war and the rise of the Taliban."}},"PK":{"hist":{"ko":"이 나라는 1947년 영국령 인도가 종교에 따라 나뉘면서 세워진 이슬람 국가예요.","en":"This Muslim-majority country was created in 1947 when British India was partitioned along religious lines."},"dispute":{"ko":"이 나라는 이웃 나라와 카슈미르 지역을 두고 여러 차례 전쟁을 벌인 오랜 분쟁을 이어오고 있어요.","en":"It has fought several wars with a neighbor over the Kashmir region in a decades-long dispute."}},"IN":{"hist":{"ko":"이 나라는 1947년 영국에서 독립했으며, 간디의 비폭력 저항 운동으로 널리 알려져 있어요.","en":"This country won independence from Britain in 1947 and is renowned for Gandhi's nonviolent resistance movement."},"dispute":{"ko":"이 나라는 이웃 나라들과 북부 카슈미르 등 국경 지역을 두고 오랜 영유권 분쟁을 겪고 있어요.","en":"It is engaged in long-standing border disputes with neighbors over the northern Kashmir region and other areas."}},"BD":{"hist":{"ko":"이 나라는 1971년 전쟁을 거쳐 파키스탄에서 분리 독립했으며, 갠지스강 삼각주의 저지대에 자리해요.","en":"This country split from Pakistan after a 1971 war and lies in the low-lying delta of the Ganges."}},"LK":{"hist":{"ko":"이 섬나라는 2009년까지 26년간 타밀 반군과 내전을 겪었으며, 홍차 재배로 유명해요.","en":"This island nation endured a 26-year civil war with Tamil rebels that ended in 2009 and is famous for its tea."}},"NP":{"hist":{"ko":"이 나라에는 세계 최고봉 에베레스트가 솟아 있으며, 2008년에 오랜 왕정을 폐지하고 공화국이 되었어요.","en":"Home to Mount Everest, the world's highest peak, this country abolished its centuries-old monarchy and became a republic in 2008."}},"BT":{"hist":{"ko":"이 나라는 국내총생산 대신 '국민총행복'을 국정 지표로 삼는 히말라야의 불교 왕국이에요.","en":"This Himalayan Buddhist kingdom famously measures 'Gross National Happiness' instead of focusing on GDP."}},"MN":{"hist":{"ko":"이 나라는 13세기에 칭기즈 칸이 역사상 가장 넓은 제국을 일으킨 초원의 발상지예요.","en":"This steppe country is where Genghis Khan founded history's largest contiguous empire in the 13th century."}},"CN":{"hist":{"ko":"이 나라는 만리장성을 쌓은 유구한 왕조의 역사를 지녔고, 1949년 공산 혁명으로 현재의 정부가 세워졌어요.","en":"With a long dynastic history that built the Great Wall, this country's current government was established by a communist revolution in 1949."},"dispute":{"ko":"이 나라는 주변 바다의 여러 섬과 암초, 그리고 인접 지역의 영유권을 두고 여러 이웃 나라와 갈등을 겪어요.","en":"It is involved in disputes with several neighbors over islands and reefs in nearby seas and over adjacent territories."}},"JP":{"hist":{"ko":"제2차 세계대전 말, 이 나라의 두 도시에 원자폭탄이 투하되었어요.","en":"Near the end of WWII, two of this country's cities were struck by atomic bombs."},"dispute":{"ko":"이 나라는 이웃 나라들과 여러 섬(예: 쿠릴열도)을 두고 영유권 갈등을 겪고 있어요.","en":"It has island sovereignty disputes with neighbors (e.g., the Kuril Islands)."}},"KR":{"hist":{"ko":"이 나라는 1945년 광복 후 남북으로 분단되었고, 1950년 전쟁을 겪었어요.","en":"After liberation in 1945 this country was divided into North and South, and a war broke out in 1950."},"dispute":{"ko":"이 나라는 이웃 나라와 작은 섬(리앙쿠르 암초)을 두고 영유권 이견이 있어요.","en":"It has a sovereignty dispute with a neighbor over small islets (the Liancourt Rocks)."}},"KP":{"hist":{"ko":"이 나라는 1948년 한 반도의 북쪽에 세워진 세습 사회주의 국가로, 핵무기 개발로 국제 사회의 제재를 받고 있어요.","en":"Founded in 1948 on the northern half of a divided peninsula, this hereditary socialist state faces international sanctions over its nuclear weapons program."}},"TW":{"hist":{"ko":"이 섬은 한때 일본의 식민 지배를 받았으며, 오늘날 반도체 산업의 세계적 중심지예요.","en":"Once under Japanese colonial rule, this island is today a global hub of the semiconductor industry."},"dispute":{"ko":"이 섬은 1949년 내전에서 패한 세력이 건너와 세운 정부가 통치하며, 중국은 이곳을 자국 영토로 여겨요.","en":"This island is governed by a state set up by forces that fled there after losing a civil war in 1949, and China regards it as its own territory."}},"TH":{"hist":{"ko":"이 나라는 동남아시아에서 유일하게 서구의 식민 지배를 받지 않은 옛 시암 왕국이에요.","en":"Formerly the kingdom of Siam, this is the only Southeast Asian country never colonized by a Western power."}},"VN":{"hist":{"ko":"이 나라는 프랑스 식민지였다가 남북으로 갈라져 미국이 개입한 전쟁을 겪은 뒤 1975년에 통일되었어요.","en":"A former French colony, this country was split in two and fought a war involving the United States before reunifying in 1975."}},"ID":{"hist":{"ko":"이 나라는 네덜란드의 식민 지배를 받았으며, 수천 개의 섬으로 이뤄진 세계 최대의 이슬람 인구 국가예요.","en":"Once ruled by the Dutch, this country of thousands of islands has the world's largest Muslim population."}},"PH":{"hist":{"ko":"이 나라는 스페인의 오랜 식민 지배를 받은 뒤 미국의 지배를 거쳤으며, 7천 개가 넘는 섬으로 이뤄져 있어요.","en":"After centuries under Spanish rule and then American control, this country is made up of over 7,000 islands."},"dispute":{"ko":"이 나라는 남중국해의 암초와 섬을 두고 중국과 영유권 분쟁을 겪고 있어요.","en":"It is in a sovereignty dispute with China over reefs and islands in the South China Sea."}},"MY":{"hist":{"ko":"이 나라는 영국 식민지였다가 독립했으며, 국토가 남중국해를 사이에 두고 두 부분으로 나뉘어 있어요.","en":"A former British colony, this country is split into two parts separated by the South China Sea."}},"MM":{"hist":{"ko":"이 나라는 수십 년간 군부의 통치를 받았고, 로힝야 소수민족 박해로 국제적 비판을 받았어요.","en":"Ruled by the military for decades, this country has drawn international condemnation over its persecution of the Rohingya minority."}},"KH":{"hist":{"ko":"이 나라에는 거대한 앙코르와트 사원이 있으며, 1970년대 크메르루주 정권 아래 끔찍한 학살을 겪었어요.","en":"Home to the vast temple of Angkor Wat, this country suffered a horrific genocide under the Khmer Rouge in the 1970s."}},"LA":{"hist":{"ko":"이 나라는 동남아시아에서 유일한 내륙국으로, 냉전기 미국의 대규모 비밀 폭격을 받은 사회주의 국가예요.","en":"The only landlocked country in Southeast Asia, this socialist state was heavily and secretly bombed by the US during the Cold War."}},"SG":{"hist":{"ko":"이 도시국가는 1965년 이웃 나라에서 분리되어 독립한 뒤 세계적인 무역·금융 중심지로 성장했어요.","en":"This city-state separated from its neighbor in 1965 and grew into a global hub of trade and finance."}},"TL":{"hist":{"ko":"이 나라는 인도네시아의 점령을 받다가 2002년에 독립한, 21세기 최초의 신생 독립국이에요.","en":"Occupied by Indonesia for years, this country became independent in 2002 as the first new sovereign state of the 21st century."}},"AU":{"hist":{"ko":"이 나라는 영국의 유형지로 시작했으며, 원주민 애버리진이 수만 년 전부터 살아온 대륙 전체를 차지해요.","en":"Beginning as a British penal colony, this country occupies an entire continent inhabited by Aboriginal peoples for tens of thousands of years."}},"NZ":{"hist":{"ko":"이 나라는 1840년 마오리 원주민과 영국이 와이탕이 조약을 맺으며 세워진, 두 개의 큰 섬으로 이뤄진 나라예요.","en":"Made up of two main islands, this country was founded on the 1840 Treaty of Waitangi between the Māori and Britain."}},"PG":{"hist":{"ko":"이 나라는 세계에서 언어가 가장 다양한 나라로, 큰 섬의 동쪽 절반을 차지하고 있어요.","en":"The most linguistically diverse country on earth, this nation occupies the eastern half of a large island."}},"ZA":{"hist":{"ko":"이 나라는 1994년까지 인종 분리 정책 '아파르트헤이트'를 유지했고, 만델라가 최초의 흑인 대통령이 되었어요.","en":"This country enforced the racial-segregation policy of apartheid until 1994, when Mandela became its first Black president."}},"NG":{"hist":{"ko":"이 나라는 아프리카에서 인구가 가장 많으며, 1960년대에 비아프라 분리 독립 내전을 겪었어요.","en":"Africa's most populous country, it endured the Biafran secession war in the 1960s."}},"KE":{"hist":{"ko":"이 나라는 영국 식민 지배에 맞선 마우마우 항쟁을 거쳐 1963년에 독립했으며, 사파리로 유명해요.","en":"After the Mau Mau uprising against British rule, this country gained independence in 1963 and is famed for its safaris."}},"ET":{"hist":{"ko":"이 나라는 아프리카에서 거의 유일하게 유럽의 식민지가 되지 않았고, 인류의 조상 화석 '루시'가 발견된 곳이에요.","en":"One of the only African nations never colonized by Europe, this country is where the ancient human fossil 'Lucy' was found."}},"GH":{"hist":{"ko":"이 나라는 사하라 이남 아프리카에서 식민 지배를 벗어난 첫 나라 중 하나로 1957년에 독립했으며, 과거 금 산지로 유명했어요.","en":"One of the first sub-Saharan African nations to shed colonial rule, gaining independence in 1957, this country was long famed for its gold."}},"SN":{"hist":{"ko":"이 나라는 프랑스 식민지였다가 독립했으며, 아프리카 대륙 본토의 가장 서쪽 끝에 자리해요.","en":"A former French colony, this country sits at the westernmost tip of the African mainland."}},"ML":{"hist":{"ko":"이 나라에는 중세 교역과 이슬람 학문의 중심지였던 팀북투가 있으며, 과거 강력한 사하라 교역 제국의 땅이었어요.","en":"This country is home to Timbuktu, a medieval hub of trade and Islamic scholarship, and was once the land of a powerful Saharan trading empire."}},"CD":{"hist":{"ko":"이 나라는 벨기에의 가혹한 식민 지배를 받았으며, 광대한 열대우림과 풍부한 광물을 지녔지만 오랜 분쟁을 겪고 있어요.","en":"Brutally colonized by Belgium, this vast country holds huge rainforests and mineral wealth yet endures long-running conflict."}},"AO":{"hist":{"ko":"이 나라는 1975년 포르투갈에서 독립한 뒤 오랜 내전을 겪었으며, 주요 산유국이에요.","en":"This country won independence from Portugal in 1975, then endured a long civil war, and is a major oil producer."}},"TZ":{"hist":{"ko":"이 나라에는 아프리카에서 가장 높은 산 킬리만자로가 있으며, 세렝게티 초원과 잔지바르섬으로 유명해요.","en":"Home to Kilimanjaro, Africa's highest mountain, this country is famed for the Serengeti plains and the island of Zanzibar."}},"MA":{"hist":{"ko":"이 나라는 지브롤터 해협을 사이에 두고 유럽과 마주한 북서 아프리카의 옛 왕국이에요.","en":"This old North African kingdom faces Europe across the Strait of Gibraltar."},"dispute":{"ko":"이 나라는 남쪽의 서사하라 지역 대부분을 실효 지배하며 그 지위를 둘러싼 분쟁을 겪고 있어요.","en":"It controls most of the Western Sahara region to its south, a territory whose status remains disputed."}},"DZ":{"hist":{"ko":"이 나라는 1954년부터 8년간 프랑스에 맞선 치열한 독립 전쟁을 치른 끝에 1962년 독립했으며, 국토 대부분이 사하라 사막이에요.","en":"After an eight-year war against France, this country won independence in 1962, and most of its land is Sahara desert."}},"TN":{"hist":{"ko":"이 나라는 2011년 '아랍의 봄' 봉기가 처음 시작된 곳이며, 고대 카르타고 문명의 본거지였어요.","en":"This country is where the 2011 'Arab Spring' uprisings first began, and it was the home of the ancient Carthaginian civilization."}},"LY":{"hist":{"ko":"이 나라는 40여 년간 카다피가 통치하다 2011년 그가 축출된 뒤 혼란에 빠진 북아프리카의 산유국이에요.","en":"This North African oil producer was ruled by Gaddafi for over four decades before he was ousted in 2011, plunging it into turmoil."}},"SD":{"hist":{"ko":"이 나라는 2011년 남부가 분리 독립해 갈라졌고, 서부의 다르푸르 지역에서 참혹한 분쟁을 겪었어요.","en":"This country split when its south seceded in 2011, and it suffered a brutal conflict in its western Darfur region."}},"SS":{"hist":{"ko":"이 나라는 2011년 이웃 나라에서 분리 독립한, 세계에서 가장 젊은 나라 중 하나예요.","en":"This is one of the world's youngest nations, having seceded from its neighbor in 2011."}},"ZW":{"hist":{"ko":"이 나라는 무가베의 오랜 독재와, 화폐 가치가 폭락한 극심한 초인플레이션으로 잘 알려져 있어요.","en":"This country is known for Mugabe's long rule and a bout of hyperinflation so severe its currency collapsed."}},"RW":{"hist":{"ko":"이 나라는 1994년 약 100일 동안 이어진 대학살로 수십만 명이 희생된 아픈 역사를 지녔어요.","en":"This country carries the tragic history of a genocide that killed hundreds of thousands over about 100 days in 1994."}},"UG":{"hist":{"ko":"이 나라는 1970년대 독재자 이디 아민의 폭정을 겪었으며, 나일강의 발원지로 여겨지는 큰 호수에 면해 있어요.","en":"This country suffered the tyranny of the dictator Idi Amin in the 1970s and borders a great lake seen as a source of the Nile."}},"MG":{"hist":{"ko":"이 나라는 세계에서 네 번째로 큰 섬으로, 여우원숭이처럼 이곳에만 사는 독특한 동식물로 유명해요.","en":"The world's fourth-largest island, this country is famous for unique wildlife found nowhere else, such as lemurs."}},"NA":{"hist":{"ko":"이 나라는 독일의 식민 지배를 받았으며, 대서양 연안을 따라 펼쳐진 붉은 사막으로 유명해요.","en":"Once a German colony, this country is famed for the red desert stretching along its Atlantic coast."}},"LR":{"hist":{"ko":"이 나라는 19세기에 해방된 미국 노예들이 건너와 세운 서아프리카의 공화국이에요.","en":"This West African republic was founded in the 19th century by freed American slaves who resettled there."}}};
 // curated famous-landmark clues (bilingual, leak-checked), keyed by iso2
@@ -2128,6 +2174,7 @@ const el={
   minigame:$('minigame'),mgQ:$('mg-q'),mgBody:$('mg-body'),mgFact:$('mg-fact'),
   codex:$('codex'),cxSearch:$('cx-search'),cxCount:$('cx-count'),cxGrid:$('cx-grid'),cxDetail:$('cx-detail'),
   fall:$('fall'),fallArea:$('fall-area'),fallHud:$('fall-hud'),
+  rankBanner:$('rank-banner'),rankhub:$('rankhub'),rhBody:$('rh-body'),rhBack:$('rh-back'),
   sym:$('sym'),symQ:$('sym-q'),symGo:$('sym-go'),symGrid:$('sym-grid'),symFact:$('sym-fact'),
   profilebtn:$('profilebtn'),profilebtnT:$('profilebtn-t'),profilecard:$('profilecard'),
   auth:$('auth'),authBody:$('auth-body'),authClose:$('auth-close'),
@@ -2280,7 +2327,7 @@ function setInputMode(kind){ // text | quiz | flag | click | study | place | hin
   el.q.classList.toggle('hidden',!showText);
   el.go.classList.toggle('hidden',!showText);
   el.micbtn.classList.toggle('hidden',!(showText && voiceSupported() && SET.speech!==false));
-  el.skip.classList.toggle('hidden',!(kind==='quiz'||kind==='flag'||kind==='click'||kind==='hint'||kind==='locate'||kind==='capital'||kind==='chain'||kind==='landmark'||kind==='clue'||kind==='silhouette'||kind==='capcountry'||kind==='ranked'));
+  el.skip.classList.toggle('hidden',!(kind==='quiz'||kind==='flag'||kind==='click'||kind==='hint'||kind==='locate'||kind==='capital'||kind==='chain'||kind==='landmark'||kind==='clue'||kind==='silhouette'||kind==='capcountry'));
   { const st=el.skip.querySelector('.t'); if(st) st.textContent=(kind==='chain')?LT('끝내기','End'):LT('넘기기','Skip'); }
   // hint-reveal buttons live in the study panel (keeps the top input row uncluttered)
   el.spActions.classList.toggle('hidden',kind!=='hint');
@@ -3344,59 +3391,140 @@ function endDaily(){
   recordResult('daily',state.score);
 }
 
-/* ================= Ranked mode (exact names · rules · RP tiers) ================= */
-const RANKED_DUR=75;
+/* ================= Ranked mode — chess-style ELO, placement, fever, shiny ================= */
+const ELO_START=1000, ELO_K=32, RANKED_N=12, RANKED_QTIME=15, SHINY_CHANCE=0.03;
 const RANK_TIERS=[
-  {rp:0,ko:'브론즈',en:'Bronze',ic:'🥉'},
-  {rp:800,ko:'실버',en:'Silver',ic:'🥈'},
-  {rp:1600,ko:'골드',en:'Gold',ic:'🥇'},
-  {rp:2600,ko:'플래티넘',en:'Platinum',ic:'💎'},
-  {rp:3800,ko:'다이아몬드',en:'Diamond',ic:'💠'},
-  {rp:5200,ko:'마스터',en:'Master',ic:'👑'},
+  {elo:0,   ko:'브론즈',    en:'Bronze',   ic:'🥉', hl:null},
+  {elo:1000,ko:'실버',      en:'Silver',   ic:'🥈', hl:'silver'},
+  {elo:1250,ko:'골드',      en:'Gold',     ic:'🥇', hl:'gold'},
+  {elo:1500,ko:'플래티넘',  en:'Platinum', ic:'💎', hl:'plat'},
+  {elo:1750,ko:'다이아몬드',en:'Diamond',  ic:'💠', hl:'diamond'},
+  {elo:2000,ko:'마스터',    en:'Master',   ic:'👑', hl:'master'},
 ];
-function rankTierOf(rp){ let t=RANK_TIERS[0]; for(const x of RANK_TIERS){ if(rp>=x.rp) t=x; } return t; }
-function rankNextTier(rp){ for(const x of RANK_TIERS){ if(rp<x.rp) return x; } return null; }
-function myRP(){ const u=curUser(); return (u&&u.stats&&u.stats.rp)||0; }
-function rankTierLabel(rp){ const t=rankTierOf(rp); return t.ic+' '+LT(t.ko,t.en)+' '+rp+' RP'; }
-function rankedNext(){
-  clearMap(); clearLabels();
-  const fn={quiz:nextQuizTarget,flag:nextFlagTarget,silhouette:nextSilTarget,capcountry:nextCapCountryTarget}[state.rankedBase]||nextQuizTarget;
-  fn();
+// cosmetic highlight palettes unlocked by tier (override the "found"/"target" colors)
+const HL_COSMETICS={
+  silver:{ko:'실버 하이라이트',en:'Silver glow', found:'#c7d0dc', target:'#e6edf5'},
+  gold:{ko:'골드 하이라이트',en:'Gold glow', found:'#e8b23a', target:'#ffd76a'},
+  plat:{ko:'플래티넘 하이라이트',en:'Platinum glow', found:'#3fd0c9', target:'#8ff0ea'},
+  diamond:{ko:'다이아 하이라이트',en:'Diamond glow', found:'#5ac8ff', target:'#a9e6ff'},
+  master:{ko:'마스터 하이라이트',en:'Master glow', found:'#c07cff', target:'#e6c8ff'},
+};
+function perfNow(){ return performance.now(); }
+function rankTierOf(elo){ let t=RANK_TIERS[0]; for(const x of RANK_TIERS){ if(elo>=x.elo) t=x; } return t; }
+function rankNextTier(elo){ for(const x of RANK_TIERS){ if(elo<x.elo) return x; } return null; }
+function myElo(){ const u=curUser(); return (u&&u.stats&&u.stats.elo!=null)?u.stats.elo:ELO_START; }
+function isPlaced(){ const u=curUser(); return !!(u&&u.stats&&u.stats.placed); }
+function expectedScore(D,elo){ return 1/(1+Math.pow(10,(D-elo)/400)); }
+function rankTierLabel(elo){ const t=rankTierOf(elo); return t.ic+' '+LT(t.ko,t.en)+' '+Math.round(elo); }
+// unlock the highlight cosmetic for every tier at/below elo
+function unlockTierCosmetics(elo){ const u=curUser(); if(!u) return; u.stats.cos=u.stats.cos||{};
+  RANK_TIERS.forEach(t=>{ if(t.hl && elo>=t.elo) u.stats.cos[t.hl]=true; }); }
+function applyCosmetics(){ const u=curUser(); const eq=u&&u.stats&&u.stats.cosEquip;
+  const c=eq&&HL_COSMETICS[eq]; const r=document.documentElement.style;
+  if(c){ r.setProperty('--found',c.found); r.setProperty('--target',c.target); }
+  else { r.removeProperty('--found'); r.removeProperty('--target'); } }
+function maybeShiny(e){ const u=curUser(); if(!u||!e||!e.i2) return; if(Math.random()>=SHINY_CHANCE) return;
+  u.stats.shiny=u.stats.shiny||{}; if(u.stats.shiny[e.i2]) return; u.stats.shiny[e.i2]=Date.now(); accSave();
+  const box=el.burst; // extra sparkle toast
+  setFeedback(LT('✨ 샤이니 획득! '+NM(e),'✨ Shiny obtained! '+NM(e)),'ok','check'); }
+function shinyCount(){ const u=curUser(); return u&&u.stats&&u.stats.shiny?Object.keys(u.stats.shiny).length:0; }
+
+function buildRankedMatch(base, elo, u, placement){
+  let pool=allEntries.filter(e=>e.sov&&!e.isMarker);
+  if(base==='flag') pool=pool.filter(e=>e.i2);
+  else if(base==='capcountry') pool=pool.filter(e=>e.st&&(e.st.cap||e.st.cape));
+  else if(base==='silhouette') pool=pool.filter(e=>e.d);
+  else pool=pool.filter(e=>e.i2);
+  pool.forEach(e=>{ if(e._d==null) e._d=countryDifficulty(e); });
+  if(placement){ // spread across the whole difficulty range to calibrate
+    const sorted=pool.slice().sort((a,b)=>a._d-b._d), q=[];
+    for(let i=0;i<RANKED_N;i++){ const idx=Math.floor(i/(RANKED_N-1)*(sorted.length-1)); q.push({entry:sorted[idx],fever:false}); }
+    return q;
+  }
+  // difficulty window scales with elo (obscurer countries as you climb)
+  const near=pool.slice().sort((a,b)=>Math.abs(a._d-elo)-Math.abs(b._d-elo)).slice(0,55);
+  const main=shuffleArr(near);
+  // fever: re-test the player's most-missed countries
+  const cc=(u&&u.stats&&u.stats.cc)||{};
+  const weak=pool.filter(e=>cc[e.i2]&&cc[e.i2].w>0&&cc[e.i2].w>=cc[e.i2].r)
+    .sort((a,b)=>(cc[b.i2].w-cc[b.i2].r)-(cc[a.i2].w-cc[a.i2].r));
+  const q=[], used=new Set();
+  weak.slice(0,4).forEach(e=>{ q.push({entry:e,fever:true}); used.add(e.id); });
+  for(const e of main){ if(q.length>=RANKED_N) break; if(!used.has(e.id)){ q.push({entry:e,fever:false}); used.add(e.id); } }
+  return shuffleArr(q).slice(0,RANKED_N);
+}
+function rankedRenderQ(base, e){
+  state.target=e; allEntries.forEach(x=>x.el.classList.remove('target'));
+  const tag=LT('정확한 이름','exact name');
+  if(base==='quiz'){ e.el.classList.remove('found','pop','p1cap','p2cap'); e.el.classList.add('target'); focusEntry(e,1.6);
+    el.prompt.innerHTML=LT('금색 나라의 이름을 <b>정확히</b> 입력하세요.','Type the <b>exact</b> name of the gold country.'); }
+  else if(base==='flag'){ el.prompt.innerHTML='<span class="flag flag-xl">'+flagEmoji(e.i2)+'</span>'+LT('이 국기의 나라를 <b>정확히</b> 입력.','Type this flag’s country <b>exactly</b>.'); }
+  else if(base==='silhouette'){ el.prompt.innerHTML=silSvg(e)+'<div>'+LT('이 윤곽의 나라를 <b>정확히</b> 입력.','Type this outline’s country <b>exactly</b>.')+'</div>'; }
+  else if(base==='capcountry'){ const cap=EN()?(e.st.cape||e.st.cap):(e.st.cap||e.st.cape); el.prompt.innerHTML='<span class="cap-q">'+esc(cap)+'</span><div>'+LT('어느 나라의 수도? (정확히)','capital of which country? (exact)')+'</div>'; }
+}
+function stopRankedTimer(){ if(state.rankedTimer){ clearInterval(state.rankedTimer); state.rankedTimer=0; } }
+function startRankedTimer(){ stopRankedTimer();
+  state.rankedTimer=setInterval(()=>{ const left=Math.max(0,(state.rankedQEnd-perfNow())/1000);
+    el.timerval.textContent=Math.ceil(left)+'s'; el.timer.classList.toggle('low',left<=5);
+    if(left<=0.05){ rankedAnswer(false); } },200);
 }
 function startRanked(){
-  state.ranked=true; state.countUp=false; state.score=0; state.rankedHit=0; state.rankedMiss=0;
-  state.duration=RANKED_DUR; resetView();
-  let pool=allEntries.filter(e=>e.sov&&!e.isMarker);
-  if(state.rankedBase==='flag') pool=pool.filter(e=>e.i2);
-  else if(state.rankedBase==='capcountry') pool=pool.filter(e=>e.st&&(e.st.cap||e.st.cape));
-  else if(state.rankedBase==='silhouette') pool=pool.filter(e=>e.d);
-  if(state.rankedRule && state.rankedRule!=='none') pool=pool.filter(e=>e.c!==state.rankedRule);
-  state.pool=pool; state.queue=[];
-  el.timer.classList.remove('hidden'); updateScore(); updateTimerDisplay();
-  const baseTxt={quiz:LT('이름','Name'),flag:LT('국기','Flag'),silhouette:LT('실루엣','Outline'),capcountry:LT('수도','Capital')}[state.rankedBase];
-  const ruleTxt=(state.rankedRule&&state.rankedRule!=='none')?(' · 🚫 '+(EN()?(REGION_EN[state.rankedRule]||state.rankedRule):state.rankedRule)):'';
-  setFeedback(baseTxt+' · '+LT('정확한 이름만','exact names')+' · '+RANKED_DUR+LT('초','s')+ruleTxt+' · '+rankTierLabel(myRP()),'info');
-  rankedNext(); el.q.focus();
+  const u=curUser(); state.ranked=true; state.countUp=false; state.mode='ranked'; resetView(); clearMap();
+  state.rankedElo0=myElo(); state.rankedIdx=0; state.rankedDelta=0; state.rankedHit=0; state.rankedActive=true; state.rankedCheated=false; state.score=0;
+  state.rankedQueue=buildRankedMatch(state.rankedBase||'quiz', state.rankedElo0, u, state.rankedPlacement);
+  if(u){ u.stats=u.stats||{}; u.stats.rankedPending={t:Date.now(),n:state.rankedQueue.length}; accSave(); }
+  el.timer.classList.remove('hidden'); el.q.disabled=false; updateScore();
+  const modeTxt=state.rankedPlacement?LT('배치고사','Placement'):(rankTierLabel(state.rankedElo0));
+  setFeedback(modeTxt+' · '+LT('정확한 이름만 · 문제당 '+RANKED_QTIME+'초 · 건너뛰기 없음','exact names · '+RANKED_QTIME+'s per question · no skips'),'info');
+  rankedShowQuestion(); el.q.focus();
 }
-function endRanked(){
-  if(state.ended) return; state.ended=true; state.running=false; stopTicker(); el.q.disabled=true; state.ranked=false;
-  const hits=state.rankedHit||0;
-  const delta=Math.max(-120, hits*15 - 90 + (hits>=15?30:0));
-  const u=curUser();
-  let sub;
+function rankedShowQuestion(){
+  if(state.rankedIdx>=state.rankedQueue.length){ endRanked(false); return; }
+  state.rankedItem=state.rankedQueue[state.rankedIdx]; clearMap();
+  rankedRenderQ(state.rankedBase||'quiz', state.rankedItem.entry);
+  el.q.value=''; state.rankedQEnd=perfNow()+RANKED_QTIME*1000; state.rankedAwaiting=true; startRankedTimer();
+}
+function rankedAnswer(correct){
+  if(!state.rankedActive||state.ended||!state.rankedAwaiting) return; state.rankedAwaiting=false; stopRankedTimer();
+  const e=state.rankedItem.entry, D=countryDifficulty(e), exp=expectedScore(D,state.rankedElo0);
+  state.rankedDelta += ELO_K*((correct?1:0)-exp);
+  if(correct){ state.rankedHit++; state.score++; updateScore(); trackCountry(e,true); maybeShiny(e); }
+  else trackCountry(e,false);
+  const nm=NM(e)+(state.rankedBase==='capcountry'?(' · '+capitalDisplay(e)):'');
+  celebrate(correct, correct?LT('정답!','Correct!'):LT('땡!','Miss'));
+  if(!(correct&&/샤이니|Shiny/.test(el.feedback.textContent))) setFeedback(correct?(LT('정답! ','Correct! ')+nm):(LT('정답은 ','Answer: ')+nm), correct?'ok':'no', correct?'check':'x');
+  el.q.value=''; state.rankedIdx++;
+  const g=state.gen; setTimeout(()=>{ if(state.gen!==g||state.ended||state.mode!=='ranked') return; rankedShowQuestion(); }, correct?750:1250);
+}
+function endRanked(quit){
+  if(state.ended) return; state.ended=true; state.running=false; state.ranked=false; state.rankedActive=false; stopRankedTimer(); el.q.disabled=true;
+  let deltaRaw=state.rankedDelta;
+  if(quit){ for(let i=state.rankedIdx;i<state.rankedQueue.length;i++){ const e=state.rankedQueue[i].entry; deltaRaw += ELO_K*(0-expectedScore(countryDifficulty(e),state.rankedElo0)); } deltaRaw-=15; }
+  if(state.rankedCheated) deltaRaw=Math.min(deltaRaw, 0);   // no ELO gain if you left the tab mid-match
+  const u=curUser(); const placement=state.rankedPlacement; state.rankedPlacement=false;
+  let big, sub;
   if(u){ u.stats=u.stats||{games:0,best:{},plays:{},points:0};
-    const old=u.stats.rp||0, nw=Math.max(0,old+delta); u.stats.rp=nw;
-    u.stats.best=u.stats.best||{}; if(hits>(u.stats.best.ranked||0)) u.stats.best.ranked=hits;
+    let old=(u.stats.elo!=null)?u.stats.elo:state.rankedElo0, nw;
+    if(placement){ const rate=state.rankedHit/Math.max(1,state.rankedQueue.length); nw=Math.round(Math.max(700,Math.min(2200, 800+rate*1400))); u.stats.placed=true; }
+    else nw=Math.max(0, old+Math.round(deltaRaw));
+    u.stats.elo=nw; u.stats.best=u.stats.best||{}; if(state.rankedHit>(u.stats.best.ranked||0)) u.stats.best.ranked=state.rankedHit;
     u.stats.plays=u.stats.plays||{}; u.stats.plays.ranked=(u.stats.plays.ranked||0)+1;
-    u.stats.games=(u.stats.games||0)+1; u.stats.points=(u.stats.points||0)+hits;
-    accSave(); renderProfile(); if(typeof checkAchievements==='function') checkAchievements();
-    const t=rankTierOf(nw), nt=rankNextTier(nw);
-    sub=(delta>=0?('RP +'+delta):('RP '+delta))+' · '+t.ic+' '+LT(t.ko,t.en)+' '+nw+(nt?(' · '+LT('다음 티어까지','to next')+' '+(nt.rp-nw)+' RP'):'');
-  } else {
-    sub=LT('로그인하면 랭크(RP·티어)가 저장돼요.','Log in to save your rank (RP & tier).');
-  }
-  showOverlay(LT('랭크전 결과','Ranked result'), (EN()?(hits+' correct'):(hits+'개 정답')), sub);
+    u.stats.games=(u.stats.games||0)+1; u.stats.points=(u.stats.points||0)+state.rankedHit; u.stats.rankedPending=null;
+    unlockTierCosmetics(nw); accSave(); renderProfile(); if(typeof checkAchievements==='function') checkAchievements();
+    const t=rankTierOf(nw), nt=rankNextTier(nw), promoted=(!placement && rankTierOf(old)!==t && nw>old);
+    big=state.rankedHit+' / '+state.rankedQueue.length;
+    if(placement){ sub=LT('배치 완료! 시작 등급: ','Placed! Starting rank: ')+t.ic+' '+LT(t.ko,t.en)+' '+nw; }
+    else{ const d=Math.round(deltaRaw); sub=(d>=0?('ELO +'+d):('ELO '+d))+' · '+t.ic+' '+LT(t.ko,t.en)+' '+nw+(nt?(' · '+LT('다음까지 ','to next ')+(nt.elo-nw)):'')+(promoted?LT(' · ⬆️ 승급!',' · ⬆️ Promoted!'):'')+(quit?LT(' · ⚠️ 중도 포기',' · ⚠️ abandoned'):'')+(state.rankedCheated?LT(' · 🚫 탭 이탈',' · 🚫 left tab'):''); }
+  } else { big=state.rankedHit+' / '+state.rankedQueue.length; sub=LT('로그인해야 랭크가 저장돼요.','Log in to save your rank.'); }
+  showOverlay(quit?LT('랭크 포기','Match abandoned'):(placement?LT('배치고사 결과','Placement result'):LT('랭크전 결과','Ranked result')), big, sub);
 }
+function abandonRankedIfActive(){ if(state.mode==='ranked'&&state.rankedActive&&!state.ended){ const u=curUser();
+  // apply the loss silently (no overlay) — quitting mid-match costs ELO
+  state.ended=true; state.rankedActive=false; stopRankedTimer();
+  let d=state.rankedDelta; for(let i=state.rankedIdx;i<state.rankedQueue.length;i++){ const e=state.rankedQueue[i].entry; d+=ELO_K*(0-expectedScore(countryDifficulty(e),state.rankedElo0)); } d-=15;
+  if(u&&!state.rankedPlacement){ u.stats.elo=Math.max(0,(u.stats.elo!=null?u.stats.elo:state.rankedElo0)+Math.round(d)); u.stats.rankedPending=null; u.stats.plays=u.stats.plays||{}; u.stats.plays.ranked=(u.stats.plays.ranked||0)+1; accSave(); renderProfile(); }
+  else if(u){ u.stats.rankedPending=null; accSave(); }
+  state.rankedPlacement=false; } }
 
 /* ================= Falling Flags (type before it lands) ================= */
 function stopFall(){ if(state.fallRAF){ cancelAnimationFrame(state.fallRAF); state.fallRAF=0; }
@@ -9688,7 +9816,7 @@ const MODES_META=[
  {m:'oddone',t:'하나 빼기',te:'Odd One Out',d:'넷 중 무리에 속하지 않는 하나 고르기',de:'Pick the country that does not belong',ic:'puzzle',g:'퀴즈'},
  {m:'chain',t:'국경 잇기',te:'Border Chain',d:'국경이 맞닿은 나라를 이어서 최대한 길게',de:'Chain countries that share a land border — go as long as you can',ic:'chain',g:'도전'},
  {m:'daily',t:'오늘의 도전',te:'Daily Challenge',d:'매일 바뀌는 10문제 · 전 세계가 같은 문제',de:'10 questions that change daily — everyone gets the same set',ic:'calendar',g:'도전'},
- {m:'ranked',t:'랭크전',te:'Ranked',d:'정확한 이름만 인정 · 룰과 RP·티어가 있는 승부',de:'Exact names only · rules, RP and rank tiers',ic:'rank',g:'도전'},
+ {m:'ranked',t:'랭크전',te:'Ranked',d:'ELO·배치고사·티어가 있는 정식 승부',de:'ELO, placement and tiers',ic:'rank',g:'도전',hub:true},
  {m:'fall',t:'낙하 국기',te:'Falling Flags',d:'떨어지는 국기가 바닥에 닿기 전에 이름 입력',de:'Type each falling flag before it lands',ic:'clock',g:'도전'},
  {m:'region',t:'지역별 도전',te:'Region Challenge',d:'고른 지역의 모든 나라 입력',de:'Name every country in a chosen region',ic:'layers',g:'도전'},
  {m:'countdown',t:'전세계 도전',te:'World Countdown',d:'제한 시간 안에 최대한 많이',de:'Name as many as you can before time runs out',ic:'clock',g:'도전'},
@@ -9703,7 +9831,7 @@ const SETUP_CFG={ study:['region'],place:['region'],
   capital:['region','vs'],compare:['cmpmetric','region','vs'],silhouette:['region','vs'],capcountry:['region','vs'],
   ladder:['cmpmetric','region'],estimate:['estmetric','region'],oddone:['region','vs'],chain:['region'],
   conquer:['region'],region:['region'],countdown:['dur'],rank:['metric','region'],
-  locate:['region'],codex:['region'],ranked:['rankedbase','rankedrule'],fall:[],sym:[],
+  locate:['region'],codex:['region'],fall:[],sym:[],
   trivia:['war','triviacats','count','vs'] };
 const CMP_METRICS=[{k:'pop',t:'인구',te:'Population'},{k:'area',t:'면적',te:'Area'},{k:'gdp',t:'GDP',te:'GDP'}];
 function chipRow(labelText, items, isOn, onPick){
@@ -9780,7 +9908,7 @@ function buildHome(){
     const gname=EN()?(GROUP_EN[g]||g):g, secId='sec-'+gi, accent=GROUP_ACCENT[g]||'#4ea1ff';
     const h=document.createElement('h2'); h.className='home-sec'; h.id=secId; h.textContent=gname; el.homeContent.appendChild(h);
     const grid=document.createElement('div'); grid.className='home-grid'; grid.setAttribute('role','list'); grid.setAttribute('aria-labelledby',secId);
-    MODES_META.filter(x=>x.g===g).forEach(x=>{
+    MODES_META.filter(x=>x.g===g && !x.hub).forEach(x=>{
       const c=document.createElement('button'); c.className='gcard'; c.setAttribute('role','listitem');
       c.style.setProperty('--gc',accent);
       c.setAttribute('aria-label',modeTitle(x)+'. '+modeDesc(x));
@@ -9794,11 +9922,12 @@ function buildHome(){
 function enterMode(m){ if(m==='free') startGame('free'); else showSetup(m); }
 function startGame(m){ el.setup.classList.remove('show'); el.home.classList.remove('show'); el.homebtn.classList.remove('hidden'); setMode(m); }
 function showHome(){
-  stopTicker(); stopTrivia(); cancelDrag(); state.gen++; state.ended=true; state.running=false;
-  el.trivia.classList.remove('show'); el.compare.classList.remove('show'); el.minigame.classList.remove('show'); el.codex.classList.remove('show'); el.sym.classList.remove('show'); stopFall(); el.fall.classList.remove('show'); el.studypanel.classList.add('hidden'); el.inputrow.classList.add('hidden');
+  abandonRankedIfActive();   // quitting a ranked match mid-way costs ELO
+  stopTicker(); stopTrivia(); stopRankedTimer(); cancelDrag(); state.gen++; state.ended=true; state.running=false; state.ranked=false;
+  el.trivia.classList.remove('show'); el.compare.classList.remove('show'); el.minigame.classList.remove('show'); el.codex.classList.remove('show'); el.sym.classList.remove('show'); stopFall(); el.fall.classList.remove('show'); el.rankhub.classList.remove('show'); el.studypanel.classList.add('hidden'); el.inputrow.classList.add('hidden');
   el.setup.classList.remove('show'); hideOverlay(); clearMap(); clearLabels(); resetView();
   el.vsbar.classList.add('hidden'); el.timer.classList.remove('hidden');
-  el.modetitle.textContent=''; el.homebtn.classList.add('hidden'); el.home.classList.add('show');
+  el.modetitle.textContent=''; el.homebtn.classList.add('hidden'); el.home.classList.add('show'); renderRankBanner();
 }
 el.homebtn.onclick=showHome; el.brand.onclick=showHome;
 el.setupStart.onclick=()=>startGame(state.pendingMode);
@@ -9956,14 +10085,10 @@ function submit(){
       else setFeedback(msg,'no','x'); }
   }
   else if(m==='ranked'){
-    if(!entry){notFound(raw);return;}
-    if(!state.running){ state.running=true; startTicker(); }
-    if(entry.id===state.target.id){
-      state.score++; state.rankedHit=(state.rankedHit||0)+1; updateScore(); trackCountry(state.target,true);
-      celebrate(true,LT('정답!','Correct!'));
-      setFeedback(LT('정답! ','Correct! ')+NM(entry),'ok','check'); el.q.value='';
-      later(rankedNext,600);
-    } else { shakeInput(); setFeedback(EN()?('Not '+NM(entry)+'. Exact name only.'):(entry.ko+' 이(가) 아니에요. 정확한 이름만 인정돼요.'),'no','x'); }
+    if(!state.rankedActive) return;
+    if(!entry){ notFound(raw); return; }
+    if(state.target && entry.id===state.target.id){ rankedAnswer(true); }
+    else { shakeInput(); setFeedback(EN()?('Not '+NM(entry)+' — keep trying (exact name).'):(NM(entry)+' 이(가) 아니에요 — 정확한 이름으로 계속!'),'no','x'); el.q.value=''; }
   }
   else if(m==='hint'){
     if(!entry){notFound(raw);return;}
@@ -10019,7 +10144,6 @@ el.skip.onclick=()=>{
   else if(m==='landmark'){ const t=state.target, lm=state.landmarkCur; if(!state.vs) trackCountry(t,false); setFeedback(EN()?('It was '+NM(t)+(lm?(' · '+lm.en):'')+'.'):('정답은 '+NM(t)+(lm?(' · '+lm.ko):'')+' 였어요.'),'info'); el.q.value=''; if(state.vs) vsAfterAnswer(false); else later(nextLandmarkTarget,900); }
   else if(m==='silhouette'){ const t=state.target; if(!state.vs) trackCountry(t,false); setFeedback(ans(NM(t)),'info'); el.q.value=''; if(state.vs) vsAfterAnswer(false); else later(nextSilTarget,800); }
   else if(m==='capcountry'){ const t=state.target; if(!state.vs) trackCountry(t,false); setFeedback(EN()?('It was '+NM(t)+' ('+capitalDisplay(t)+').'):('정답은 '+NM(t)+' ('+capitalDisplay(t)+') 였어요.'),'info'); el.q.value=''; if(state.vs) vsAfterAnswer(false); else later(nextCapCountryTarget,800); }
-  else if(m==='ranked'){ const t=state.target; state.rankedMiss=(state.rankedMiss||0)+1; trackCountry(t,false); setFeedback(ans(NM(t)),'info'); el.q.value=''; later(rankedNext,700); }
   else if(m==='clue'){ const t=state.clueTarget; trackCountry(t,false); setFeedback(ans(NM(t)),'info'); revealHintAnswer(t); el.q.value=''; later(nextClueTarget,1400); }
   else if(m==='locate'){ const t=state.target; if(!t) return; t.el.classList.add('target'); t.el.parentNode.appendChild(t.el); focusEntry(t,2.4);
     setFeedback(EN()?(NM(t)+' is here.'):(NM(t)+' 은(는) 여기예요.'),'info');
@@ -10266,11 +10390,63 @@ document.addEventListener('keydown',e=>{
     else if(k==='ArrowDown'||k==='ArrowRight'||kl==='s'||kl==='d'){ e.preventDefault(); ladderGuess('lower'); } return; }
 });
 
+/* ================= Ranked hub (the "page" for Ranked) + anti-cheat ================= */
+function renderRankBanner(){
+  const u=curUser();
+  if(!u){ el.rankBanner.innerHTML='<span class="rb-ic">🏆</span><span class="rb-main"><span class="rb-t">'+LT('랭크전','Ranked')+'</span><span class="rb-s">'+LT('로그인하고 ELO·티어에 도전하세요','Log in to compete for ELO & tiers')+'</span></span><span class="rb-go">'+LT('시작 ›','Start ›')+'</span>'; return; }
+  const elo=myElo(), t=rankTierOf(elo), placed=isPlaced();
+  el.rankBanner.innerHTML='<span class="rb-ic">'+t.ic+'</span><span class="rb-main"><span class="rb-t">'+LT('랭크전','Ranked')+' · '+LT(t.ko,t.en)+'</span><span class="rb-s">'+(placed?('ELO '+Math.round(elo)+' · ✨ '+shinyCount()):LT('배치고사가 필요해요','Placement needed'))+'</span></span><span class="rb-go">'+LT('입장 ›','Enter ›')+'</span>';
+}
+function resolvePendingRanked(u){ if(u&&u.stats&&u.stats.rankedPending){ if(u.stats.placed&&u.stats.elo!=null) u.stats.elo=Math.max(0,u.stats.elo-20); u.stats.rankedPending=null; accSave(); } }
+function openRankHub(){ const u=curUser(); if(u) resolvePendingRanked(u); renderRankHub(); el.home.classList.remove('show'); el.rankhub.classList.add('show'); el.rankhub.scrollTop=0; }
+function closeRankHub(){ el.rankhub.classList.remove('show'); el.home.classList.add('show'); renderRankBanner(); }
+function renderRankHub(){
+  const u=curUser();
+  if(!u){ el.rhBody.innerHTML='<div class="rh-hero"><span class="rh-badge">🏆</span><div><h2>'+LT('랭크전','Ranked')+'</h2><div class="rh-elo">'+LT('로그인해야 이용할 수 있어요.','Log in to play ranked.')+'</div></div></div>'
+      +'<p class="rh-note">'+LT('랭크전은 정확한 이름만 인정하고 ELO·티어·샤이니·코스메틱이 계정에 저장돼요.','Ranked uses exact names; ELO, tiers, shinies and cosmetics save to your account.')+'</p>'
+      +'<button class="btn solid rh-play" id="rh-login">'+LT('로그인 / 회원가입','Log in / Sign up')+'</button>';
+    el.rhBody.querySelector('#rh-login').onclick=()=>{ closeRankHub(); openAuth(); }; return; }
+  const elo=myElo(), t=rankTierOf(elo), nt=rankNextTier(elo), placed=isPlaced();
+  if(placed){ unlockTierCosmetics(elo); accSave(); }   // reflect cosmetics already earned by current ELO
+  const prog=nt?Math.max(0,Math.min(100,Math.round((elo-t.elo)/(nt.elo-t.elo)*100))):100;
+  const bases=[{v:'quiz',ko:'이름(지도)',en:'Name (map)'},{v:'flag',ko:'국기',en:'Flag'},{v:'silhouette',ko:'실루엣',en:'Outline'},{v:'capcountry',ko:'수도',en:'Capital'}];
+  if(!state.rankedBase) state.rankedBase='quiz';
+  const cos=(u.stats&&u.stats.cos)||{}, equip=(u.stats&&u.stats.cosEquip)||'';
+  let cosHtml='<button class="rh-chip'+(equip?'':' on')+'" data-hl="">'+LT('기본','Default')+'</button>';
+  Object.keys(HL_COSMETICS).forEach(k=>{ const owned=cos[k], c=HL_COSMETICS[k];
+    cosHtml+='<button class="rh-chip'+(equip===k?' on':'')+(owned?'':' lock')+'" data-hl="'+k+'">'+(owned?'':'🔒 ')+LT(c.ko,c.en)+'</button>'; });
+  const shinies=(u.stats&&u.stats.shiny)?Object.keys(u.stats.shiny):[];
+  const shinyHtml=shinies.length? shinies.map(i2=>{ const e=lookup.get(norm(i2)); return '<span title="'+esc(e?NM(e):i2)+'">'+flagEmoji(i2)+'</span>'; }).join('')
+    : ('<span style="font-size:13px;color:var(--faint)">'+LT('아직 없어요 — 랭크전 정답 시 낮은 확률로 획득','none yet — small chance on a correct ranked answer')+'</span>');
+  el.rhBody.innerHTML=
+    '<div class="rh-hero"><span class="rh-badge">'+t.ic+'</span><div><h2>'+LT(t.ko,t.en)+'</h2>'
+    +'<div class="rh-elo">ELO '+Math.round(elo)+(nt?(' · '+LT('다음 티어까지 ','to next ')+(nt.elo-Math.round(elo))):' · '+LT('최고 티어','top tier'))+'</div>'
+    +'<div class="rh-bar"><i style="width:'+prog+'%"></i></div></div></div>'
+    +'<div class="rh-sec">'+LT('문제 유형','Question type')+'</div><div class="rh-row" id="rh-bases">'
+    +bases.map(b=>'<button class="rh-chip'+(state.rankedBase===b.v?' on':'')+'" data-b="'+b.v+'">'+LT(b.ko,b.en)+'</button>').join('')+'</div>'
+    +(placed?'<button class="btn solid rh-play" id="rh-play">'+LT('랭크 매치 시작 · '+RANKED_N+'문제','Start ranked · '+RANKED_N+'Q')+'</button>'
+            :'<button class="btn solid rh-play" id="rh-place">'+LT('배치고사 보기 · '+RANKED_N+'문제','Take placement · '+RANKED_N+'Q')+'</button>')
+    +'<div class="rh-sec">'+LT('하이라이트 코스메틱 (티어 보상)','Highlight cosmetics (tier rewards)')+'</div><div class="rh-row" id="rh-cos">'+cosHtml+'</div>'
+    +'<div class="rh-sec">✨ '+LT('샤이니 컬렉션','Shiny collection')+' ('+shinies.length+')</div><div class="rh-shiny">'+shinyHtml+'</div>'
+    +'<p class="rh-note">'+LT('· 정확한 이름만 · 문제당 '+RANKED_QTIME+'초 · 건너뛰기 없음<br>· 중도 포기 시 ELO를 잃어요 · 붙여넣기 차단·탭 이탈 감지(부정행위 방지)<br>· ELO가 오를수록 더 어렵고 낯선 나라가 나와요','· Exact names · '+RANKED_QTIME+'s/question · no skips<br>· Quitting mid-match loses ELO · paste blocked & tab-switch forfeits (anti-cheat)<br>· Higher ELO = harder, more obscure countries')+'</p>';
+  el.rhBody.querySelectorAll('#rh-bases .rh-chip').forEach(b=>b.onclick=()=>{ state.rankedBase=b.dataset.b; renderRankHub(); });
+  const play=el.rhBody.querySelector('#rh-play'); if(play) play.onclick=()=>{ state.rankedPlacement=false; playRanked(); };
+  const place=el.rhBody.querySelector('#rh-place'); if(place) place.onclick=()=>{ state.rankedPlacement=true; playRanked(); };
+  el.rhBody.querySelectorAll('#rh-cos .rh-chip').forEach(b=>b.onclick=()=>{ if(b.classList.contains('lock')) return; u.stats.cosEquip=b.dataset.hl||''; accSave(); applyCosmetics(); renderRankHub(); });
+}
+function playRanked(){ el.rankhub.classList.remove('show'); el.home.classList.remove('show'); el.homebtn.classList.remove('hidden'); setMode('ranked'); }
+el.rankBanner.onclick=openRankHub;
+el.rhBack.onclick=closeRankHub;
+// anti-cheat: block paste in the answer box during Ranked, and forfeit if you leave the tab
+el.q.addEventListener('paste',e=>{ if(state.ranked){ e.preventDefault(); setFeedback(LT('랭크전에서는 붙여넣기를 쓸 수 없어요.','Paste is disabled in Ranked.'),'no','x'); } });
+document.addEventListener('visibilitychange',()=>{ if(document.hidden && state.ranked && state.rankedActive && !state.ended && state.rankedAwaiting){ state.rankedCheated=true; rankedAnswer(false); } });
+
 /* ================= local profiles (saved in THIS browser only — no server) ================= */
 const AKEY='wmh_accounts_v1';
 let ACC=(function(){ try{ return JSON.parse(localStorage.getItem(AKEY))||{users:{},current:null}; }catch(e){ return {users:{},current:null}; } })();
 function accSave(){ try{ localStorage.setItem(AKEY,JSON.stringify(ACC)); }catch(e){} }
 function curUser(){ return (ACC.current && ACC.users[ACC.current]) ? ACC.users[ACC.current] : null; }
+function savedUsernames(){ try{ return Object.values(ACC.users||{}).map(u=>u.name).slice(0,8); }catch(e){ return []; } }
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 const MODE_LABEL={}; MODES_META.forEach(x=>MODE_LABEL[x.m]=x);
 async function hashPass(pw,salt){
@@ -10364,12 +10540,16 @@ function renderAuth(){
     +'</div>'
     +'<form id="auth-form" autocomplete="on">'
       +'<label class="auth-field"><span>'+LT('이름','Name')+'</span><input id="auth-name" name="username" autocomplete="username" maxlength="20" required></label>'
+      +((login&&savedUsernames().length)?('<div class="auth-users">'+LT('이 기기의 계정: ','On this device: ')+savedUsernames().map(n=>'<button type="button" class="auth-userchip" data-u="'+esc(n)+'">'+esc(n)+'</button>').join('')+'</div>'):'')
       +'<label class="auth-field"><span>'+LT('비밀번호','Password')+'</span><input id="auth-pass" name="password" type="password" autocomplete="'+(login?'current-password':'new-password')+'" required></label>'
       +'<div class="auth-msg" id="auth-msg" role="alert" aria-live="assertive"></div>'
       +'<button class="btn solid auth-submit" type="submit">'+(login?LT('로그인','Log in'):LT('가입하고 시작','Sign up & start'))+'</button>'
     +'</form>'
+    +(login?('<button class="auth-link" id="auth-forgot">'+LT('비밀번호를 잊으셨나요?','Forgot your password?')+'</button>'):'')
     +'<button class="auth-link" id="auth-import-link">'+LT('다른 기기의 데이터 가져오기','Import data from another device')+'</button>'
     +'<p class="auth-note">'+authNote()+'</p>';
+  el.authBody.querySelectorAll('.auth-userchip').forEach(b=>b.onclick=()=>{ el.authBody.querySelector('#auth-name').value=b.dataset.u; el.authBody.querySelector('#auth-pass').focus(); });
+  const fg=el.authBody.querySelector('#auth-forgot'); if(fg) fg.onclick=()=>authMsg(LT('비밀번호는 이 기기에만 암호화 저장돼서 복구할 수 없어요. 백업 코드가 있으면 “가져오기”로 복원하거나, 새 이름으로 다시 시작하세요.','Passwords are encrypted on this device only and can’t be recovered. Restore from a backup code via Import, or start again with a new name.'),'err');
   el.authBody.querySelector('#tab-login').onclick=()=>{ authTab='login'; renderAuth(); el.authBody.querySelector('#auth-name').focus(); };
   el.authBody.querySelector('#tab-signup').onclick=()=>{ authTab='signup'; renderAuth(); el.authBody.querySelector('#auth-name').focus(); };
   el.authBody.querySelector('#auth-form').onsubmit=onAuthSubmit;
@@ -10468,8 +10648,9 @@ const ACHIEVEMENTS=[
   {id:'streak7', ic:'⭐', ko:'한 주 완주', en:'Week Warrior', dko:'데일리 7일 연속', den:'7-day daily streak', test:st=>(st.dailyStreak||0)>=7},
   {id:'chain10', ic:'⛓️', ko:'연결의 달인', en:'Chain Master', dko:'국경 잇기 10+', den:'Border chain of 10+', test:st=>((st.best&&st.best.chain)||0)>=10},
   {id:'ladder10', ic:'🪜', ko:'사다리 타기', en:'Ladder Legend', dko:'업다운 10연속', den:'Higher–Lower streak of 10', test:st=>((st.best&&st.best.ladder)||0)>=10},
-  {id:'rank_gold', ic:'🥇', ko:'골드 등반', en:'Gold Rank', dko:'랭크전 골드 티어', den:'Reached Gold in Ranked', test:st=>(st.rp||0)>=1600},
-  {id:'rank_diamond', ic:'💠', ko:'다이아 등반', en:'Diamond Rank', dko:'랭크전 다이아 티어', den:'Reached Diamond in Ranked', test:st=>(st.rp||0)>=3800},
+  {id:'rank_gold', ic:'🥇', ko:'골드 등반', en:'Gold Rank', dko:'랭크전 골드 티어', den:'Reached Gold in Ranked', test:st=>(st.elo||0)>=1250},
+  {id:'rank_diamond', ic:'💠', ko:'다이아 등반', en:'Diamond Rank', dko:'랭크전 다이아 티어', den:'Reached Diamond in Ranked', test:st=>(st.elo||0)>=1750},
+  {id:'shiny5', ic:'✨', ko:'수집가', en:'Collector', dko:'샤이니 5개 수집', den:'Collected 5 shinies', test:st=>(st.shiny?Object.keys(st.shiny).length:0)>=5},
 ];
 function achTitle(a){ return EN()?a.en:a.ko; }
 function achDesc(a){ return EN()?a.den:a.dko; }
@@ -10521,6 +10702,8 @@ function renderProfile(){
   const u=curUser();
   el.profilebtnT.textContent=u?u.name:LT('로그인','Log in');
   el.profilebtn.setAttribute('aria-label',u?(LT('프로필: ','Profile: ')+u.name):LT('로그인 또는 회원가입','Log in or sign up'));
+  if(typeof applyCosmetics==='function') applyCosmetics();
+  if(el.rankBanner && typeof renderRankBanner==='function') renderRankBanner();
   if(!u){ el.profilecard.classList.add('hidden'); el.profilecard.innerHTML=''; return; }
   const st=u.stats||{games:0,best:{},points:0};
   const bests=Object.keys(st.best||{}).map(k=>({k,v:st.best[k]})).sort((a,b)=>b.v-a.v).slice(0,4);
@@ -10530,7 +10713,7 @@ function renderProfile(){
   el.profilecard.innerHTML='<div class="pc-head">'
     +'<div class="pc-avatar">'+esc(u.name.charAt(0).toUpperCase())+'</div>'
     +'<div><div class="pc-name">'+esc(u.name)+'</div><div class="pc-sub">'+LT('플레이 ','Games ')+(st.games||0)+' · '+LT('누적 점수 ','Total points ')+(st.points||0)
-      +(st.rp!=null?(' · '+(function(t){return t.ic+' '+LT(t.ko,t.en)+' '+st.rp+' RP';})(rankTierOf(st.rp))):'')+'</div></div>'
+      +(st.elo!=null?(' · '+(function(t){return t.ic+' '+LT(t.ko,t.en)+' '+Math.round(st.elo);})(rankTierOf(st.elo))+(shinyCount()?(' · ✨'+shinyCount()):'')):'')+'</div></div>'
     +'<button class="btn pc-logout" id="pc-logout"><span data-icon="logout"></span> <span>'+LT('로그아웃','Log out')+'</span></button>'
     +'</div>'
     +(bh?('<div class="pc-stats">'+bh+'</div>'):('<div class="pc-sub" style="margin-top:11px">'+LT('게임을 하면 최고 기록이 여기에 쌓여요.','Play a game and your best scores show up here.')+'</div>'))
