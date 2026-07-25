@@ -121,6 +121,7 @@ select#region:focus{outline:none;border-color:var(--border2)}
 #promptbar b{color:var(--text);font-weight:700}
 #promptbar .flag{display:block;font-size:34px;line-height:1;margin:0 0 5px;animation:cardIn .3s ease}
 #promptbar .cname{font-size:16px;color:var(--text);font-weight:700}
+#promptbar .lm-hint{display:block;color:var(--text);font-size:14.5px;font-weight:600;max-width:640px;margin:3px auto 0;line-height:1.5}
 @keyframes fadeSlide{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
 @keyframes cardIn{from{opacity:0;transform:translateY(5px) scale(.94)}to{opacity:1;transform:none}}
 #inputrow{display:flex;gap:8px;padding:8px 16px 4px;max-width:680px;margin:0 auto;width:100%;justify-content:center}
@@ -765,6 +766,7 @@ const ICONS={
   book:svg('<path d="M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 0-2 2z"/><path d="M5 4v16"/><path d="M9 8h6M9 12h5"/>'),
   calendar:svg('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/>'),
   medal:svg('<circle cx="12" cy="14" r="6"/><path d="M9 8 6 2M15 8l3-6M12 12l1 2h-2z"/>'),
+  landmark:svg('<path d="M12 3l8 4v2H4V7zM6 9v8M10 9v8M14 9v8M18 9v8M4 20h16M3 17h18"/>'),
 };
 document.querySelectorAll('[data-icon]').forEach(e=>e.insertAdjacentHTML('afterbegin', ICONS[e.dataset.icon]||''));
 
@@ -809,6 +811,880 @@ AREA_RANKED.forEach((e,i)=>{ e.areaRank=i+1; });
 const AREA_TOTAL=AREA_RANKED.length;
 // curated historical-fact / current-dispute clues (bilingual), keyed by iso2
 const HISTFACTS={"US":{"hist":{"ko":"이 나라는 1776년 영국의 식민 지배에서 벗어나 독립을 선언했어요.","en":"This country declared independence from British colonial rule in 1776."}},"CA":{"hist":{"ko":"이 나라는 1867년에 연방을 이루었고, 영어와 프랑스어를 공용어로 함께 써요.","en":"Confederated in 1867, this country uses both English and French as official languages."}},"MX":{"hist":{"ko":"이 나라 땅에는 아스텍과 마야 문명의 웅장한 유적이 곳곳에 남아 있어요.","en":"The grand ruins of the Aztec and Maya civilizations are found across this country."}},"CU":{"hist":{"ko":"이 나라는 1959년 혁명으로 사회주의 정권이 들어선 카리브해의 섬나라예요.","en":"A 1959 revolution brought a socialist government to this Caribbean island nation."},"dispute":{"ko":"이 나라 영토 안에는 미국이 조차해 운영하는 관타나모만 해군기지가 있어요.","en":"The United States leases and operates the Guantanamo Bay naval base on this country's territory."}},"GT":{"hist":{"ko":"이 나라의 밀림 속에는 고대 마야 문명의 피라미드 유적이 숨어 있어요.","en":"Ancient Maya pyramids stand hidden in this country's jungles."},"dispute":{"ko":"이 나라는 이웃한 벨리즈의 상당 부분에 대해 오랜 영유권 주장을 이어왔어요.","en":"It has long claimed sovereignty over much of neighboring Belize."}},"PA":{"hist":{"ko":"이 나라를 가로지르는 운하가 1914년 개통되어 태평양과 대서양을 잇게 되었어요.","en":"A canal cut across this country opened in 1914, linking the Pacific and Atlantic oceans."}},"CR":{"hist":{"ko":"이 나라는 1948년 군대를 폐지한 것으로 잘 알려진 중앙아메리카의 나라예요.","en":"This Central American country is well known for having abolished its army in 1948."}},"HT":{"hist":{"ko":"이 나라는 1804년 노예 봉기 끝에 프랑스에서 독립한, 세계 최초의 흑인 공화국이에요.","en":"Born from a slave revolt, this country won independence from France in 1804 as the world's first Black republic."}},"DO":{"hist":{"ko":"이 나라는 히스파니올라섬의 동쪽 절반을 차지하며, 서쪽의 다른 나라와 섬을 나눠 써요.","en":"This country occupies the eastern half of Hispaniola, sharing the island with another nation to its west."}},"BR":{"hist":{"ko":"이 나라는 포르투갈의 식민지였다가 1822년 독립했으며, 아마존 열대우림의 대부분을 품고 있어요.","en":"Once a Portuguese colony, this country became independent in 1822 and holds most of the Amazon rainforest."}},"AR":{"hist":{"ko":"이 나라는 19세기 초 스페인에서 독립했으며, 광활한 팜파스 초원과 목축으로 유명해요.","en":"This country broke free from Spain in the early 19th century and is famous for the vast Pampas grasslands and cattle ranching."},"dispute":{"ko":"이 나라는 1982년 남대서양의 한 군도(포클랜드/말비나스)를 두고 영국과 전쟁을 벌였어요.","en":"In 1982 it fought Britain over a South Atlantic archipelago (the Falklands/Malvinas)."}},"CL":{"hist":{"ko":"이 나라는 1973년 군사 쿠데타 이후 17년간 이어진 군부 독재를 겪었으며, 남북으로 길게 뻗은 국토를 가졌어요.","en":"After a 1973 coup this long, narrow country endured 17 years of military dictatorship."}},"CO":{"hist":{"ko":"이 나라는 반군과 마약 카르텔로 인한 무장 분쟁을 수십 년간 겪었으며, 두 대양에 모두 면해 있어요.","en":"This country endured decades of armed conflict involving guerrillas and drug cartels, and borders two oceans."}},"PE":{"hist":{"ko":"이 나라의 안데스 산지에는 잉카 문명의 공중도시 마추픽추가 자리하고 있어요.","en":"The Inca mountain citadel of Machu Picchu sits in this country's Andes."}},"VE":{"hist":{"ko":"이 나라는 세계에서 가장 많은 석유 매장량을 지녔으며, 남미 독립운동의 영웅 시몬 볼리바르의 고향이에요.","en":"Home to the world's largest oil reserves, this country was the birthplace of independence hero Simón Bolívar."},"dispute":{"ko":"이 나라는 이웃 나라 서부의 에세키보 지역에 대한 영유권을 오랫동안 주장해 왔어요.","en":"It has long claimed the Essequibo region in the west of a neighboring country."}},"BO":{"hist":{"ko":"이 나라는 19세기 태평양 전쟁에서 해안 지역을 잃고 내륙국이 되었으며, 안데스 고원에 행정 중심지가 있어요.","en":"This landlocked country lost its coastline in the 19th-century War of the Pacific and has its seat of government high in the Andes."},"dispute":{"ko":"이 나라는 잃어버린 태평양 연안으로의 바다 접근권을 두고 이웃 나라와 오랜 갈등을 이어오고 있어요.","en":"It has a long-standing dispute with a neighbor over regaining access to the Pacific coast it lost."}},"EC":{"hist":{"ko":"다윈이 진화론의 영감을 얻은 갈라파고스 제도가 이 나라에 속해 있어요.","en":"The Galápagos Islands, where Darwin drew inspiration for his theory of evolution, belong to this country."}},"PY":{"hist":{"ko":"이 나라는 19세기 삼국동맹 전쟁에서 인구의 상당 부분을 잃은 내륙국이에요.","en":"This landlocked country lost a huge share of its population in the 19th-century War of the Triple Alliance."}},"UY":{"hist":{"ko":"이 나라는 1930년 최초의 국제 축구 월드컵을 개최하고 우승했어요.","en":"This country hosted and won the very first football World Cup in 1930."}},"GY":{"hist":{"ko":"이 나라는 남아메리카에서 드물게 영어를 공용어로 쓰며, 과거 영국의 식민지였어요.","en":"A former British colony, this is one of the few South American countries with English as its official language."},"dispute":{"ko":"이 나라는 서부의 에세키보 지역을 두고 이웃 나라와 오랜 영유권 분쟁을 겪고 있어요.","en":"This country is locked in a long territorial dispute with a neighbor over its western Essequibo region."}},"GB":{"hist":{"ko":"이 나라는 산업혁명이 처음 시작된 곳이며, 한때 지구상에서 가장 넓은 식민 제국을 다스렸어요.","en":"The Industrial Revolution began here, and this country once ruled the largest colonial empire on earth."},"dispute":{"ko":"이 나라는 이베리아반도 남단의 지브롤터를 통치하며 스페인과 오랜 영유권 이견이 있어요.","en":"It governs Gibraltar at the southern tip of the Iberian Peninsula, a long-standing point of contention with Spain."}},"IE":{"hist":{"ko":"이 나라는 19세기 감자 대기근으로 인구가 크게 줄었고, 1922년 영국에서 독립했어요.","en":"Ravaged by a 19th-century potato famine, this country gained independence from Britain in 1922."},"dispute":{"ko":"이 섬의 북부 여섯 개 주는 영국령으로 남아 있어 섬이 둘로 나뉘어 있어요.","en":"Six counties in the north of the island remain under British rule, leaving the island divided."}},"FR":{"hist":{"ko":"이 나라는 1789년 대혁명으로 왕정을 무너뜨리고 '자유·평등·박애'를 내세웠어요.","en":"In 1789 this country's revolution toppled the monarchy under the banner of liberty, equality, and fraternity."}},"DE":{"hist":{"ko":"이 나라는 제2차 세계대전 후 동서로 분단되었다가, 장벽이 무너진 뒤 1990년에 재통일되었어요.","en":"Divided into East and West after WWII, this country was reunified in 1990 after its wall came down."}},"IT":{"hist":{"ko":"이 나라의 반도에서 고대 로마 제국이 일어났고, 훗날 이곳에서 르네상스가 꽃피었어요.","en":"The ancient Roman Empire rose on this country's peninsula, which later became the cradle of the Renaissance."}},"ES":{"hist":{"ko":"이 나라는 아메리카 대부분을 지배한 거대한 식민 제국을 이뤘고, 1930년대에 참혹한 내전을 겪었어요.","en":"This country built a vast colonial empire across the Americas and endured a brutal civil war in the 1930s."},"dispute":{"ko":"이 나라 북동부의 카탈루냐 지역에서는 분리 독립을 요구하는 운동이 이어지고 있어요.","en":"In the northeastern Catalonia region, a movement for independence continues."}},"PT":{"hist":{"ko":"이 나라의 항해자들은 대항해시대를 열어 인도로 가는 바닷길을 처음으로 개척했어요.","en":"This country's navigators launched the Age of Discovery, pioneering the sea route to India."}},"NL":{"hist":{"ko":"이 나라는 국토의 상당 부분이 해수면보다 낮아 제방과 풍차로 바다를 막고 땅을 넓혀 왔어요.","en":"Much of this country lies below sea level, reclaimed from the sea with dikes and windmills."}},"BE":{"hist":{"ko":"이 나라에는 유럽연합의 주요 기관들이 자리하며, 과거 아프리카의 콩고를 식민 지배했어요.","en":"This country hosts the main institutions of the European Union and once colonized the Congo in Africa."}},"CH":{"hist":{"ko":"이 나라는 오랜 영세중립을 지켜온 알프스의 나라로, 국제 적십자가 이곳에서 창설되었어요.","en":"A long-neutral Alpine country, this is where the International Red Cross was founded."}},"AT":{"hist":{"ko":"이 나라는 유럽을 호령한 합스부르크 왕가의 중심이었고, 작곡가 모차르트의 고향이에요.","en":"This country was the heart of the Europe-spanning Habsburg dynasty and the homeland of the composer Mozart."}},"PL":{"hist":{"ko":"이 나라는 18세기에 이웃 강대국들에 의해 여러 차례 분할되었고, 제2차 세계대전이 이 나라에 대한 침공으로 시작되었어요.","en":"Partitioned repeatedly by neighboring powers in the 18th century, this country was where World War II began with an invasion in 1939."}},"CZ":{"hist":{"ko":"이 나라는 1989년 '벨벳 혁명'으로 공산 정권을 무너뜨렸고, 1993년 이웃 나라와 평화롭게 갈라섰어요.","en":"This country toppled its communist regime in the 1989 Velvet Revolution and peacefully split from its neighbor in 1993."}},"SK":{"hist":{"ko":"이 나라는 1993년 이웃 나라와 평화롭게 분리되어 독립한 중부 유럽의 내륙국이에요.","en":"This landlocked Central European country became independent in 1993 through a peaceful split from its neighbor."}},"HU":{"hist":{"ko":"이 나라는 1956년 소련의 지배에 맞서 봉기를 일으켰고, 제1차 세계대전 후 영토의 3분의 2를 잃었어요.","en":"This country rose up against Soviet control in 1956 and had lost two-thirds of its territory after World War I."}},"RO":{"hist":{"ko":"이 나라는 1989년 유혈 혁명으로 독재자 차우셰스쿠 정권이 무너졌으며, 트란실바니아 지방이 유명해요.","en":"A bloody 1989 revolution overthrew the dictator Ceaușescu in this country, home to the Transylvania region."}},"BG":{"hist":{"ko":"이 나라는 약 500년간 오스만 제국의 지배를 받다가 1878년에 해방되었어요.","en":"This country was freed in 1878 after nearly five centuries under Ottoman rule."}},"GR":{"hist":{"ko":"이 나라는 서양 문명과 민주주의의 발상지로 여겨지며, 1821년 오스만 제국에 맞서 독립 전쟁을 일으켰어요.","en":"Seen as the birthplace of Western civilization and democracy, this country launched a war of independence against the Ottomans in 1821."},"dispute":{"ko":"이 나라는 에게해의 여러 섬과 영해·영공을 두고 이웃 나라와 오랜 긴장을 겪어 왔어요.","en":"It has long-standing tensions with a neighbor over islands and maritime boundaries in the Aegean Sea."}},"SE":{"hist":{"ko":"이 나라는 바이킹의 본거지 중 하나였으며, 200년 넘게 전쟁에 참여하지 않은 중립 전통으로 유명해요.","en":"One of the old Viking homelands, this country is known for a tradition of neutrality unbroken for over two centuries."}},"NO":{"hist":{"ko":"이 나라는 빙하가 깎아낸 피오르 해안으로 유명하며, 1905년 이웃 나라와의 연합에서 벗어나 독립했어요.","en":"Famous for its glacier-carved fjords, this country left a union with its neighbor to become independent in 1905."}},"FI":{"hist":{"ko":"이 나라는 1917년 러시아로부터 독립했고, 1939년 소련의 침공에 맞서 '겨울 전쟁'을 치렀어요.","en":"This country gained independence from Russia in 1917 and fought the Winter War against a Soviet invasion in 1939."}},"DK":{"hist":{"ko":"이 나라는 세계에서 가장 큰 섬을 자치령으로 두고 있으며, 유럽에서 가장 오래된 왕실 중 하나를 이어오고 있어요.","en":"This country holds the world's largest island as an autonomous territory and has one of Europe's oldest monarchies."}},"IS":{"hist":{"ko":"이 나라는 930년에 세워진 세계에서 가장 오래된 의회 전통을 지닌, 화산과 빙하의 섬이에요.","en":"This volcanic, glacier-covered island has the world's oldest parliamentary tradition, dating to the year 930."}},"RU":{"hist":{"ko":"이 나라는 1917년 혁명으로 세계 최초의 공산주의 국가가 되었고, 1991년 거대한 연방이 해체되었어요.","en":"A 1917 revolution made this the world's first communist state, and its vast union broke apart in 1991."},"dispute":{"ko":"이 나라는 2014년 크림반도를 병합했으며, 여러 이웃 나라와 영토 분쟁을 겪고 있어요.","en":"This country annexed the Crimean Peninsula in 2014 and is involved in territorial disputes with several neighbors."}},"UA":{"hist":{"ko":"이 나라는 1932~33년 대기근을 겪었고, 1986년 체르노빌 원전 사고가 이곳에서 일어났으며, 1991년 소련 해체와 함께 독립했어요.","en":"This country suffered a great famine in 1932–33, was the site of the 1986 Chernobyl disaster, and gained independence when the Soviet Union dissolved in 1991."},"dispute":{"ko":"이 나라는 2014년 이후 크림반도와 동부 지역을 두고 러시아와 전쟁을 겪고 있어요.","en":"Since 2014 it has been at war with Russia over the Crimean Peninsula and its eastern regions."}},"BY":{"hist":{"ko":"이 나라는 제2차 세계대전에서 인구의 약 4분의 1을 잃었고, 1991년 소련 해체로 독립한 내륙국이에요.","en":"This landlocked country lost about a quarter of its population in WWII and became independent when the Soviet Union collapsed in 1991."}},"LT":{"hist":{"ko":"이 나라는 중세에 유럽에서 손꼽히게 넓은 나라였으며, 1990년 소련에서 가장 먼저 독립을 선언했어요.","en":"Once one of medieval Europe's largest states, this country was the first to declare independence from the Soviet Union in 1990."}},"EE":{"hist":{"ko":"이 나라는 '노래 혁명'을 통해 1991년 소련으로부터 독립을 되찾은 발트해 연안국이에요.","en":"Through its 'Singing Revolution,' this Baltic country regained independence from the Soviet Union in 1991."}},"LV":{"hist":{"ko":"이 나라는 발트해에 면한 나라로, 1991년 소련 해체와 함께 독립을 회복했어요.","en":"This Baltic country restored its independence when the Soviet Union broke apart in 1991."}},"RS":{"hist":{"ko":"이 나라는 옛 유고슬라비아 연방의 중심이었으며, 1990년대 연방 해체 과정에서 여러 전쟁에 휘말렸어요.","en":"This country was the core of the former Yugoslav federation and was drawn into several wars as it broke apart in the 1990s."},"dispute":{"ko":"이 나라는 2008년 독립을 선언한 남부 코소보 지역을 자국 영토로 여기며 인정하지 않고 있어요.","en":"It refuses to recognize its southern region of Kosovo, which declared independence in 2008, and still regards it as its own territory."}},"HR":{"hist":{"ko":"이 나라는 1991년 유고슬라비아 연방에서 독립하며 전쟁을 겪었고, 아드리아해의 긴 해안선으로 유명해요.","en":"This country fought a war of independence as it broke from Yugoslavia in 1991 and is famous for its long Adriatic coastline."}},"BA":{"hist":{"ko":"이 나라는 1990년대 유고슬라비아 해체 과정에서 참혹한 전쟁과 스레브레니차 학살을 겪었어요.","en":"This country endured a brutal war and the Srebrenica massacre during the breakup of Yugoslavia in the 1990s."}},"SI":{"hist":{"ko":"이 나라는 1991년 유고슬라비아 연방에서 가장 먼저 독립한 알프스 자락의 작은 나라예요.","en":"This small Alpine country was the first to break away from the Yugoslav federation in 1991."}},"MK":{"hist":{"ko":"이 나라는 1991년 유고슬라비아 연방에서 평화롭게 독립한 발칸반도의 내륙국이에요.","en":"This landlocked Balkan country peacefully gained independence from Yugoslavia in 1991."},"dispute":{"ko":"이 나라는 국명을 두고 이웃 나라와 오랜 분쟁을 벌인 끝에 2019년 정식 국명을 바꿨어요.","en":"After a long dispute with a neighbor over its name, this country officially changed its name in 2019."}},"AL":{"hist":{"ko":"이 나라는 냉전기에 극도로 폐쇄적이었던 강경 공산주의 국가로, 수많은 벙커를 지은 것으로 유명해요.","en":"During the Cold War this country was an intensely isolated hardline communist state, famous for building thousands of bunkers."}},"CY":{"hist":{"ko":"이 지중해 동부의 섬나라는 1960년 영국에서 독립했어요.","en":"This eastern Mediterranean island nation gained independence from Britain in 1960."},"dispute":{"ko":"이 섬나라는 1974년 이후 남북으로 분단되어, 북쪽은 오직 튀르키예만 인정하는 지역이에요.","en":"This island nation has been divided since 1974, with its north recognized only by Türkiye."}},"GE":{"hist":{"ko":"이 캅카스 산맥 남쪽의 나라는 세계에서 손꼽히게 일찍 기독교를 받아들였고, 1991년 소련에서 독립했어요.","en":"South of the Caucasus Mountains, this country was among the earliest to adopt Christianity and became independent from the Soviet Union in 1991."},"dispute":{"ko":"이 나라는 압하지야와 남오세티야 분리 지역을 두고 러시아와 갈등을 빚어 2008년 전쟁까지 벌였어요.","en":"This country clashed with Russia over the breakaway regions of Abkhazia and South Ossetia, even going to war in 2008."}},"AM":{"hist":{"ko":"이 나라는 301년경 세계에서 가장 먼저 기독교를 국교로 삼은 나라로, 20세기 초 대학살의 아픈 역사를 지녔어요.","en":"Around 301 AD this country became the first to adopt Christianity as its state religion, and it carries the painful history of an early-20th-century genocide."},"dispute":{"ko":"이 나라는 이웃 나라와 나고르노카라바흐 산악 지역을 두고 여러 차례 전쟁을 벌였어요.","en":"It has fought several wars with a neighbor over the mountainous Nagorno-Karabakh region."}},"AZ":{"hist":{"ko":"이 나라는 카스피해의 풍부한 석유로 일찍부터 유전 개발이 이뤄진 캅카스의 나라예요.","en":"Rich in Caspian Sea oil, this Caucasus country was one of the world's earliest oil-drilling regions."},"dispute":{"ko":"이 나라는 이웃 나라와 나고르노카라바흐 지역을 두고 오랜 전쟁을 벌여 왔어요.","en":"It has waged a long war with a neighbor over the Nagorno-Karabakh region."}},"KZ":{"hist":{"ko":"이 나라는 세계에서 가장 넓은 내륙국으로, 옛 소련의 우주선 발사 기지가 이곳에 있어요.","en":"The world's largest landlocked country, this nation hosts the former Soviet space-launch cosmodrome."}},"UZ":{"hist":{"ko":"이 나라에는 실크로드의 교역과 학문의 중심지였던 사마르칸트가 있어요.","en":"This country is home to Samarkand, a great hub of trade and learning on the Silk Road."}},"TR":{"hist":{"ko":"이 나라는 한때 세 대륙에 걸친 오스만 제국의 중심이었으며, 1923년 제국을 무너뜨리고 공화국을 세웠어요.","en":"This country was the heart of the Ottoman Empire that spanned three continents, and it founded a republic on the empire's ruins in 1923."},"dispute":{"ko":"이 나라는 1974년 이웃 섬나라의 북부에 군대를 보내 점령했고, 그 분단이 지금까지 이어지고 있어요.","en":"In 1974 it sent troops into the north of a neighboring island nation, a division that persists to this day."}},"SA":{"hist":{"ko":"이 나라에는 이슬람교에서 가장 성스러운 두 도시가 있으며, 세계 최대급의 석유 수출국이에요.","en":"This country contains Islam's two holiest cities and is one of the world's largest oil exporters."}},"IR":{"hist":{"ko":"이 나라는 고대 페르시아 제국을 이어받은 곳으로, 1979년 이슬람 혁명으로 왕정이 무너졌어요.","en":"Heir to the ancient Persian Empire, this country saw its monarchy overthrown in the 1979 Islamic Revolution."}},"IQ":{"hist":{"ko":"이 나라는 두 강 사이 고대 메소포타미아 문명의 발상지이며, 2003년 미국 주도의 침공으로 정권이 무너졌어요.","en":"The cradle of ancient Mesopotamian civilization between two rivers, this country's regime fell in a US-led invasion in 2003."}},"IL":{"hist":{"ko":"이 나라는 1948년에 건국되었으며, 그 이후 이웃 아랍 국가들과 여러 차례 전쟁을 치렀어요.","en":"Founded in 1948, this country has since fought several wars with its Arab neighbors."},"dispute":{"ko":"이 나라는 점령지의 정착촌과 팔레스타인 영토 문제를 둘러싸고 오랜 분쟁을 겪고 있어요.","en":"It is embroiled in a long-running conflict over settlements in occupied territory and Palestinian lands."}},"PS":{"hist":{"ko":"이 지역은 가자 지구와 요르단강 서안으로 나뉘어 있으며, 독립 국가 수립을 추구하고 있어요.","en":"Split between the Gaza Strip and a territory west of the Jordan River, this territory seeks to establish an independent state."},"dispute":{"ko":"이 지역은 이스라엘과 영토·주권을 둘러싸고 20세기 중반부터 이어진 분쟁의 중심에 있어요.","en":"It lies at the center of a conflict with Israel over land and sovereignty going back to the mid-20th century."}},"SY":{"hist":{"ko":"이 나라는 2011년부터 오랜 내전을 겪었으며, 팔미라 등 고대 문명의 유적이 많은 곳이에요.","en":"This country has endured a long civil war since 2011 and is dotted with ancient ruins such as Palmyra."}},"JO":{"hist":{"ko":"이 나라에는 붉은 바위를 깎아 만든 고대 도시 페트라가 있어요.","en":"This country is home to Petra, an ancient city carved into red rock."}},"LB":{"hist":{"ko":"이 나라는 1975년부터 15년간 이어진 내전을 겪었고, 고대 페니키아 문명의 본거지였어요.","en":"This country endured a 15-year civil war beginning in 1975 and was the homeland of the ancient Phoenician civilization."}},"EG":{"hist":{"ko":"이 나라는 피라미드와 파라오, 스핑크스로 대표되는 나일강 유역 고대 문명의 발상지예요.","en":"This country is the cradle of an ancient Nile civilization famed for its pyramids, pharaohs, and Sphinx."}},"KW":{"hist":{"ko":"이 나라는 1990년 이웃 나라의 침공을 받아 걸프전이 벌어졌던 석유 부국이에요.","en":"This oil-rich country was invaded by a neighbor in 1990, sparking the Gulf War."}},"YE":{"hist":{"ko":"이 나라는 아라비아반도 남쪽 끝에 있으며, 오랜 내전과 인도주의 위기를 겪고 있어요.","en":"At the southern tip of the Arabian Peninsula, this country is mired in a long civil war and humanitarian crisis."}},"AF":{"hist":{"ko":"이 나라는 1979년 소련의 침공을 받았고, 이후 수십 년간 이어진 전쟁과 탈레반의 부상을 겪었어요.","en":"Invaded by the Soviet Union in 1979, this country has since seen decades of war and the rise of the Taliban."}},"PK":{"hist":{"ko":"이 나라는 1947년 영국령 인도가 종교에 따라 나뉘면서 세워진 이슬람 국가예요.","en":"This Muslim-majority country was created in 1947 when British India was partitioned along religious lines."},"dispute":{"ko":"이 나라는 이웃 나라와 카슈미르 지역을 두고 여러 차례 전쟁을 벌인 오랜 분쟁을 이어오고 있어요.","en":"It has fought several wars with a neighbor over the Kashmir region in a decades-long dispute."}},"IN":{"hist":{"ko":"이 나라는 1947년 영국에서 독립했으며, 간디의 비폭력 저항 운동으로 널리 알려져 있어요.","en":"This country won independence from Britain in 1947 and is renowned for Gandhi's nonviolent resistance movement."},"dispute":{"ko":"이 나라는 이웃 나라들과 북부 카슈미르 등 국경 지역을 두고 오랜 영유권 분쟁을 겪고 있어요.","en":"It is engaged in long-standing border disputes with neighbors over the northern Kashmir region and other areas."}},"BD":{"hist":{"ko":"이 나라는 1971년 전쟁을 거쳐 파키스탄에서 분리 독립했으며, 갠지스강 삼각주의 저지대에 자리해요.","en":"This country split from Pakistan after a 1971 war and lies in the low-lying delta of the Ganges."}},"LK":{"hist":{"ko":"이 섬나라는 2009년까지 26년간 타밀 반군과 내전을 겪었으며, 홍차 재배로 유명해요.","en":"This island nation endured a 26-year civil war with Tamil rebels that ended in 2009 and is famous for its tea."}},"NP":{"hist":{"ko":"이 나라에는 세계 최고봉 에베레스트가 솟아 있으며, 2008년에 오랜 왕정을 폐지하고 공화국이 되었어요.","en":"Home to Mount Everest, the world's highest peak, this country abolished its centuries-old monarchy and became a republic in 2008."}},"BT":{"hist":{"ko":"이 나라는 국내총생산 대신 '국민총행복'을 국정 지표로 삼는 히말라야의 불교 왕국이에요.","en":"This Himalayan Buddhist kingdom famously measures 'Gross National Happiness' instead of focusing on GDP."}},"MN":{"hist":{"ko":"이 나라는 13세기에 칭기즈 칸이 역사상 가장 넓은 제국을 일으킨 초원의 발상지예요.","en":"This steppe country is where Genghis Khan founded history's largest contiguous empire in the 13th century."}},"CN":{"hist":{"ko":"이 나라는 만리장성을 쌓은 유구한 왕조의 역사를 지녔고, 1949년 공산 혁명으로 현재의 정부가 세워졌어요.","en":"With a long dynastic history that built the Great Wall, this country's current government was established by a communist revolution in 1949."},"dispute":{"ko":"이 나라는 주변 바다의 여러 섬과 암초, 그리고 인접 지역의 영유권을 두고 여러 이웃 나라와 갈등을 겪어요.","en":"It is involved in disputes with several neighbors over islands and reefs in nearby seas and over adjacent territories."}},"JP":{"hist":{"ko":"제2차 세계대전 말, 이 나라의 두 도시에 원자폭탄이 투하되었어요.","en":"Near the end of WWII, two of this country's cities were struck by atomic bombs."},"dispute":{"ko":"이 나라는 이웃 나라들과 여러 섬(예: 쿠릴열도)을 두고 영유권 갈등을 겪고 있어요.","en":"It has island sovereignty disputes with neighbors (e.g., the Kuril Islands)."}},"KR":{"hist":{"ko":"이 나라는 1945년 광복 후 남북으로 분단되었고, 1950년 전쟁을 겪었어요.","en":"After liberation in 1945 this country was divided into North and South, and a war broke out in 1950."},"dispute":{"ko":"이 나라는 이웃 나라와 작은 섬(리앙쿠르 암초)을 두고 영유권 이견이 있어요.","en":"It has a sovereignty dispute with a neighbor over small islets (the Liancourt Rocks)."}},"KP":{"hist":{"ko":"이 나라는 1948년 한 반도의 북쪽에 세워진 세습 사회주의 국가로, 핵무기 개발로 국제 사회의 제재를 받고 있어요.","en":"Founded in 1948 on the northern half of a divided peninsula, this hereditary socialist state faces international sanctions over its nuclear weapons program."}},"TW":{"hist":{"ko":"이 섬은 한때 일본의 식민 지배를 받았으며, 오늘날 반도체 산업의 세계적 중심지예요.","en":"Once under Japanese colonial rule, this island is today a global hub of the semiconductor industry."},"dispute":{"ko":"이 섬은 1949년 내전에서 패한 세력이 건너와 세운 정부가 통치하며, 중국은 이곳을 자국 영토로 여겨요.","en":"This island is governed by a state set up by forces that fled there after losing a civil war in 1949, and China regards it as its own territory."}},"TH":{"hist":{"ko":"이 나라는 동남아시아에서 유일하게 서구의 식민 지배를 받지 않은 옛 시암 왕국이에요.","en":"Formerly the kingdom of Siam, this is the only Southeast Asian country never colonized by a Western power."}},"VN":{"hist":{"ko":"이 나라는 프랑스 식민지였다가 남북으로 갈라져 미국이 개입한 전쟁을 겪은 뒤 1975년에 통일되었어요.","en":"A former French colony, this country was split in two and fought a war involving the United States before reunifying in 1975."}},"ID":{"hist":{"ko":"이 나라는 네덜란드의 식민 지배를 받았으며, 수천 개의 섬으로 이뤄진 세계 최대의 이슬람 인구 국가예요.","en":"Once ruled by the Dutch, this country of thousands of islands has the world's largest Muslim population."}},"PH":{"hist":{"ko":"이 나라는 스페인의 오랜 식민 지배를 받은 뒤 미국의 지배를 거쳤으며, 7천 개가 넘는 섬으로 이뤄져 있어요.","en":"After centuries under Spanish rule and then American control, this country is made up of over 7,000 islands."},"dispute":{"ko":"이 나라는 남중국해의 암초와 섬을 두고 중국과 영유권 분쟁을 겪고 있어요.","en":"It is in a sovereignty dispute with China over reefs and islands in the South China Sea."}},"MY":{"hist":{"ko":"이 나라는 영국 식민지였다가 독립했으며, 국토가 남중국해를 사이에 두고 두 부분으로 나뉘어 있어요.","en":"A former British colony, this country is split into two parts separated by the South China Sea."}},"MM":{"hist":{"ko":"이 나라는 수십 년간 군부의 통치를 받았고, 로힝야 소수민족 박해로 국제적 비판을 받았어요.","en":"Ruled by the military for decades, this country has drawn international condemnation over its persecution of the Rohingya minority."}},"KH":{"hist":{"ko":"이 나라에는 거대한 앙코르와트 사원이 있으며, 1970년대 크메르루주 정권 아래 끔찍한 학살을 겪었어요.","en":"Home to the vast temple of Angkor Wat, this country suffered a horrific genocide under the Khmer Rouge in the 1970s."}},"LA":{"hist":{"ko":"이 나라는 동남아시아에서 유일한 내륙국으로, 냉전기 미국의 대규모 비밀 폭격을 받은 사회주의 국가예요.","en":"The only landlocked country in Southeast Asia, this socialist state was heavily and secretly bombed by the US during the Cold War."}},"SG":{"hist":{"ko":"이 도시국가는 1965년 이웃 나라에서 분리되어 독립한 뒤 세계적인 무역·금융 중심지로 성장했어요.","en":"This city-state separated from its neighbor in 1965 and grew into a global hub of trade and finance."}},"TL":{"hist":{"ko":"이 나라는 인도네시아의 점령을 받다가 2002년에 독립한, 21세기 최초의 신생 독립국이에요.","en":"Occupied by Indonesia for years, this country became independent in 2002 as the first new sovereign state of the 21st century."}},"AU":{"hist":{"ko":"이 나라는 영국의 유형지로 시작했으며, 원주민 애버리진이 수만 년 전부터 살아온 대륙 전체를 차지해요.","en":"Beginning as a British penal colony, this country occupies an entire continent inhabited by Aboriginal peoples for tens of thousands of years."}},"NZ":{"hist":{"ko":"이 나라는 1840년 마오리 원주민과 영국이 와이탕이 조약을 맺으며 세워진, 두 개의 큰 섬으로 이뤄진 나라예요.","en":"Made up of two main islands, this country was founded on the 1840 Treaty of Waitangi between the Māori and Britain."}},"PG":{"hist":{"ko":"이 나라는 세계에서 언어가 가장 다양한 나라로, 큰 섬의 동쪽 절반을 차지하고 있어요.","en":"The most linguistically diverse country on earth, this nation occupies the eastern half of a large island."}},"ZA":{"hist":{"ko":"이 나라는 1994년까지 인종 분리 정책 '아파르트헤이트'를 유지했고, 만델라가 최초의 흑인 대통령이 되었어요.","en":"This country enforced the racial-segregation policy of apartheid until 1994, when Mandela became its first Black president."}},"NG":{"hist":{"ko":"이 나라는 아프리카에서 인구가 가장 많으며, 1960년대에 비아프라 분리 독립 내전을 겪었어요.","en":"Africa's most populous country, it endured the Biafran secession war in the 1960s."}},"KE":{"hist":{"ko":"이 나라는 영국 식민 지배에 맞선 마우마우 항쟁을 거쳐 1963년에 독립했으며, 사파리로 유명해요.","en":"After the Mau Mau uprising against British rule, this country gained independence in 1963 and is famed for its safaris."}},"ET":{"hist":{"ko":"이 나라는 아프리카에서 거의 유일하게 유럽의 식민지가 되지 않았고, 인류의 조상 화석 '루시'가 발견된 곳이에요.","en":"One of the only African nations never colonized by Europe, this country is where the ancient human fossil 'Lucy' was found."}},"GH":{"hist":{"ko":"이 나라는 사하라 이남 아프리카에서 식민 지배를 벗어난 첫 나라 중 하나로 1957년에 독립했으며, 과거 금 산지로 유명했어요.","en":"One of the first sub-Saharan African nations to shed colonial rule, gaining independence in 1957, this country was long famed for its gold."}},"SN":{"hist":{"ko":"이 나라는 프랑스 식민지였다가 독립했으며, 아프리카 대륙 본토의 가장 서쪽 끝에 자리해요.","en":"A former French colony, this country sits at the westernmost tip of the African mainland."}},"ML":{"hist":{"ko":"이 나라에는 중세 교역과 이슬람 학문의 중심지였던 팀북투가 있으며, 과거 강력한 사하라 교역 제국의 땅이었어요.","en":"This country is home to Timbuktu, a medieval hub of trade and Islamic scholarship, and was once the land of a powerful Saharan trading empire."}},"CD":{"hist":{"ko":"이 나라는 벨기에의 가혹한 식민 지배를 받았으며, 광대한 열대우림과 풍부한 광물을 지녔지만 오랜 분쟁을 겪고 있어요.","en":"Brutally colonized by Belgium, this vast country holds huge rainforests and mineral wealth yet endures long-running conflict."}},"AO":{"hist":{"ko":"이 나라는 1975년 포르투갈에서 독립한 뒤 오랜 내전을 겪었으며, 주요 산유국이에요.","en":"This country won independence from Portugal in 1975, then endured a long civil war, and is a major oil producer."}},"TZ":{"hist":{"ko":"이 나라에는 아프리카에서 가장 높은 산 킬리만자로가 있으며, 세렝게티 초원과 잔지바르섬으로 유명해요.","en":"Home to Kilimanjaro, Africa's highest mountain, this country is famed for the Serengeti plains and the island of Zanzibar."}},"MA":{"hist":{"ko":"이 나라는 지브롤터 해협을 사이에 두고 유럽과 마주한 북서 아프리카의 옛 왕국이에요.","en":"This old North African kingdom faces Europe across the Strait of Gibraltar."},"dispute":{"ko":"이 나라는 남쪽의 서사하라 지역 대부분을 실효 지배하며 그 지위를 둘러싼 분쟁을 겪고 있어요.","en":"It controls most of the Western Sahara region to its south, a territory whose status remains disputed."}},"DZ":{"hist":{"ko":"이 나라는 1954년부터 8년간 프랑스에 맞선 치열한 독립 전쟁을 치른 끝에 1962년 독립했으며, 국토 대부분이 사하라 사막이에요.","en":"After an eight-year war against France, this country won independence in 1962, and most of its land is Sahara desert."}},"TN":{"hist":{"ko":"이 나라는 2011년 '아랍의 봄' 봉기가 처음 시작된 곳이며, 고대 카르타고 문명의 본거지였어요.","en":"This country is where the 2011 'Arab Spring' uprisings first began, and it was the home of the ancient Carthaginian civilization."}},"LY":{"hist":{"ko":"이 나라는 40여 년간 카다피가 통치하다 2011년 그가 축출된 뒤 혼란에 빠진 북아프리카의 산유국이에요.","en":"This North African oil producer was ruled by Gaddafi for over four decades before he was ousted in 2011, plunging it into turmoil."}},"SD":{"hist":{"ko":"이 나라는 2011년 남부가 분리 독립해 갈라졌고, 서부의 다르푸르 지역에서 참혹한 분쟁을 겪었어요.","en":"This country split when its south seceded in 2011, and it suffered a brutal conflict in its western Darfur region."}},"SS":{"hist":{"ko":"이 나라는 2011년 이웃 나라에서 분리 독립한, 세계에서 가장 젊은 나라 중 하나예요.","en":"This is one of the world's youngest nations, having seceded from its neighbor in 2011."}},"ZW":{"hist":{"ko":"이 나라는 무가베의 오랜 독재와, 화폐 가치가 폭락한 극심한 초인플레이션으로 잘 알려져 있어요.","en":"This country is known for Mugabe's long rule and a bout of hyperinflation so severe its currency collapsed."}},"RW":{"hist":{"ko":"이 나라는 1994년 약 100일 동안 이어진 대학살로 수십만 명이 희생된 아픈 역사를 지녔어요.","en":"This country carries the tragic history of a genocide that killed hundreds of thousands over about 100 days in 1994."}},"UG":{"hist":{"ko":"이 나라는 1970년대 독재자 이디 아민의 폭정을 겪었으며, 나일강의 발원지로 여겨지는 큰 호수에 면해 있어요.","en":"This country suffered the tyranny of the dictator Idi Amin in the 1970s and borders a great lake seen as a source of the Nile."}},"MG":{"hist":{"ko":"이 나라는 세계에서 네 번째로 큰 섬으로, 여우원숭이처럼 이곳에만 사는 독특한 동식물로 유명해요.","en":"The world's fourth-largest island, this country is famous for unique wildlife found nowhere else, such as lemurs."}},"NA":{"hist":{"ko":"이 나라는 독일의 식민 지배를 받았으며, 대서양 연안을 따라 펼쳐진 붉은 사막으로 유명해요.","en":"Once a German colony, this country is famed for the red desert stretching along its Atlantic coast."}},"LR":{"hist":{"ko":"이 나라는 19세기에 해방된 미국 노예들이 건너와 세운 서아프리카의 공화국이에요.","en":"This West African republic was founded in the 19th century by freed American slaves who resettled there."}}};
+// curated famous-landmark clues (bilingual, leak-checked), keyed by iso2
+const LANDMARKS={
+  "FR": [
+    {
+      "emoji": "🗼",
+      "ko": "에펠탑",
+      "en": "Eiffel Tower",
+      "hint_ko": "1889년 만국박람회를 위해 세워진 철골 구조의 유명한 탑이에요.",
+      "hint_en": "A famous wrought-iron lattice tower built for the 1889 World's Fair."
+    },
+    {
+      "emoji": "🖼️",
+      "ko": "루브르 박물관",
+      "en": "Louvre Museum",
+      "hint_ko": "유리 피라미드 입구로 유명한 세계 최대 미술관 중 하나로, '모나리자'가 전시되어 있어요.",
+      "hint_en": "One of the world's largest art museums, famous for its glass pyramid entrance and home to the 'Mona Lisa'."
+    },
+    {
+      "emoji": "🏰",
+      "ko": "몽생미셸",
+      "en": "Mont-Saint-Michel",
+      "hint_ko": "밀물 때 바다에 둘러싸이는 바위섬 위에 세워진 중세 수도원이에요.",
+      "hint_en": "A medieval abbey perched on a rocky tidal island that becomes surrounded by the sea at high tide."
+    }
+  ],
+  "IT": [
+    {
+      "emoji": "🏛️",
+      "ko": "콜로세움",
+      "en": "Colosseum",
+      "hint_ko": "고대에 검투사 경기가 열리던 거대한 원형 경기장이에요.",
+      "hint_en": "A giant ancient amphitheater where gladiator games were once held."
+    },
+    {
+      "emoji": "🗼",
+      "ko": "피사의 사탑",
+      "en": "Leaning Tower of Pisa",
+      "hint_ko": "한쪽으로 기울어진 채 서 있는 것으로 유명한 하얀 대리석 종탑이에요.",
+      "hint_en": "A white marble bell tower famous for leaning to one side."
+    },
+    {
+      "emoji": "🚤",
+      "ko": "베네치아 운하",
+      "en": "Venice Canals",
+      "hint_ko": "곤돌라가 오가는 물의 도시로, 도로 대신 운하가 흐르는 곳이에요.",
+      "hint_en": "A romantic city of water where gondolas glide along canals instead of roads."
+    }
+  ],
+  "GB": [
+    {
+      "emoji": "🕰️",
+      "ko": "빅벤",
+      "en": "Big Ben",
+      "hint_ko": "국회의사당에 있는 거대한 시계탑의 종을 부르는 별명이에요.",
+      "hint_en": "The nickname for the great bell inside the clock tower at the Houses of Parliament."
+    },
+    {
+      "emoji": "🪨",
+      "ko": "스톤헨지",
+      "en": "Stonehenge",
+      "hint_ko": "선사시대에 거대한 돌을 원형으로 세워 만든 신비로운 유적이에요.",
+      "hint_en": "A mysterious prehistoric monument of huge standing stones arranged in a circle."
+    },
+    {
+      "emoji": "🌉",
+      "ko": "타워 브리지",
+      "en": "Tower Bridge",
+      "hint_ko": "두 개의 탑과 위로 열리는 상판을 가진 상징적인 도개교예요.",
+      "hint_en": "An iconic bascule bridge with two towers and a roadway that lifts up to let ships pass."
+    }
+  ],
+  "ES": [
+    {
+      "emoji": "⛪",
+      "ko": "사그라다 파밀리아",
+      "en": "Sagrada Família",
+      "hint_ko": "건축가 가우디가 설계해 100년 넘게 짓고 있는 거대한 성당이에요.",
+      "hint_en": "A giant basilica designed by architect Gaudí that has been under construction for over a century."
+    },
+    {
+      "emoji": "🕌",
+      "ko": "알람브라 궁전",
+      "en": "Alhambra",
+      "hint_ko": "이슬람 양식의 화려한 장식과 정원으로 유명한 언덕 위의 궁전 요새예요.",
+      "hint_en": "A hilltop palace-fortress famous for its ornate Islamic decoration and gardens."
+    }
+  ],
+  "DE": [
+    {
+      "emoji": "🏛️",
+      "ko": "브란덴부르크 문",
+      "en": "Brandenburg Gate",
+      "hint_ko": "승리의 여신 조각상이 위에 올려진 신고전주의 개선문이에요.",
+      "hint_en": "A neoclassical triumphal gate topped by a statue of the goddess of victory driving a chariot."
+    },
+    {
+      "emoji": "🏰",
+      "ko": "노이슈반슈타인 성",
+      "en": "Neuschwanstein Castle",
+      "hint_ko": "동화 속 궁전처럼 생겨 디즈니 성의 모델이 된, 산속에 자리한 성이에요.",
+      "hint_en": "A fairy-tale mountain castle said to have inspired the famous Disney castle."
+    }
+  ],
+  "GR": [
+    {
+      "emoji": "🏛️",
+      "ko": "파르테논 신전 (아크로폴리스)",
+      "en": "Parthenon (Acropolis)",
+      "hint_ko": "언덕 위에 세워진 고대 신전으로, 지혜의 여신에게 바쳐진 대리석 기둥 건축물이에요.",
+      "hint_en": "An ancient marble temple of columns standing on a hilltop, dedicated to a goddess of wisdom."
+    }
+  ],
+  "NL": [
+    {
+      "emoji": "🌷",
+      "ko": "풍차 마을",
+      "en": "Windmills (Kinderdijk)",
+      "hint_ko": "바다보다 낮은 땅의 물을 퍼내기 위해 세운 전통 풍차들이 줄지어 늘어선 풍경이에요.",
+      "hint_en": "Rows of traditional windmills built to pump water from land that lies below sea level."
+    }
+  ],
+  "RU": [
+    {
+      "emoji": "🧅",
+      "ko": "성 바실리 대성당",
+      "en": "Saint Basil's Cathedral",
+      "hint_ko": "알록달록한 양파 모양 지붕이 여러 개 솟아 있는 화려한 정교회 성당이에요.",
+      "hint_en": "A colorful Orthodox cathedral crowned with several swirling onion-shaped domes."
+    },
+    {
+      "emoji": "🟥",
+      "ko": "붉은 광장",
+      "en": "Red Square",
+      "hint_ko": "화려한 성당과 웅장한 성벽 요새로 둘러싸인, 나라의 상징적인 대광장이에요.",
+      "hint_en": "A vast, iconic public square bordered by a colorful cathedral and a great walled fortress."
+    }
+  ],
+  "EG": [
+    {
+      "emoji": "🔺",
+      "ko": "기자의 피라미드",
+      "en": "Pyramids of Giza",
+      "hint_ko": "약 4,500년 전 파라오의 무덤으로 지어진 거대한 삼각형 석조 건축물이에요.",
+      "hint_en": "Enormous triangular stone tombs built for pharaohs around 4,500 years ago."
+    },
+    {
+      "emoji": "🦁",
+      "ko": "스핑크스",
+      "en": "Great Sphinx",
+      "hint_ko": "사람의 얼굴과 사자의 몸을 가진 거대한 석상으로, 피라미드 옆을 지키고 있어요.",
+      "hint_en": "A giant stone statue with a human face and a lion's body, guarding the great pyramids."
+    }
+  ],
+  "MA": [
+    {
+      "emoji": "🕌",
+      "ko": "마라케시 시장 (수크)",
+      "en": "Marrakech Souks",
+      "hint_ko": "미로 같은 골목에 향신료와 카펫을 파는 노점이 가득한 옛 성곽 도시의 전통 시장이에요.",
+      "hint_en": "The bustling, maze-like souks of an old walled city, packed with stalls selling spices and carpets."
+    },
+    {
+      "emoji": "🔵",
+      "ko": "셰프샤우엔 파란 마을",
+      "en": "Chefchaouen Blue City",
+      "hint_ko": "산속에 자리한 마을로, 건물 벽이 온통 파란색으로 칠해진 것으로 유명해요.",
+      "hint_en": "A mountain town famous for its buildings painted entirely in shades of blue."
+    }
+  ],
+  "ZA": [
+    {
+      "emoji": "⛰️",
+      "ko": "테이블 마운틴",
+      "en": "Table Mountain",
+      "hint_ko": "정상이 탁자처럼 평평한 것으로 유명한, 해안 도시를 내려다보는 산이에요.",
+      "hint_en": "A flat-topped mountain overlooking a coastal city, famous for its table-like summit."
+    }
+  ],
+  "KE": [
+    {
+      "emoji": "🦁",
+      "ko": "마사이마라",
+      "en": "Maasai Mara",
+      "hint_ko": "수백만 마리 누 떼의 대이동으로 유명한 사바나 야생동물 보호구역이에요.",
+      "hint_en": "A savanna game reserve famous for the great migration of millions of wildebeest."
+    }
+  ],
+  "TZ": [
+    {
+      "emoji": "🏔️",
+      "ko": "킬리만자로산",
+      "en": "Mount Kilimanjaro",
+      "hint_ko": "적도 근처에 있으면서도 정상에 만년설이 덮인, 아프리카에서 가장 높은 산이에요.",
+      "hint_en": "Africa's tallest mountain, capped with snow despite standing near the equator."
+    },
+    {
+      "emoji": "🦓",
+      "ko": "세렝게티",
+      "en": "Serengeti",
+      "hint_ko": "끝없는 초원에서 사자와 얼룩말, 누 떼를 볼 수 있는 광활한 국립공원이에요.",
+      "hint_en": "A vast national park of endless plains where lions, zebras, and wildebeest roam."
+    }
+  ],
+  "NG": [
+    {
+      "emoji": "🪨",
+      "ko": "주마 바위",
+      "en": "Zuma Rock",
+      "hint_ko": "평원 위에 홀로 우뚝 솟은 거대한 단일 바위산으로, 지폐에도 그려져 있어요.",
+      "hint_en": "A huge monolithic rock rising alone from the plains, even pictured on the country's banknotes."
+    }
+  ],
+  "US": [
+    {
+      "emoji": "🗽",
+      "ko": "자유의 여신상",
+      "en": "Statue of Liberty",
+      "hint_ko": "횃불을 든 여신이 항구의 섬에 서서 이민자들을 맞이하던 거대한 구리 조각상이에요.",
+      "hint_en": "A giant copper statue of a torch-bearing woman on a harbor island, once greeting arriving immigrants."
+    },
+    {
+      "emoji": "🏜️",
+      "ko": "그랜드 캐니언",
+      "en": "Grand Canyon",
+      "hint_ko": "강물이 수백만 년에 걸쳐 깎아낸 붉은 지층의 거대한 협곡이에요.",
+      "hint_en": "An immense canyon of red rock layers carved over millions of years by a river."
+    },
+    {
+      "emoji": "🌉",
+      "ko": "금문교",
+      "en": "Golden Gate Bridge",
+      "hint_ko": "안개가 자주 끼는 만을 가로지르는 주황빛 붉은색의 거대한 현수교예요.",
+      "hint_en": "A massive orange-red suspension bridge spanning a fog-prone bay."
+    }
+  ],
+  "CA": [
+    {
+      "emoji": "💦",
+      "ko": "나이아가라 폭포",
+      "en": "Niagara Falls",
+      "hint_ko": "말발굽 모양으로 쏟아지는 거대한 폭포로, 두 나라의 국경에 걸쳐 있어요.",
+      "hint_en": "A massive horseshoe-shaped waterfall straddling the border between two countries."
+    },
+    {
+      "emoji": "🗼",
+      "ko": "CN 타워",
+      "en": "CN Tower",
+      "hint_ko": "유리 바닥 전망대로 유명한, 한때 세계에서 가장 높은 자립식 구조물이었던 전파탑이에요.",
+      "hint_en": "A communications tower with a glass-floor observation deck, once the world's tallest free-standing structure."
+    }
+  ],
+  "MX": [
+    {
+      "emoji": "🔺",
+      "ko": "치첸이트사",
+      "en": "Chichen Itza",
+      "hint_ko": "마야인이 세운 계단식 피라미드로, 춘분과 추분에 뱀 그림자가 나타나는 것으로 유명해요.",
+      "hint_en": "A Maya step-pyramid famous for a serpent-shaped shadow that creeps down its stairs at the equinoxes."
+    },
+    {
+      "emoji": "🌞",
+      "ko": "테오티우아칸",
+      "en": "Teotihuacan",
+      "hint_ko": "'태양의 피라미드'와 '달의 피라미드'가 대로를 따라 늘어선 고대 도시 유적이에요.",
+      "hint_en": "Ancient ruins of a city with a 'Pyramid of the Sun' and 'Pyramid of the Moon' along a grand avenue."
+    }
+  ],
+  "BR": [
+    {
+      "emoji": "⛰️",
+      "ko": "거대 예수상 (구원의 그리스도)",
+      "en": "Christ the Redeemer",
+      "hint_ko": "산꼭대기에서 두 팔을 활짝 벌린 채 해안 도시를 내려다보는 거대한 예수 조각상이에요.",
+      "hint_en": "A colossal statue of Christ with outstretched arms standing on a mountaintop above a coastal city."
+    },
+    {
+      "emoji": "💦",
+      "ko": "이구아수 폭포",
+      "en": "Iguaçu Falls",
+      "hint_ko": "수백 개의 물줄기가 반원형으로 쏟아지는, '악마의 목구멍'으로 불리는 거대한 폭포예요.",
+      "hint_en": "An enormous system of hundreds of waterfalls, including a section called the 'Devil's Throat'."
+    }
+  ],
+  "PE": [
+    {
+      "emoji": "🏔️",
+      "ko": "마추픽추",
+      "en": "Machu Picchu",
+      "hint_ko": "안데스 산맥 높은 봉우리 사이에 잉카인이 세운, 잃어버린 돌의 도시예요.",
+      "hint_en": "A lost Inca stone city built high among the Andean mountain peaks."
+    }
+  ],
+  "AR": [
+    {
+      "emoji": "🧊",
+      "ko": "페리토 모레노 빙하",
+      "en": "Perito Moreno Glacier",
+      "hint_ko": "거대한 얼음벽에서 얼음덩어리가 굉음과 함께 무너져 내리는 것으로 유명한 빙하예요.",
+      "hint_en": "A famous glacier whose towering ice wall regularly calves huge chunks with a thunderous crash."
+    }
+  ],
+  "CL": [
+    {
+      "emoji": "🗿",
+      "ko": "이스터섬 모아이 석상",
+      "en": "Easter Island Moai",
+      "hint_ko": "외딴 태평양 섬에 세워진, 거대한 사람 얼굴 모양의 돌 조각상들이에요.",
+      "hint_en": "Giant carved stone statues with human faces standing on a remote Pacific island."
+    }
+  ],
+  "BO": [
+    {
+      "emoji": "🧂",
+      "ko": "우유니 소금사막",
+      "en": "Uyuni Salt Flats",
+      "hint_ko": "세계에서 가장 큰 소금 평원으로, 우기에는 물이 고여 하늘을 비추는 거대한 거울이 돼요.",
+      "hint_en": "The world's largest salt flat, which turns into a giant mirror reflecting the sky in the rainy season."
+    }
+  ],
+  "CN": [
+    {
+      "emoji": "🧱",
+      "ko": "만리장성",
+      "en": "Great Wall",
+      "hint_ko": "북방의 침입을 막기 위해 산등성이를 따라 수천 킬로미터에 걸쳐 쌓은 거대한 성벽이에요.",
+      "hint_en": "A wall stretching thousands of kilometers along mountain ridges, built to keep out northern invaders."
+    },
+    {
+      "emoji": "🏯",
+      "ko": "자금성",
+      "en": "Forbidden City",
+      "hint_ko": "붉은 벽과 황금 지붕을 가진, 옛 황제들이 살던 거대한 궁궐 단지예요.",
+      "hint_en": "A vast palace complex of red walls and golden roofs where former emperors once lived."
+    },
+    {
+      "emoji": "🏺",
+      "ko": "병마용",
+      "en": "Terracotta Army",
+      "hint_ko": "한 황제의 무덤을 지키기 위해 흙으로 빚은 수천 개의 실물 크기 병사 조각상이에요.",
+      "hint_en": "Thousands of life-sized clay soldier figures buried to guard the tomb of a first emperor."
+    }
+  ],
+  "JP": [
+    {
+      "emoji": "🗻",
+      "ko": "후지산",
+      "en": "Mount Fuji",
+      "hint_ko": "완벽한 원뿔 모양으로 유명한, 정상이 눈으로 덮인 성스러운 화산이에요.",
+      "hint_en": "A sacred, snow-capped volcano famous for its near-perfect cone shape."
+    },
+    {
+      "emoji": "⛩️",
+      "ko": "후시미 이나리 신사",
+      "en": "Fushimi Inari Shrine",
+      "hint_ko": "수천 개의 붉은 도리이 문이 산길을 따라 끝없이 터널처럼 이어지는 신사예요.",
+      "hint_en": "A shrine where thousands of vermilion torii gates form endless tunnels up a hillside."
+    },
+    {
+      "emoji": "🗼",
+      "ko": "도쿄타워",
+      "en": "Tokyo Tower",
+      "hint_ko": "유럽의 유명한 철탑에서 영감을 받은, 붉은색과 흰색의 격자무늬 전파탑이에요.",
+      "hint_en": "A red-and-white lattice communications tower inspired by a famous European iron tower."
+    }
+  ],
+  "KR": [
+    {
+      "emoji": "🏯",
+      "ko": "경복궁",
+      "en": "Gyeongbokgung Palace",
+      "hint_ko": "기와지붕과 단청으로 장식된 옛 왕조의 정궁으로, 수문장 교대식이 열리는 궁궐이에요.",
+      "hint_en": "The main royal palace of a former dynasty, with tiled roofs and colorful paintwork, known for its guard-changing ceremony."
+    },
+    {
+      "emoji": "🛕",
+      "ko": "불국사와 석굴암",
+      "en": "Bulguksa & Seokguram",
+      "hint_ko": "돌계단과 석탑으로 유명한 산속 불교 사찰과, 석굴 안에 모신 커다란 돌부처예요.",
+      "hint_en": "A mountain Buddhist temple famous for its stone stairways and pagodas, near a grotto enshrining a great stone Buddha."
+    }
+  ],
+  "IN": [
+    {
+      "emoji": "🕌",
+      "ko": "타지마할",
+      "en": "Taj Mahal",
+      "hint_ko": "한 황제가 사랑하는 왕비를 기리기 위해 지은, 흰 대리석으로 된 돔형 영묘예요.",
+      "hint_en": "A white marble domed mausoleum built by an emperor in memory of his beloved wife."
+    },
+    {
+      "emoji": "🏰",
+      "ko": "암베르 성",
+      "en": "Amber Fort",
+      "hint_ko": "'분홍빛 도시' 근처 언덕에 세워진, 거울 장식이 화려한 옛 성채예요.",
+      "hint_en": "An old hilltop fort near a famous 'pink city', celebrated for its ornate mirrored halls."
+    }
+  ],
+  "TH": [
+    {
+      "emoji": "👑",
+      "ko": "왕궁 (그랜드 팰리스)",
+      "en": "Grand Palace",
+      "hint_ko": "황금빛 뾰족한 지붕과 에메랄드 불상 사원으로 유명한, 화려한 왕실 궁전 단지예요.",
+      "hint_en": "A dazzling royal palace complex with golden spired roofs and a temple housing an Emerald Buddha."
+    },
+    {
+      "emoji": "🛕",
+      "ko": "왓 아룬 (새벽 사원)",
+      "en": "Wat Arun (Temple of Dawn)",
+      "hint_ko": "강가에 우뚝 솟은 뾰족한 탑을 도자기 조각으로 장식한 '새벽 사원'이에요.",
+      "hint_en": "A riverside 'Temple of Dawn' with a tall spire decorated in colorful pieces of porcelain."
+    }
+  ],
+  "KH": [
+    {
+      "emoji": "🛕",
+      "ko": "앙코르와트",
+      "en": "Angkor Wat",
+      "hint_ko": "연꽃 봉오리 모양의 탑들이 솟은, 정글 속 세계 최대 규모의 사원 단지예요.",
+      "hint_en": "The world's largest religious temple complex, with lotus-bud towers rising from the jungle."
+    }
+  ],
+  "VN": [
+    {
+      "emoji": "⛵",
+      "ko": "하롱베이",
+      "en": "Ha Long Bay",
+      "hint_ko": "에메랄드빛 바다 위로 수천 개의 석회암 봉우리가 솟아 있는 만이에요.",
+      "hint_en": "A bay where thousands of limestone karst pillars rise straight out of emerald-green water."
+    }
+  ],
+  "ID": [
+    {
+      "emoji": "🛕",
+      "ko": "보로부두르",
+      "en": "Borobudur",
+      "hint_ko": "수많은 종 모양 탑과 불상, 돌 부조로 장식된 세계 최대의 불교 사원이에요.",
+      "hint_en": "The world's largest Buddhist temple, decorated with bell-shaped stupas, Buddha statues, and stone reliefs."
+    },
+    {
+      "emoji": "⛩️",
+      "ko": "타나롯 사원",
+      "en": "Tanah Lot Temple",
+      "hint_ko": "인기 휴양 섬의 바닷가 바위 위에 세워져 밀물 때 바다에 둘러싸이는 힌두 사원이에요.",
+      "hint_en": "A Hindu sea temple perched on a rock off a popular resort island, cut off by the sea at high tide."
+    }
+  ],
+  "MY": [
+    {
+      "emoji": "🏙️",
+      "ko": "페트로나스 트윈타워",
+      "en": "Petronas Twin Towers",
+      "hint_ko": "공중 다리로 연결된 쌍둥이 마천루로, 한때 세계에서 가장 높은 건물이었어요.",
+      "hint_en": "Twin skyscrapers linked by a sky bridge, once the tallest buildings in the world."
+    }
+  ],
+  "SG": [
+    {
+      "emoji": "🏙️",
+      "ko": "마리나 베이 샌즈",
+      "en": "Marina Bay Sands",
+      "hint_ko": "세 개의 고층 건물 위에 배 모양의 옥상 수영장이 얹혀 있는 리조트예요.",
+      "hint_en": "A resort with a boat-shaped rooftop infinity pool balanced across three tall towers."
+    },
+    {
+      "emoji": "🦁",
+      "ko": "머라이언",
+      "en": "Merlion",
+      "hint_ko": "사자 머리에 물고기 몸을 가진, 입에서 물을 뿜는 도시 국가의 상징 조각상이에요.",
+      "hint_en": "A statue of a lion-headed, fish-bodied creature spouting water, the mascot of a small city-state."
+    }
+  ],
+  "PH": [
+    {
+      "emoji": "🍫",
+      "ko": "초콜릿 힐스",
+      "en": "Chocolate Hills",
+      "hint_ko": "건기가 되면 갈색으로 변하는, 초콜릿처럼 생긴 원뿔형 언덕 수천 개가 모인 곳이에요.",
+      "hint_en": "Thousands of cone-shaped hills that turn chocolate-brown in the dry season."
+    }
+  ],
+  "AU": [
+    {
+      "emoji": "🎭",
+      "ko": "시드니 오페라 하우스",
+      "en": "Sydney Opera House",
+      "hint_ko": "항구에 자리한, 조개껍데기 혹은 돛 모양의 하얀 지붕으로 유명한 공연장이에요.",
+      "hint_en": "A harborside performing-arts center famous for its white shell- or sail-shaped roofs."
+    },
+    {
+      "emoji": "🪨",
+      "ko": "울루루 (에어즈록)",
+      "en": "Uluru (Ayers Rock)",
+      "hint_ko": "사막 한가운데 홀로 솟은, 해질녘 붉게 물드는 거대한 사암 바위예요.",
+      "hint_en": "A massive sandstone monolith rising alone from the desert, glowing red at sunset."
+    },
+    {
+      "emoji": "🐠",
+      "ko": "그레이트 배리어 리프",
+      "en": "Great Barrier Reef",
+      "hint_ko": "우주에서도 보이는, 세계 최대의 산호초로 이루어진 바닷속 생태계예요.",
+      "hint_en": "The world's largest coral reef system, so vast it can be seen from space."
+    }
+  ],
+  "NZ": [
+    {
+      "emoji": "⛰️",
+      "ko": "밀포드 사운드",
+      "en": "Milford Sound",
+      "hint_ko": "깎아지른 절벽에서 폭포가 쏟아지는, 빙하가 만든 피오르 협만이에요.",
+      "hint_en": "A glacier-carved fjord where waterfalls tumble down steep cliffs into the sea."
+    },
+    {
+      "emoji": "🏡",
+      "ko": "호빗 마을 (호비튼)",
+      "en": "Hobbiton",
+      "hint_ko": "둥근 문이 달린 언덕 속 집들로 이루어진, 판타지 영화 촬영지 세트예요.",
+      "hint_en": "A movie-set village of round-doored houses built into green hills for a fantasy film trilogy."
+    }
+  ],
+  "AE": [
+    {
+      "emoji": "🏙️",
+      "ko": "부르즈 할리파",
+      "en": "Burj Khalifa",
+      "hint_ko": "800미터가 넘는, 세계에서 가장 높은 마천루예요.",
+      "hint_en": "The world's tallest skyscraper, soaring over 800 meters high."
+    }
+  ],
+  "SA": [
+    {
+      "emoji": "🕋",
+      "ko": "카바 신전 (메카)",
+      "en": "Kaaba",
+      "hint_ko": "검은 천으로 덮인 정육면체 건축물로, 전 세계 무슬림이 기도할 때 향하는 이슬람 최고의 성지예요.",
+      "hint_en": "A cube-shaped structure draped in black cloth, the holiest site of Islam toward which Muslims turn to pray."
+    },
+    {
+      "emoji": "🏜️",
+      "ko": "헤그라 (알울라)",
+      "en": "Hegra (Al-Ula)",
+      "hint_ko": "사막의 붉은 사암 절벽을 깎아 만든 나바테아인의 고대 무덤 유적이에요.",
+      "hint_en": "Ancient Nabataean tombs carved into the red sandstone cliffs of a remote desert valley."
+    }
+  ],
+  "TR": [
+    {
+      "emoji": "🕌",
+      "ko": "아야 소피아",
+      "en": "Hagia Sophia",
+      "hint_ko": "거대한 돔을 가진 건물로, 성당에서 모스크로, 다시 박물관으로 여러 번 바뀐 역사를 지녔어요.",
+      "hint_en": "A great domed building that has served as a church, a mosque, and a museum over its long history."
+    },
+    {
+      "emoji": "🎈",
+      "ko": "카파도키아",
+      "en": "Cappadocia",
+      "hint_ko": "버섯 모양 바위와 동굴 집들 위로 형형색색 열기구가 떠오르는 것으로 유명한 지역이에요.",
+      "hint_en": "A region famous for colorful hot-air balloons drifting over mushroom-shaped rocks and cave dwellings."
+    },
+    {
+      "emoji": "🏞️",
+      "ko": "파묵칼레",
+      "en": "Pamukkale",
+      "hint_ko": "온천수가 흘러내리며 만든, 눈처럼 하얀 계단식 석회 온천 지형이에요.",
+      "hint_en": "Snow-white terraced pools of mineral water formed by hot springs cascading down a hillside."
+    }
+  ],
+  "IR": [
+    {
+      "emoji": "🏛️",
+      "ko": "페르세폴리스",
+      "en": "Persepolis",
+      "hint_ko": "돌기둥과 거대한 부조로 장식된, 고대 대제국의 의식용 도시 유적이에요.",
+      "hint_en": "Ruins of the ceremonial complex of an ancient empire, decorated with stone columns and grand carved reliefs."
+    }
+  ],
+  "JO": [
+    {
+      "emoji": "🏛️",
+      "ko": "페트라",
+      "en": "Petra",
+      "hint_ko": "좁은 협곡을 지나면 나타나는, 붉은 사암 절벽을 깎아 만든 고대 도시예요.",
+      "hint_en": "An ancient city carved into rose-red sandstone cliffs, reached through a long narrow gorge."
+    }
+  ],
+  "IL": [
+    {
+      "emoji": "🕍",
+      "ko": "통곡의 벽",
+      "en": "Western Wall",
+      "hint_ko": "고대 성전의 남은 부분으로, 사람들이 벽 틈에 기도 쪽지를 끼워 넣는 성스러운 벽이에요.",
+      "hint_en": "A sacred remnant of an ancient temple where people tuck written prayers into the cracks of the wall."
+    },
+    {
+      "emoji": "🕌",
+      "ko": "바위의 돔",
+      "en": "Dome of the Rock",
+      "hint_ko": "황금빛 돔과 파란 타일로 장식된, 성지에 자리한 이슬람 성전이에요.",
+      "hint_en": "An Islamic shrine on a holy hilltop, crowned with a golden dome and covered in blue tiles."
+    }
+  ],
+  "LB": [
+    {
+      "emoji": "🏛️",
+      "ko": "바알베크",
+      "en": "Baalbek",
+      "hint_ko": "거대한 돌기둥이 남아 있는, 로마 시대의 웅장한 신전 유적지예요.",
+      "hint_en": "A grand set of Roman-era temple ruins, home to some of the largest cut stone blocks ever used in building."
+    }
+  ],
+  "IQ": [
+    {
+      "emoji": "🦁",
+      "ko": "바빌론 유적",
+      "en": "Ancient Babylon",
+      "hint_ko": "공중정원 전설과 이슈타르 문으로 유명한, 두 강 사이 문명의 고대 도시 유적이에요.",
+      "hint_en": "Ancient ruins of a great city between two rivers, famed for its legendary Hanging Gardens and blue Ishtar Gate."
+    }
+  ],
+  "NP": [
+    {
+      "emoji": "🏔️",
+      "ko": "에베레스트산",
+      "en": "Mount Everest",
+      "hint_ko": "해발 8,848미터로, 지구에서 가장 높은 산의 정상이에요.",
+      "hint_en": "At 8,848 meters, the summit that is the highest point on the whole planet."
+    },
+    {
+      "emoji": "🛕",
+      "ko": "보다나트 스투파",
+      "en": "Boudhanath Stupa",
+      "hint_ko": "거대한 흰 돔 위에 '부처의 눈'이 사방을 바라보고 있는 커다란 불교 탑이에요.",
+      "hint_en": "A giant Buddhist stupa whose huge white dome is topped by watchful 'Buddha eyes' facing all directions."
+    }
+  ],
+  "PK": [
+    {
+      "emoji": "🕌",
+      "ko": "바드샤히 모스크",
+      "en": "Badshahi Mosque",
+      "hint_ko": "붉은 사암으로 지은, 넓은 마당과 하얀 대리석 돔을 가진 거대한 무굴 양식 모스크예요.",
+      "hint_en": "A vast red-sandstone Mughal mosque with a huge courtyard and white marble domes."
+    },
+    {
+      "emoji": "🏔️",
+      "ko": "K2 봉",
+      "en": "K2",
+      "hint_ko": "세계에서 두 번째로 높은 산으로, 오르기 가장 어려운 봉우리 중 하나로 꼽혀요.",
+      "hint_en": "The world's second-highest mountain, considered one of the hardest of all peaks to climb."
+    }
+  ],
+  "LK": [
+    {
+      "emoji": "🪨",
+      "ko": "시기리야 (사자바위)",
+      "en": "Sigiriya (Lion Rock)",
+      "hint_ko": "거대한 바위 꼭대기에 옛 왕의 궁전을 세운, '사자 바위'라 불리는 요새예요.",
+      "hint_en": "A 'Lion Rock' fortress with the ruins of an ancient king's palace atop a giant column of stone."
+    }
+  ],
+  "MM": [
+    {
+      "emoji": "🛕",
+      "ko": "바간 사원 평원",
+      "en": "Bagan Temples",
+      "hint_ko": "평원 위에 수천 개의 붉은 벽돌 불탑과 사원이 아침 안개 속에 흩어져 있는 고대 유적지예요.",
+      "hint_en": "An ancient plain scattered with thousands of brick Buddhist temples and pagodas rising from the morning mist."
+    }
+  ],
+  "NO": [
+    {
+      "emoji": "⛰️",
+      "ko": "게이랑에르피오르",
+      "en": "Geirangerfjord",
+      "hint_ko": "가파른 절벽 사이로 깊고 푸른 바닷물이 파고들어 폭포가 쏟아지는 빙하 협만이에요.",
+      "hint_en": "A deep blue glacial fjord winding between steep cliffs laced with tumbling waterfalls."
+    }
+  ],
+  "IS": [
+    {
+      "emoji": "♨️",
+      "ko": "블루 라군",
+      "en": "Blue Lagoon",
+      "hint_ko": "검은 용암 벌판 한가운데 자리한, 우윳빛 푸른 화산 온천이에요.",
+      "hint_en": "A milky-blue geothermal hot spring set amid black volcanic lava fields."
+    },
+    {
+      "emoji": "💧",
+      "ko": "게이시르 간헐천",
+      "en": "Geysir Hot Springs",
+      "hint_ko": "땅속에서 뜨거운 물기둥이 하늘로 솟구쳐 오르는, '간헐천'이라는 단어의 유래가 된 온천이에요.",
+      "hint_en": "Erupting hot springs that shoot columns of boiling water into the air — the origin of the very word 'geyser'."
+    }
+  ],
+  "IE": [
+    {
+      "emoji": "🌊",
+      "ko": "모허 절벽",
+      "en": "Cliffs of Moher",
+      "hint_ko": "대서양 바다 위로 200미터 넘게 깎아지른 듯 솟아 있는 초록빛 해안 절벽이에요.",
+      "hint_en": "Sheer green sea cliffs rising over 200 meters straight out of the Atlantic Ocean."
+    }
+  ],
+  "PT": [
+    {
+      "emoji": "🗼",
+      "ko": "벨렝 탑",
+      "en": "Belém Tower",
+      "hint_ko": "대항해 시대에 강 어귀를 지키기 위해 세운, 물가에 자리한 석조 요새 탑이에요.",
+      "hint_en": "A stone fortress tower at a river's mouth, built during the Age of Discovery to guard the harbor."
+    },
+    {
+      "emoji": "🏰",
+      "ko": "페나 궁전",
+      "en": "Pena Palace",
+      "hint_ko": "노랑, 빨강 등 알록달록한 색으로 칠해진, 숲이 우거진 언덕 위의 낭만주의 궁전이에요.",
+      "hint_en": "A brightly colored Romanticist palace of yellow and red towers perched on a forested hilltop."
+    }
+  ],
+  "CH": [
+    {
+      "emoji": "🏔️",
+      "ko": "마터호른",
+      "en": "Matterhorn",
+      "hint_ko": "거의 완벽한 피라미드 모양의 봉우리로 유명한, 초콜릿 포장지에도 등장하는 알프스 산이에요.",
+      "hint_en": "An Alpine mountain famous for its near-perfect pyramid-shaped peak, pictured even on a chocolate wrapper."
+    }
+  ],
+  "AT": [
+    {
+      "emoji": "🏰",
+      "ko": "쇤브룬 궁전",
+      "en": "Schönbrunn Palace",
+      "hint_ko": "노란 외벽과 드넓은 정원을 가진, 합스부르크 왕가의 여름 궁전이에요.",
+      "hint_en": "A yellow-walled Habsburg summer palace surrounded by vast formal gardens."
+    }
+  ],
+  "CZ": [
+    {
+      "emoji": "🌉",
+      "ko": "카를교",
+      "en": "Charles Bridge",
+      "hint_ko": "강 위에 놓인 오래된 돌다리로, 양옆에 성인들의 조각상이 줄지어 서 있어요.",
+      "hint_en": "An old stone bridge over a river, lined on both sides with statues of saints."
+    },
+    {
+      "emoji": "🕰️",
+      "ko": "천문 시계 (오를로이)",
+      "en": "Astronomical Clock (Orloj)",
+      "hint_ko": "매시 정각이 되면 열두 사도 인형이 창문에 나타나는, 중세에 만든 오래된 천문 시계예요.",
+      "hint_en": "A medieval astronomical clock where figures of the twelve apostles parade past little windows on the hour."
+    }
+  ],
+  "PL": [
+    {
+      "emoji": "⛏️",
+      "ko": "비엘리치카 소금 광산",
+      "en": "Wieliczka Salt Mine",
+      "hint_ko": "지하 깊은 곳에 소금을 깎아 만든 예배당과 샹들리에, 조각상이 있는 오래된 소금 광산이에요.",
+      "hint_en": "An ancient underground salt mine with chapels, statues, and chandeliers all carved from rock salt."
+    },
+    {
+      "emoji": "🏰",
+      "ko": "말보르크 성",
+      "en": "Malbork Castle",
+      "hint_ko": "붉은 벽돌로 지은 세계 최대의 성으로, 중세 기사단이 세운 요새예요.",
+      "hint_en": "The world's largest brick castle, a fortress built by a medieval order of knights."
+    }
+  ],
+  "HU": [
+    {
+      "emoji": "🏛️",
+      "ko": "국회의사당",
+      "en": "Parliament Building",
+      "hint_ko": "강변에 자리한 네오고딕 양식의 웅장한 국회 건물로, 밤에 조명을 받으면 특히 아름다워요.",
+      "hint_en": "A grand neo-Gothic parliament building on a riverbank, stunning when lit up at night."
+    },
+    {
+      "emoji": "🏰",
+      "ko": "어부의 요새",
+      "en": "Fisherman's Bastion",
+      "hint_ko": "하얀 돌로 지은 동화 같은 테라스와 뾰족한 탑들이 강 건너 도시를 내려다보는 전망대예요.",
+      "hint_en": "A fairy-tale white-stone terrace with pointed turrets, overlooking a river and city below."
+    }
+  ],
+  "HR": [
+    {
+      "emoji": "🏰",
+      "ko": "두브로브니크 성벽",
+      "en": "Dubrovnik City Walls",
+      "hint_ko": "주황색 지붕의 옛 도시를 둘러싼, 바다에 접한 거대한 중세 성벽으로 유명 판타지 드라마의 촬영지예요.",
+      "hint_en": "Massive medieval walls encircling an old town of orange rooftops beside the sea, a filming location for a famous fantasy TV series."
+    },
+    {
+      "emoji": "🏞️",
+      "ko": "플리트비체 호수",
+      "en": "Plitvice Lakes",
+      "hint_ko": "에메랄드빛 호수들이 계단처럼 이어지고 그 사이로 수많은 폭포가 흐르는 국립공원이에요.",
+      "hint_en": "A national park of terraced emerald lakes linked by countless cascading waterfalls."
+    }
+  ],
+  "CU": [
+    {
+      "emoji": "🚗",
+      "ko": "아바나 구시가지",
+      "en": "Old Havana",
+      "hint_ko": "파스텔빛 식민지 시대 건물과 1950년대 클래식 자동차로 가득한 항구 도시의 옛 구역이에요.",
+      "hint_en": "The old quarter of a Caribbean port city, full of pastel colonial buildings and vintage 1950s cars."
+    }
+  ],
+  "JM": [
+    {
+      "emoji": "💦",
+      "ko": "던스 리버 폭포",
+      "en": "Dunn's River Falls",
+      "hint_ko": "계단처럼 층층이 흘러내려 관광객들이 손을 잡고 걸어 올라갈 수 있는 폭포예요.",
+      "hint_en": "A terraced waterfall that visitors can climb by holding hands and walking up its natural steps."
+    }
+  ],
+  "CO": [
+    {
+      "emoji": "🌈",
+      "ko": "카뇨 크리스탈레스 (다섯 빛깔의 강)",
+      "en": "Caño Cristales",
+      "hint_ko": "특정 계절에 강바닥의 수생 식물이 빨강, 노랑 등으로 물들어 '다섯 빛깔의 강'이라 불려요.",
+      "hint_en": "A river nicknamed the 'river of five colors' because seasonal water plants turn it red, yellow, and green."
+    },
+    {
+      "emoji": "🪨",
+      "ko": "과타페 바위 (엘 페뇰)",
+      "en": "Rock of Guatapé",
+      "hint_ko": "호숫가 평원에 우뚝 솟은 거대한 바위로, 700개가 넘는 계단이 지그재그로 정상까지 이어져 있어요.",
+      "hint_en": "A giant monolith rising beside a lake, climbed by over 700 steps zig-zagging up a crack in its side."
+    }
+  ],
+  "CR": [
+    {
+      "emoji": "🌋",
+      "ko": "아레날 화산",
+      "en": "Arenal Volcano",
+      "hint_ko": "완벽한 원뿔 모양의 화산으로, 주변에 온천과 열대우림이 펼쳐진 것으로 유명해요.",
+      "hint_en": "A near-perfect cone-shaped volcano surrounded by hot springs and lush rainforest."
+    }
+  ],
+  "ET": [
+    {
+      "emoji": "⛪",
+      "ko": "랄리벨라 암굴 교회",
+      "en": "Rock-Hewn Churches of Lalibela",
+      "hint_ko": "하나의 거대한 바위를 통째로 깎아 땅속으로 파 내려가 만든, 십자가 모양의 교회들이에요.",
+      "hint_en": "Churches carved downward straight out of solid rock, including one shaped like a giant cross."
+    }
+  ],
+  "MG": [
+    {
+      "emoji": "🌳",
+      "ko": "바오바브 나무 거리",
+      "en": "Avenue of the Baobabs",
+      "hint_ko": "줄기가 굵고 뭉툭한 거대한 바오바브 나무들이 흙길 양옆으로 늘어선 풍경이에요.",
+      "hint_en": "A dirt road lined with towering, thick-trunked baobab trees, especially striking at sunset."
+    }
+  ],
+  "FI": [
+    {
+      "emoji": "🎅",
+      "ko": "산타클로스 마을",
+      "en": "Santa Claus Village",
+      "hint_ko": "북극권 위에 자리한, 산타클로스의 공식 고향으로 알려진 마을이에요.",
+      "hint_en": "A village right on the Arctic Circle known as the official hometown of Santa Claus."
+    }
+  ]
+}
+;
 
 /* ================= regions ================= */
 const CONT_LIST=["아시아","유럽","아프리카","북아메리카","남아메리카","오세아니아"];
@@ -1123,9 +1999,9 @@ function sovFoundCount(){ let n=0; state.found.forEach(id=>{const e=idMap.get(id
 function regionFoundCount(){ let n=0; if(state.regionIds) state.found.forEach(id=>{ if(state.regionIds.has(id)) n++; }); return n; }
 function updateScore(){
   const m=state.mode;
-  if(state.vs && ['quiz','flag','findmap','hint','capital','oddone','compare'].includes(m)){ el.scoreval.innerHTML=vsScoreChip(); return; }
+  if(state.vs && ['quiz','flag','findmap','hint','capital','oddone','compare','landmark'].includes(m)){ el.scoreval.innerHTML=vsScoreChip(); return; }
   if(m==='free') el.scoreval.textContent=state.found.size;
-  else if(m==='quiz'||m==='findmap'||m==='flag'||m==='capital'||m==='compare'||m==='estimate'||m==='oddone'||m==='review') el.scoreval.textContent=state.score;
+  else if(m==='quiz'||m==='findmap'||m==='flag'||m==='capital'||m==='compare'||m==='estimate'||m==='oddone'||m==='review'||m==='landmark') el.scoreval.textContent=state.score;
   else if(m==='daily') el.scoreval.textContent=state.score+' / '+(state.dailyTotal||10);
   else if(m==='ladder') el.scoreval.textContent=state.ladderStreak;
   else if(m==='chain') el.scoreval.textContent=state.chainLen;
@@ -1166,6 +2042,14 @@ function nextCapitalTarget(){
   const t=state.target;
   el.prompt.innerHTML='<span class="flag">'+flagEmoji(t.i2)+'</span><span class="cname">'+NM(t)+'</span> · '+(EN()?'what is its capital?':'수도는 어디일까요?');
 }
+function nextLandmarkTarget(){
+  state.target=pickFromPool(state.pool); if(!state.target) return;
+  const lms=LANDMARKS[state.target.i2]||[]; const lm=lms.length?lms[Math.floor(Math.random()*lms.length)]:null;
+  state.landmarkCur=lm;
+  const emoji=lm?lm.emoji:'📍', hint=lm?(EN()?lm.hint_en:lm.hint_ko):'';
+  el.prompt.innerHTML='<span class="flag">'+emoji+'</span>'+(EN()?'Which country is this landmark in?':'이 명소는 어느 나라에 있을까요?')
+    +'<br><span class="lm-hint">'+esc(hint)+'</span>';
+}
 function capitalMatch(raw,t){
   const q=norm(raw); if(!q||!t||!t.st) return false;
   const cands=[norm(t.st.cap||''),norm(t.st.cape||'')].filter(x=>x.length>=2);
@@ -1196,11 +2080,11 @@ el.region.onchange=()=>{ state.region=el.region.value; resetMode(); };
 /* ================= input layout ================= */
 function setInputMode(kind){ // text | quiz | flag | click | study | place | hint | rank | conquer | trivia | locate
   el.inputrow.classList.toggle('hidden',['place','rank','conquer','trivia','compare','mini','codex','mastery'].includes(kind));
-  const showText=['text','quiz','flag','hint','capital','chain'].includes(kind);
+  const showText=['text','quiz','flag','hint','capital','chain','landmark'].includes(kind);
   el.q.classList.toggle('hidden',!showText);
   el.go.classList.toggle('hidden',!showText);
   el.micbtn.classList.toggle('hidden',!(showText && voiceSupported()));
-  el.skip.classList.toggle('hidden',!(kind==='quiz'||kind==='flag'||kind==='click'||kind==='hint'||kind==='locate'||kind==='capital'||kind==='chain'));
+  el.skip.classList.toggle('hidden',!(kind==='quiz'||kind==='flag'||kind==='click'||kind==='hint'||kind==='locate'||kind==='capital'||kind==='chain'||kind==='landmark'));
   { const st=el.skip.querySelector('.t'); if(st) st.textContent=(kind==='chain')?LT('끝내기','End'):LT('넘기기','Skip'); }
   el.hintbtn.classList.toggle('hidden',kind!=='hint');
   el.feverbtn.classList.toggle('hidden',kind!=='hint' || !(state.hintKinds&&state.hintKinds.has('fever')));
@@ -1236,6 +2120,7 @@ function setMode(mode){
   else if(mode==='oddone'){ state.countUp=false; state.duration=60; setInputMode('mini'); el.scorelbl.textContent=LT('점수','Score'); }
   else if(mode==='chain'){ state.countUp=true; setInputMode('chain'); el.scorelbl.textContent=LT('사슬','Chain'); }
   else if(mode==='hint'){ state.countUp=true; setInputMode('hint'); el.scorelbl.textContent=LT('점수','Score'); }
+  else if(mode==='landmark'){ state.countUp=false; state.duration=90; setInputMode('landmark'); el.scorelbl.textContent=LT('점수','Score'); }
   else if(mode==='conquer'){ state.countUp=false; setInputMode('conquer'); el.scorelbl.textContent=LT('정복','Conquered'); }
   else if(mode==='region'){ state.countUp=true; setInputMode('text'); el.scorelbl.textContent=LT('진행','Progress'); }
   else if(mode==='countdown'){ state.countUp=false; state.duration=[60,180,300].includes(state.duration)?state.duration:180; buildDurRow(state.duration); setInputMode('text'); el.scorelbl.textContent=LT('찾은 나라','Found'); }
@@ -1259,7 +2144,7 @@ function resetMode(){
   el.q.disabled=false; el.q.value='';
   const m=state.mode, region=state.region;
   el.timer.classList.remove('hidden'); $('scorechip').classList.remove('hidden');
-  const vsMode = state.vs && ['quiz','flag','findmap','hint','capital','oddone','compare'].includes(m);
+  const vsMode = state.vs && ['quiz','flag','findmap','hint','capital','oddone','compare','landmark'].includes(m);
   if(!vsMode) el.vsbar.classList.add('hidden');
 
   if(m==='study'){ startStudy(); updateTimerDisplay(); return; }
@@ -1313,6 +2198,13 @@ function resetMode(){
     else { state.duration=scaledDur(state.pool.length); updateTimerDisplay();
       setFeedback(regionName(region)+' · '+LT('첫 답을 입력하면 '+state.duration+'초 타이머가 시작돼요.','the '+state.duration+'s timer starts on your first answer.'),'info'); }
     nextCapitalTarget(); el.q.focus();
+  } else if(m==='landmark'){
+    state.pool=allEntries.filter(e=>e.i2&&LANDMARKS[e.i2]);
+    el.timer.classList.toggle('hidden',vsMode);
+    if(vsMode){ vsInit(); setFeedback(LT('1 대 1 · 번갈아 명소로 나라를 맞히세요. 정답 +1점.','1v1 · take turns naming the country from its landmark. +1 point per correct.'),'info'); }
+    else { state.duration=90; updateTimerDisplay();
+      setFeedback(LT('첫 답을 입력하면 90초 타이머가 시작돼요.','the 90s timer starts on your first answer.'),'info'); }
+    nextLandmarkTarget(); el.q.focus();
   } else if(m==='region'){
     const pool=regionEntries(region); state.regionIds=new Set(pool.map(e=>e.id)); state.regionTotal=pool.length;
     updateScore();
@@ -8328,6 +9220,7 @@ const MODES_META=[
  {m:'flag',t:'국기 퀴즈',te:'Flag Quiz',d:'국기를 보고 나라 이름 맞히기',de:'Name the country from its flag',ic:'flag2',g:'퀴즈'},
  {m:'capital',t:'수도 퀴즈',te:'Capital Quiz',d:'나라를 보고 수도 이름 입력',de:'Type the capital of the shown country',ic:'star',g:'퀴즈'},
  {m:'hint',t:'힌트 퀴즈',te:'Hint Quiz',d:'인접국·크기·수도 등 힌트로 추리',de:'Guess from neighbors, size, capital…',ic:'bulb',g:'퀴즈'},
+ {m:'landmark',t:'랜드마크 퀴즈',te:'Landmark Quiz',d:'유명한 명소 설명을 보고 나라 맞히기',de:'Name the country from a famous landmark',ic:'landmark',g:'퀴즈'},
  {m:'compare',t:'더 큰 나라?',te:'Bigger?',d:'두 나라 중 더 큰(많은) 쪽 고르기',de:'Pick the bigger of two countries',ic:'scale',g:'비교·순위'},
  {m:'ladder',t:'업다운 사다리',te:'Higher–Lower',d:'다음 나라가 더 높을지 낮을지 이어서 맞히기',de:'Guess if the next country is higher or lower — keep the streak',ic:'bars',g:'비교·순위'},
  {m:'estimate',t:'어림하기',te:'Estimate',d:'인구·면적을 숫자로 어림해서 가까울수록 고득점',de:'Estimate population or area — closer guesses score more',ic:'gauge',g:'비교·순위'},
@@ -8344,7 +9237,7 @@ function modeTitle(x){ return EN()?(x.te||x.t):x.t; }
 function modeDesc(x){ return EN()?(x.de||x.d):x.d; }
 /* ---- pre-game setup (choose place/criteria before the timer starts) ---- */
 const SETUP_CFG={ study:['region'],place:['region'],
-  quiz:['region','vs'],findmap:['region','vs'],flag:['region','vs'],hint:['region','hintkinds','vs'],
+  quiz:['region','vs'],findmap:['region','vs'],flag:['region','vs'],hint:['region','hintkinds','vs'],landmark:['vs'],
   capital:['region','vs'],compare:['cmpmetric','region','vs'],
   ladder:['cmpmetric','region'],estimate:['estmetric','region'],oddone:['region','vs'],chain:['region'],
   conquer:['region'],region:['region'],countdown:['dur'],rank:['metric','region'],
@@ -8554,6 +9447,19 @@ function submit(){
       if(state.vs){ vsPenalty(); celebrate(false,LT('−1점','−1')); el.q.value=''; setFeedback(vsWrongMsg(msg),'no','x'); }
       else setFeedback(msg,'no','x'); }
   }
+  else if(m==='landmark'){
+    if(!entry){notFound(raw);return;}
+    if(!state.vs && !state.running){ state.running=true; startTicker(); }
+    if(entry.id===state.target.id){
+      const lm=state.landmarkCur;
+      if(state.vs) vsAward(1); else { state.score++; updateScore(); trackCountry(state.target,true); }
+      state.found.add(entry.id); markFound(entry,true); tagCapture(entry); celebrate(true,LT('정답!','Correct!'));
+      setFeedback(LT('정답! ','Correct! ')+NM(entry)+(lm?(' · '+(EN()?lm.en:lm.ko)):''),'ok','check'); el.q.value='';
+      if(state.vs) vsAfterAnswer(true); else later(nextLandmarkTarget,950);
+    } else { shakeInput(); const msg=EN()?('Not '+NM(entry)+'.'):(entry.ko+' 이(가) 아니에요.');
+      if(state.vs){ vsPenalty(); celebrate(false,LT('−1점','−1')); el.q.value=''; setFeedback(vsWrongMsg(msg),'no','x'); }
+      else setFeedback(msg,'no','x'); }
+  }
   else if(m==='hint'){
     if(!entry){notFound(raw);return;}
     if(entry.id===state.hintTarget.id){
@@ -8595,6 +9501,7 @@ el.skip.onclick=()=>{
   else if(m==='flag'){ if(!state.vs) trackCountry(state.target,false); setFeedback(ans(flagEmoji(state.target.i2)+' '+NM(state.target)),'info'); el.q.value=''; if(state.vs) vsAfterAnswer(false); else later(nextFlagTarget,700); }
   else if(m==='capital'){ const t=state.target; if(!state.vs) trackCountry(t,false); setFeedback(EN()?('The capital of '+NM(t)+' is '+capitalDisplay(t)+'.'):(NM(t)+'의 수도는 '+capitalDisplay(t)+' 예요.'),'info'); el.q.value=''; if(state.vs) vsAfterAnswer(false); else later(nextCapitalTarget,800); }
   else if(m==='hint'){ const t=state.hintTarget; if(!state.vs) trackCountry(t,false); setFeedback(ans(NM(t)),'info'); revealHintAnswer(t); el.q.value=''; if(state.vs) vsAfterAnswer(false); else later(nextHintTarget,1400); }
+  else if(m==='landmark'){ const t=state.target, lm=state.landmarkCur; if(!state.vs) trackCountry(t,false); setFeedback(EN()?('It was '+NM(t)+(lm?(' · '+lm.en):'')+'.'):('정답은 '+NM(t)+(lm?(' · '+lm.ko):'')+' 였어요.'),'info'); el.q.value=''; if(state.vs) vsAfterAnswer(false); else later(nextLandmarkTarget,900); }
   else if(m==='locate'){ const t=state.target; if(!t) return; t.el.classList.add('target'); t.el.parentNode.appendChild(t.el); focusEntry(t,2.4);
     setFeedback(EN()?(NM(t)+' is here.'):(NM(t)+' 은(는) 여기예요.'),'info');
     state.findLock=true; later(()=>{ state.findLock=false; t.el.classList.remove('target'); nextLocateTarget(); },1400); }
@@ -8612,6 +9519,7 @@ function endGame(){
   else if(m==='findmap') showOverlay(TIMEUP,state.score,EN()?('You found '+state.score+' on the map.'):('지도에서 '+state.score+'개를 찾았어요.'));
   else if(m==='flag') showOverlay(TIMEUP,state.score,EN()?('You named '+state.score+' flags.'):('국기 '+state.score+'개를 맞혔어요.'));
   else if(m==='capital') showOverlay(TIMEUP,state.score,EN()?('You named '+state.score+' capitals.'):('수도 '+state.score+'개를 맞혔어요.'));
+  else if(m==='landmark') showOverlay(TIMEUP,state.score,EN()?('You named '+state.score+' from landmarks.'):('명소로 '+state.score+'개를 맞혔어요.'));
   else if(m==='compare') showOverlay(TIMEUP,state.score,EN()?('You got '+state.score+' comparisons right.'):('비교 '+state.score+'개를 맞혔어요.'));
   else if(m==='oddone') showOverlay(TIMEUP,state.score,EN()?('You solved '+state.score+' puzzles.'):('퍼즐 '+state.score+'개를 풀었어요.'));
   else if(m==='region'){ const n=regionFoundCount(),tot=state.regionTotal,done=n>=tot;
@@ -8623,7 +9531,7 @@ function endGame(){
       done? (EN()?('Painted every country in '+regionName(state.region)+' in '+fmtTime(state.elapsed)+'!'):(regionName(state.region)+'의 모든 나라를 '+fmtTime(state.elapsed)+' 만에 칠했어요!')) : (EN()?('Almost! '+state.conquerDone+' of '+state.conquerTotal+' painted.'):('조금만 더! '+state.conquerTotal+'개 중 '+state.conquerDone+'개 칠했어요.'))); }
   else { const sov=sovFoundCount(); showOverlay(TIMEUP,sov+' / '+TOTAL_SOV,EN()?('You found '+sov+' of '+TOTAL_SOV+' sovereign states!'):('주권국 '+TOTAL_SOV+'개 중 '+sov+'개를 찾았어요!')); }
   // save the result for the logged-in profile & flag a new best
-  const scoreMap={quiz:state.score,flag:state.score,capital:state.score,findmap:state.score,compare:state.score,oddone:state.score,
+  const scoreMap={quiz:state.score,flag:state.score,capital:state.score,findmap:state.score,compare:state.score,oddone:state.score,landmark:state.score,
     countdown:sovFoundCount(),region:regionFoundCount(),conquer:state.conquerDone,place:state.placeTotal,locate:state.locTotal};
   if(scoreMap[m]!==undefined){ const r=recordResult(m,scoreMap[m]);
     if(r&&r.isBest&&scoreMap[m]>0){ const s=$('ovsub'); s.textContent=s.textContent+LT(' · 🏆 최고 기록!',' · 🏆 New best!'); } }
@@ -8655,7 +9563,7 @@ function vsAfterAnswer(correct){
     if(state.vsDone>=state.vsRounds){ endVs(); return; }
     state.turn^=1; updateVsBar();
     const m=state.mode;
-    if(m==='quiz') nextQuizTarget(); else if(m==='flag') nextFlagTarget(); else if(m==='findmap') nextFindTarget(); else if(m==='hint') nextHintTarget(); else if(m==='capital') nextCapitalTarget();
+    if(m==='quiz') nextQuizTarget(); else if(m==='flag') nextFlagTarget(); else if(m==='findmap') nextFindTarget(); else if(m==='hint') nextHintTarget(); else if(m==='capital') nextCapitalTarget(); else if(m==='landmark') nextLandmarkTarget();
     if(m!=='findmap') el.q.focus();
   }, correct?900:1150);
 }
