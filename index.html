@@ -131,6 +131,7 @@ select#region:focus{outline:none;border-color:var(--border2)}
 #promptbar .fun-note{font-size:12.5px;color:var(--muted);margin-top:4px}
 #promptbar .rk-clue{display:flex;flex-direction:column;gap:5px;text-align:left;max-width:640px;margin:0 auto 8px;font-size:clamp(13px,3.2vw,16px);line-height:1.45}
 #promptbar .rk-clue>div{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:8px 11px}
+#promptbar .sym-q-big{font-size:clamp(52px,12vw,84px);line-height:1;margin:2px 0}
 @keyframes fadeSlide{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
 @keyframes cardIn{from{opacity:0;transform:translateY(5px) scale(.94)}to{opacity:1;transform:none}}
 #inputrow{display:flex;gap:8px;padding:8px 16px 4px;max-width:680px;margin:0 auto;width:100%;justify-content:center}
@@ -746,6 +747,8 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
 .sym-cell:hover{background:var(--surface2)}
 .sym-cell .sf{font-size:34px;line-height:1}
 .sym-cell .sn{font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.sym-cell.name-only{justify-content:center;min-height:52px;padding:10px 8px}
+.sym-cell.name-only .sn{font-size:13.5px;font-weight:700;color:var(--text);white-space:normal;line-height:1.2}
 .sym-cell.sel{border-color:var(--found);background:color-mix(in srgb,var(--found) 16%,var(--surface))}
 .sym-cell.sel::after{content:"✓";position:absolute;top:3px;right:6px;color:var(--found);font-weight:900;font-size:13px}
 .sym-cell.right{border-color:var(--ok);background:var(--ok-dim)}
@@ -3666,6 +3669,9 @@ function buildRankedMatch(elo, u, placement){
   for(const e of main){ if(q.length>=RANKED_N) break; if(!used.has(e.id)){ q.push(mk(e,false)); used.add(e.id); } }
   const out=shuffleArr(q).slice(0,RANKED_N);
   if(FUN_ROUNDS.length && Math.random()<0.15){ const fr=FUN_ROUNDS[Math.floor(Math.random()*FUN_ROUNDS.length)]; out[Math.floor(Math.random()*out.length)]={fun:fr}; }   // slim chance of a bonus round
+  // Platinum+ only: a flag-symbol question (name a country whose flag has the symbol — no flags shown)
+  if(elo>=1680 && typeof symPickable==='function'){ const pk=symPickable(); if(pk.length && Math.random()<0.28){ const sy=pk[Math.floor(Math.random()*pk.length)];
+      let idx=-1; for(let k=0;k<out.length;k++){ if(!out[k].fun){ idx=k; break; } } if(idx>=0) out[idx]={sym:sy, base:'symname'}; } }
   return out;
 }
 function rankedRenderQ(base, e){
@@ -3703,6 +3709,10 @@ function startRanked(){
   setFeedback(modeTxt+' · '+LT('정확한 이름만 · 문제당 '+RANKED_QTIME+'초 · 건너뛰기 없음','exact names · '+RANKED_QTIME+'s per question · no skips'),'info');
   rankedShowQuestion(); el.q.focus();
 }
+function rankedRenderSym(sy){ state.target=null; allEntries.forEach(x=>x.el.classList.remove('target')); resetView();
+  el.prompt.innerHTML='<div class="fun-badge">💠 '+LT('플래티넘+ · 국기 기호','Platinum+ · flag symbol')+'</div>'
+    +'<div class="sym-q-big">'+sy.emoji+'</div>'
+    +'<div class="fun-q">'+LT('이 기호가 국기에 들어간 나라를 하나 <b>정확히</b> 대세요.','Name a country whose flag has this '+(EN()?sy.en:sy.ko)+' — <b>exactly</b>.')+'</div>'; }
 function rankedRenderFun(fr){ state.target=null; allEntries.forEach(x=>x.el.classList.remove('target')); resetView();
   el.prompt.innerHTML='<div class="fun-badge">🎉 '+LT('보너스 라운드','Bonus round')+'</div>'
     +'<div class="fun-q">'+fr.ic+' '+LT(fr.qko,fr.qen)+'</div>'
@@ -3711,6 +3721,7 @@ function rankedShowQuestion(){
   if(state.rankedIdx>=state.rankedQueue.length){ endRanked(false); return; }
   state.rankedItem=state.rankedQueue[state.rankedIdx]; clearMap();
   if(state.rankedItem.fun) rankedRenderFun(state.rankedItem.fun);
+  else if(state.rankedItem.sym) rankedRenderSym(state.rankedItem.sym);
   else rankedRenderQ(state.rankedItem.base||'quiz', state.rankedItem.entry);
   el.q.value=''; state.rankedQEnd=perfNow()+RANKED_QTIME*1000; state.rankedAwaiting=true; startRankedTimer();
 }
@@ -3722,6 +3733,16 @@ function rankedAnswer(correct){
     else { celebrate(false,LT('보너스 종료','Bonus over')); setFeedback(LT('보너스 라운드였어요 — ELO는 잃지 않아요.','That was a bonus round — no ELO lost.'),'info'); }
     el.q.value=''; state.rankedIdx++;
     const gg=state.gen; setTimeout(()=>{ if(state.gen!==gg||state.ended||state.mode!=='ranked') return; rankedShowQuestion(); }, 900);
+    return;
+  }
+  if(state.rankedItem.sym){   // Platinum+ flag-symbol question — name any country with the symbol
+    const sy=state.rankedItem.sym, exp=expectedScore(state.rankedElo0, state.rankedElo0);   // neutral difficulty
+    state.rankedDelta += ELO_K*((correct?1:0)-exp);
+    if(correct){ state.rankedHit++; state.score++; updateScore(); }
+    celebrate(correct, correct?LT('정답!','Correct!'):LT('땡!','Miss'));
+    setFeedback(correct?(LT('정답! ','Correct! ')+sy.emoji+' '+LT(sy.ko,sy.en)):(LT('아쉬워요 · ','Missed · ')+sy.emoji+' '+LT(sy.ko,sy.en)), correct?'ok':'no', correct?'check':'x');
+    el.q.value=''; state.rankedIdx++;
+    const gs=state.gen; setTimeout(()=>{ if(state.gen!==gs||state.ended||state.mode!=='ranked') return; rankedShowQuestion(); }, correct?750:1250);
     return;
   }
   const e=state.rankedItem.entry, D=countryDifficulty(e), exp=expectedScore(D,state.rankedElo0);
@@ -3845,13 +3866,13 @@ function nextSym(){
   state.symSel=new Set(); state.symAnswer=has;
   el.symQ.innerHTML=LT((state.symRound+1)+'/'+state.symTotal+' · <b>'+sym.emoji+' '+sym.ko+'</b> 기호가 든 국기를 모두 고르세요.',
     (state.symRound+1)+'/'+state.symTotal+' · Pick every flag with a <b>'+sym.emoji+' '+sym.en+'</b>.');
-  el.symFact.textContent=LT('고른 뒤 제출을 누르세요.','Tap the flags, then Submit.');
+  el.symFact.textContent=LT('국기를 기억해서 고르세요 · 1개까지 실수해도 통과!','Recall each country’s flag from memory · 1 mistake is OK!');
   renderSymGrid();
 }
 function renderSymGrid(){
   el.symGrid.innerHTML='';
-  state.symBank.forEach(e=>{ const b=document.createElement('button'); b.className='sym-cell'+(state.symSel.has(e.id)?' sel':'');
-    b.innerHTML='<span class="sf">'+flagEmoji(e.i2)+'</span><span class="sn">'+esc(NM(e))+'</span>';
+  state.symBank.forEach(e=>{ const b=document.createElement('button'); b.className='sym-cell name-only'+(state.symSel.has(e.id)?' sel':'');
+    b.innerHTML='<span class="sn">'+esc(NM(e))+'</span>';   // names only — you must know each country's flag from memory
     b.onclick=()=>{ if(state.symLocked) return; if(state.symSel.has(e.id)) state.symSel.delete(e.id); else state.symSel.add(e.id); b.classList.toggle('sel',state.symSel.has(e.id)); };
     el.symGrid.appendChild(b); });
 }
@@ -3861,11 +3882,11 @@ function symSubmit(){
   cells.forEach((c,i)=>{ const e=state.symBank[i], isAns=state.symAnswer.has(e.i2), picked=state.symSel.has(e.id);
     if(picked&&isAns){ c.classList.add('right'); right++; } else if(picked&&!isAns){ c.classList.add('wrong'); wrong++; } else if(!picked&&isAns){ c.classList.add('missed'); missed++; } });
   const answers=state.symBank.filter(e=>state.symAnswer.has(e.i2)).length;
-  const perfect=(wrong===0&&missed===0);
-  if(perfect){ state.score++; updateScore(); celebrate(true,LT('완벽!','Perfect!')); }
+  const perfect=(wrong===0&&missed===0), ok=(wrong+missed)<=1;   // one mistake is still a pass
+  if(ok){ state.score++; updateScore(); celebrate(true,perfect?LT('완벽!','Perfect!'):LT('통과!','Passed!')); }
   else celebrate(false,LT('아쉬워요','Close'));
-  el.symFact.innerHTML=(EN()?(right+'/'+answers+' right · '+wrong+' wrong · '+missed+' missed'+(perfect?' · <b>+1</b>':''))
-    :('정답 '+right+'/'+answers+' · 오답 '+wrong+' · 놓침 '+missed+(perfect?' · <b>+1점</b>':'')));
+  el.symFact.innerHTML=(EN()?(right+'/'+answers+' right · '+wrong+' wrong · '+missed+' missed'+(ok?' · <b>+1</b>'+(perfect?' ✨':''):''))
+    :('정답 '+right+'/'+answers+' · 오답 '+wrong+' · 놓침 '+missed+(ok?' · <b>+1점</b>'+(perfect?' ✨':''):'')));
   state.symRound++;
   const g=state.gen; setTimeout(()=>{ if(state.gen!==g||state.ended||state.mode!=='sym') return;
     if(state.symRound>=state.symTotal) endSym(); else nextSym(); }, 1800);
@@ -10338,6 +10359,10 @@ function submit(){
     if(state.rankedItem && state.rankedItem.fun){
       if(funMatch(raw, state.rankedItem.fun)) rankedAnswer(true);
       else { shakeInput(); setFeedback(LT('음… 다른 답을 대보세요!','Hmm — try a different answer!'),'no','x'); el.q.value=''; }
+      return; }
+    if(state.rankedItem && state.rankedItem.sym){
+      if(entry && state.rankedItem.sym.iso2.indexOf(entry.i2)>=0) rankedAnswer(true);
+      else { shakeInput(); setFeedback(LT('그 나라 국기엔 이 기호가 없어요 — 다시!','That flag doesn’t have this symbol — try again!'),'no','x'); el.q.value=''; }
       return; }
     if(!entry){ notFound(raw); return; }
     if(state.target && entry.id===state.target.id){ rankedAnswer(true); }
