@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>세계 지도 하이라이트 — 나라 찾기 게임</title>
+<title>Georama · 지오라마 — 지도로 배우는 지리 게임</title>
 <meta name="description" content="나라 이름이나 약자를 입력하면 세계 지도에서 해당 나라가 하이라이트됩니다. 학습 카드, 타이머, 여러 게임 모드 포함.">
 <meta name="theme-color" content="#0b0b0d">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -473,7 +473,7 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
   <header>
     <div class="bar bar-top">
       <button class="btn hidden" id="homebtn" data-icon="home"><span class="t">홈</span></button>
-      <div class="brand" id="brand"><span data-icon="globe"></span> 세계 지도 하이라이트</div>
+      <div class="brand" id="brand"><span data-icon="globe"></span> 지오라마</div>
       <span class="modetitle" id="modetitle"></span>
       <button class="btn" id="langbtn" title="Language / 언어" style="margin-left:auto">EN</button>
     </div>
@@ -563,7 +563,7 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
       <button class="home-chip" id="profilebtn" aria-haspopup="dialog"><span data-icon="user"></span> <span id="profilebtn-t">로그인</span></button>
       <button class="home-chip" id="homelang" title="Language / 언어">English</button>
     </div>
-    <h1 class="home-title"><span data-icon="globe"></span> 세계 지도 하이라이트</h1>
+    <h1 class="home-title"><span data-icon="globe"></span> 지오라마</h1>
     <p class="home-sub">지도로 배우고 겨루는 지리 게임 모음 · 원하는 놀이를 골라 보세요</p>
     <section id="profilecard" class="hidden" aria-label="내 기록"></section>
     <div id="home-content"></div>
@@ -8108,9 +8108,9 @@ function applyLang(){
   if(el.langbtn) el.langbtn.textContent=en?'한국어':'EN';
   if(el.homelang) el.homelang.textContent=en?'한국어':'English';
   // brand / titles
-  el.brand.innerHTML='<span data-icon="globe"></span> '+(en?'World Map Highlighter':'세계 지도 하이라이트');
+  el.brand.innerHTML='<span data-icon="globe"></span> '+(en?'Georama':'지오라마');
   el.brand.querySelector('[data-icon]').insertAdjacentHTML('afterbegin',ICONS.globe);
-  const ht=document.querySelector('.home-title'); if(ht){ ht.innerHTML='<span data-icon="globe"></span> '+(en?'World Map Highlighter':'세계 지도 하이라이트'); ht.querySelector('[data-icon]').insertAdjacentHTML('afterbegin',ICONS.globe); }
+  const ht=document.querySelector('.home-title'); if(ht){ ht.innerHTML='<span data-icon="globe"></span> '+(en?'Georama':'지오라마'); ht.querySelector('[data-icon]').insertAdjacentHTML('afterbegin',ICONS.globe); }
   const hsub=document.querySelector('.home-sub'); if(hsub) hsub.textContent=en?'A set of map games to learn and compete · pick one to play':'지도로 배우고 겨루는 지리 게임 모음 · 원하는 놀이를 골라 보세요';
   // static buttons
   setBtnLabel('homebtn',LT('홈','Home'));
