@@ -520,6 +520,8 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 .adm-in{width:74px;background:var(--surface3);border:1px solid var(--border2);border-radius:8px;padding:6px 8px;font:inherit;font-size:12.5px;color:var(--text)}
 .adm-sel{background:var(--surface3);border:1px solid var(--border2);border-radius:8px;padding:6px 8px;font:inherit;font-size:12.5px;color:var(--text)}
 .adm-note{font-size:11.5px;color:var(--muted);margin-top:2px}
+.adm-rml{width:92px;display:inline-block;font-size:12px;color:var(--muted)}
+.adm-ok{color:var(--accent);font-weight:800}.adm-no{color:var(--muted)}
 .adm-tag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-ink);background:var(--accent);border-radius:5px;padding:2px 6px;vertical-align:2px}
 .set-card{width:min(440px,94vw);max-height:88vh;overflow-y:auto}
 .set-block{margin-top:16px}
@@ -10959,9 +10961,22 @@ function renderAdmin(){
   if(!u){ h+='<div class="adm-block"><div class="adm-h">'+LT('계정 없음','No account')+'</div><div class="adm-row"><button class="adm-btn" id="adm-mktest">'+LT('테스트 계정 만들기','Create test account')+'</button></div></div>';
     body.innerHTML=h; $('adm-mktest').onclick=()=>{ admMakeTest(); renderAdmin(); }; return; }
   const st=u.stats||{};
-  h+='<div class="adm-block"><div class="adm-h">'+LT('랭크 · 레벨','Rank & level')+'</div>'
-    +'<div class="adm-row">ELO <input class="adm-in" id="adm-elo" type="number" value="'+(st.elo!=null?Math.round(st.elo):1000)+'"><button class="adm-btn" id="adm-setelo">'+LT('적용','Set')+'</button>'
-    +'<button class="adm-btn" data-d="-100">-100</button><button class="adm-btn" data-d="250">+250</button></div>'
+  const rankOpts=RANK_MAIN.map((t,i)=>'<option value="'+i+'"'+(i===rankMain(u)?' selected':'')+'>'+t.ic+' '+esc(LT(t.ko,t.en))+'</option>').join('');
+  const rmRows=RM.map(m=>{ const unl=modeUnlocked(u,m.k), cur=rmElo(u,m.k);
+    return '<div class="adm-row"><span class="adm-rml">'+esc(LT(m.ko,m.en))+(unl?'':' 🔒')+'</span><input class="adm-in" id="adm-rm-'+m.k+'" type="number" min="0" max="'+MODE_ELO_MAX+'" value="'+(cur!=null?cur:'')+'" placeholder="0"></div>'; }).join('');
+  const nR=rankMain(u)+1, hasNext=nR<RANK_MAIN.length, req=hasNext?(RANK_REQ[nR]||{}):{};
+  const reqTxt=hasNext?(Object.keys(req).length?Object.keys(req).map(m=>{ const ok=(rmElo(u,m)||0)>=req[m]; return '<span class="'+(ok?'adm-ok':'adm-no')+'">'+esc(LT(RM_LABEL[m].ko,RM_LABEL[m].en))+' '+(rmElo(u,m)||0)+'/'+req[m]+(ok?' ✓':'')+'</span>'; }).join(' · '):LT('조건 없음','no requirements')):LT('최고 등급','max rank');
+  h+='<div class="adm-block"><div class="adm-h">🏆 '+LT('랭크전 (종목별 ELO)','Ranked (per-mode ELO)')+'</div>'
+    +'<div class="adm-row"><span class="adm-rml">'+LT('메인 등급','Main rank')+'</span><select class="adm-sel" id="adm-rank">'+rankOpts+'</select><button class="adm-btn" id="adm-setrank">'+LT('적용','Set')+'</button></div>'
+    +'<div class="adm-row"><button class="adm-btn" id="adm-placed">'+(st.placed?LT('배치 해제','Unplace'):LT('배치 완료로','Mark placed'))+'</button><span class="adm-note" style="margin:0">'+(st.placed?LT('배치됨','placed'):LT('미배치','unplaced'))+'</span></div>'
+    +'<div class="adm-h" style="margin-top:8px;color:var(--muted)">'+LT('종목 ELO (0–'+MODE_ELO_MAX+')','Mode ELO (0–'+MODE_ELO_MAX+')')+'</div>'
+    + rmRows
+    +'<div class="adm-row"><button class="adm-btn" id="adm-rm-apply">'+LT('종목 ELO 적용','Apply mode ELO')+'</button><button class="adm-btn" id="adm-rm-max">'+LT('전부 최대','All max')+'</button><button class="adm-btn" id="adm-rm-clear">'+LT('전부 0','All 0')+'</button></div>'
+    +'<div class="adm-h" style="margin-top:8px;color:var(--muted)">'+LT('승급','Promotion')+'</div>'
+    +'<div class="adm-note" style="margin:0 0 6px">'+LT('다음','Next')+': '+(hasNext?(RANK_MAIN[nR].ic+' '+esc(LT(RANK_MAIN[nR].ko,RANK_MAIN[nR].en))+' — '+reqTxt):reqTxt)+(hasNext?(' · '+(canPromote(u)?LT('승급 가능 ✓','ready ✓'):LT('조건 미충족','not ready'))):'')+'</div>'
+    +'<div class="adm-row"><button class="adm-btn" id="adm-meetreq"'+(hasNext?'':' disabled')+'>'+LT('다음 등급 조건 채우기','Meet next reqs')+'</button><button class="adm-btn" id="adm-exam"'+(hasNext?'':' disabled')+'>⭐ '+LT('승급 시험','Promotion exam')+'</button></div>'
+    +'<div class="adm-row"><button class="adm-btn" id="adm-promote"'+(hasNext?'':' disabled')+'>'+LT('바로 승급 +컷신','Promote now +cutscene')+'</button><button class="adm-btn" id="adm-place-test">'+LT('배치고사 보기','Placement test')+'</button></div></div>';
+  h+='<div class="adm-block"><div class="adm-h">'+LT('레벨 · XP','Level & XP')+'</div>'
     +'<div class="adm-row">Lv <input class="adm-in" id="adm-lvl" type="number" value="'+levelForXp(st.xp||0)+'"><button class="adm-btn" id="adm-setlvl">'+LT('레벨 적용','Set level')+'</button>'
     +'<button class="adm-btn" id="adm-addxp">+500 XP</button></div></div>';
   h+='<div class="adm-block"><div class="adm-h">'+LT('종목 등급 (티어 테스트)','Category tier')+'</div>'
@@ -10982,8 +10997,16 @@ function renderAdmin(){
     +'<div class="adm-note">'+LT('“초기화”는 이 계정 기록을 모두 지워요(클라우드 포함). “기기 삭제”는 세션·캐시를 지우고 새로고침해요.','“Reset” wipes this account’s stats (cloud included). “Wipe device” clears the session/cache and reloads.')+'</div></div>';
   body.innerHTML=h;
   const re=()=>{ accSave(); renderProfile(); renderAdmin(); };
-  $('adm-setelo').onclick=()=>{ u.stats.rankElo=u.stats.rankElo||{}; u.stats.rankElo.quiz=Math.max(0,Math.round(+$('adm-elo').value||0)); u.stats.placed=true; u.stats.rank=Math.max(rankMain(u),highestNameRank(u)); u.stats.elo=rankPower(u); unlockTierCosmetics(); re(); };
-  body.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{ u.stats.rankElo=u.stats.rankElo||{}; u.stats.rankElo.quiz=Math.max(0,(rmElo(u,'quiz')||0)+(+b.dataset.d)); u.stats.placed=true; u.stats.rank=Math.max(rankMain(u),highestNameRank(u)); u.stats.elo=rankPower(u); re(); });
+  const syncRank=()=>{ u.stats.rankElo=u.stats.rankElo||{}; u.stats.elo=rankPower(u); unlockTierCosmetics(); };
+  $('adm-setrank').onclick=()=>{ u.stats.rank=Math.max(0,Math.min(RANK_MAIN.length-1,Math.round(+$('adm-rank').value||0))); u.stats.placed=true; syncRank(); re(); };
+  $('adm-placed').onclick=()=>{ u.stats.placed=!u.stats.placed; if(u.stats.placed && rmElo(u,'quiz')==null){ u.stats.rankElo=u.stats.rankElo||{}; u.stats.rankElo.quiz=200; } syncRank(); re(); };
+  $('adm-rm-apply').onclick=()=>{ u.stats.rankElo=u.stats.rankElo||{}; RM.forEach(m=>{ const el=$('adm-rm-'+m.k); if(el&&el.value!=='') u.stats.rankElo[m.k]=Math.max(0,Math.min(MODE_ELO_MAX,Math.round(+el.value||0))); }); if(Object.keys(u.stats.rankElo).length) u.stats.placed=true; syncRank(); re(); };
+  $('adm-rm-max').onclick=()=>{ u.stats.rankElo=u.stats.rankElo||{}; RM.forEach(m=>u.stats.rankElo[m.k]=MODE_ELO_MAX); u.stats.placed=true; syncRank(); re(); };
+  $('adm-rm-clear').onclick=()=>{ u.stats.rankElo={}; syncRank(); re(); };
+  $('adm-meetreq').onclick=()=>{ if(nR>=RANK_MAIN.length) return; u.stats.rankElo=u.stats.rankElo||{}; const rq=RANK_REQ[nR]||{}; Object.keys(rq).forEach(m=>{ u.stats.rankElo[m]=Math.max(rmElo(u,m)||0, rq[m]); }); u.stats.placed=true; syncRank(); re(); };
+  $('adm-promote').onclick=()=>{ const r=rankMain(u); if(r>=RANK_MAIN.length-1) return; u.stats.rank=r+1; u.stats.placed=true; syncRank(); accSave(); renderProfile(); closeAdmin(); const t=RANK_MAIN[u.stats.rank]; playTierCutscene('rank', LT(t.ko,t.en), LT('승급!','Promoted!'), t.ic); };
+  $('adm-exam').onclick=()=>{ closeAdmin(); state.rankedExam=true; state.rankedPlacement=false; playRanked(); };
+  $('adm-place-test').onclick=()=>{ closeAdmin(); state.rankedExam=false; state.rankedMode='quiz'; state.rankedPlacement=true; playRanked(); };
   $('adm-setlvl').onclick=()=>{ u.stats.xp=xpForLevel(Math.max(0,Math.round(+$('adm-lvl').value||0))); re(); };
   $('adm-addxp').onclick=()=>{ addXP(u,500); re(); };
   $('adm-setbest').onclick=()=>{ const m=$('adm-mode').value, v=Math.max(0,Math.round(+$('adm-best').value||0)); u.stats.best=u.stats.best||{}; u.stats.best[m]=v; re(); };
