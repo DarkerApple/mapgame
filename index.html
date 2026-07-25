@@ -262,33 +262,40 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 #studypanel.study .sp-item{padding:11px 13px;gap:13px}
 #studypanel.study .sp-name{font-size:15.5px}
 
-/* ---------- home screen (neal.fun style card grid) ---------- */
-#home{position:fixed;inset:0;z-index:40;overflow-y:auto;background:
-  radial-gradient(120% 80% at 50% -10%,#16181d,var(--bg) 70%);display:none}
+/* ---------- home screen (modern app-launcher grid) ---------- */
+#home{position:fixed;inset:0;z-index:40;overflow-y:auto;display:none;
+  background:radial-gradient(130% 90% at 50% -20%,#181b22 0%,#101216 42%,var(--bg) 100%)}
 #home.show{display:block}
-.home-inner{position:relative;max-width:1080px;margin:0 auto;padding:46px 22px calc(46px + env(safe-area-inset-bottom))}
-.home-title{display:flex;align-items:center;gap:11px;font-size:30px;font-weight:800;letter-spacing:-.02em}
-.home-title .ic{width:32px;height:32px}
-.home-sub{color:var(--muted);font-size:15px;margin:6px 0 26px}
-.home-sec{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.04em;margin:26px 2px 12px;text-transform:uppercase}
-.home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px}
-.gcard{display:block;position:relative;background:var(--surface);border:1px solid var(--border);
-  border-radius:16px;overflow:hidden;cursor:pointer;text-align:left;color:var(--text);font:inherit;
-  transition:transform .16s cubic-bezier(.2,.8,.3,1.2),border-color .16s,box-shadow .16s}
-.gcard:hover{transform:translateY(-5px);border-color:var(--border2);box-shadow:var(--shadow)}
+.home-inner{position:relative;max-width:1120px;margin:0 auto;padding:40px 24px calc(56px + env(safe-area-inset-bottom))}
+.home-title{display:flex;align-items:center;gap:12px;font-size:clamp(26px,4.4vw,34px);font-weight:800;letter-spacing:-.03em}
+.home-title .ic{width:clamp(28px,5vw,36px);height:clamp(28px,5vw,36px);color:var(--muted)}
+.home-sub{color:var(--muted);font-size:15px;margin:8px 0 30px}
+.home-sec{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:800;color:var(--muted);
+  letter-spacing:.02em;margin:30px 2px 14px}
+.home-sec::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--border) 0%,transparent 100%)}
+.home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:14px}
+.gcard{display:flex;align-items:center;gap:15px;text-align:left;padding:17px 18px;border-radius:16px;
+  background:linear-gradient(180deg,var(--surface) 0%,#111318 100%);border:1px solid var(--border);
+  cursor:pointer;color:var(--text);font:inherit;position:relative;overflow:hidden;
+  transition:transform .16s cubic-bezier(.2,.8,.3,1.2),border-color .16s,box-shadow .2s}
+.gcard::before{content:"";position:absolute;inset:0;border-radius:16px;padding:1px;pointer-events:none;opacity:0;
+  background:linear-gradient(140deg,var(--gc,#4ea1ff),transparent 55%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;transition:opacity .2s}
+.gcard:hover{transform:translateY(-3px);border-color:transparent;box-shadow:0 12px 30px rgba(0,0,0,.45)}
+.gcard:hover::before{opacity:.9}
 .gcard:active{transform:translateY(-1px)}
-.gcard .thumb{aspect-ratio:16/9;overflow:hidden;position:relative;background:linear-gradient(160deg,#191c22,#0d0f13)}
-.gcard .thumb svg{width:100%;height:100%;display:block;transition:transform .3s}
-.gcard:hover .thumb svg{transform:scale(1.06)}
-.gcard .cov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:5px;padding:14px 16px;text-align:center;
-  background:radial-gradient(120% 90% at 50% 46%, rgba(9,10,13,.28) 0%, rgba(9,10,13,.5) 55%, rgba(9,10,13,.82) 100%)}
-.gcard .ctitle{font-size:25px;font-weight:800;letter-spacing:-.02em;line-height:1.08;
-  text-shadow:0 2px 16px rgba(0,0,0,.92),0 1px 3px rgba(0,0,0,.95)}
-.gcard .cdesc{font-size:12.5px;color:#e7eaf0;max-width:90%;line-height:1.4;
-  text-shadow:0 1px 9px rgba(0,0,0,1),0 1px 2px rgba(0,0,0,1)}
-@media(max-width:540px){ .gcard .ctitle{font-size:21px} .home-grid{grid-template-columns:1fr;gap:14px} }
+.gicon{flex:0 0 auto;width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+  background:color-mix(in srgb,var(--gc,#4ea1ff) 16%,transparent);color:var(--gc,#4ea1ff);
+  border:1px solid color-mix(in srgb,var(--gc,#4ea1ff) 30%,transparent);transition:transform .16s}
+.gicon .ic{width:25px;height:25px}
+.gcard:hover .gicon{transform:scale(1.07)}
+.gtext{min-width:0;display:block}
+.gcard .ctitle{display:block;font-size:16.5px;font-weight:800;letter-spacing:-.01em;line-height:1.15}
+.gcard .cdesc{display:block;font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.45}
+@media(max-width:540px){ .home-grid{grid-template-columns:1fr;gap:11px} .gcard{padding:15px 16px} }
 #homebtn .ic{width:16px;height:16px}
+/* fallback where color-mix isn't supported */
+@supports not (background:color-mix(in srgb,#000,#fff)){ .gicon{background:var(--surface3);border-color:var(--border2)} }
 
 /* home top bar (profile + language) */
 .home-title{margin:0}
@@ -355,7 +362,11 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
   animation:cardPop .3s cubic-bezier(.2,.9,.3,1.2);max-height:92vh;overflow-y:auto}
 .setup-back{position:absolute;top:16px;right:16px}
 .setup-hd{display:flex;align-items:center;gap:14px;margin:2px 0 18px}
-.setup-ic{flex:0 0 auto;width:64px;height:64px;border-radius:14px;overflow:hidden;border:1px solid var(--border)}
+.setup-ic{flex:0 0 auto;width:58px;height:58px;border-radius:16px;display:flex;align-items:center;justify-content:center;
+  background:color-mix(in srgb,var(--gc,#4ea1ff) 16%,transparent);color:var(--gc,#4ea1ff);
+  border:1px solid color-mix(in srgb,var(--gc,#4ea1ff) 30%,transparent)}
+.setup-ic .ic{width:30px;height:30px}
+@supports not (background:color-mix(in srgb,#000,#fff)){ .setup-ic{background:var(--surface3);border-color:var(--border2)} }
 .setup-ic svg{width:100%;height:100%;display:block}
 .setup-title{font-size:21px;font-weight:800;letter-spacing:-.01em}
 .setup-desc{font-size:13px;color:var(--muted);margin-top:3px;max-width:380px}
@@ -7770,41 +7781,6 @@ const MODES_META=[
 ];
 function modeTitle(x){ return EN()?(x.te||x.t):x.t; }
 function modeDesc(x){ return EN()?(x.de||x.d):x.d; }
-/* mini game-preview thumbnails (monochrome scenes, not icons) */
-function scn(inner){ return '<svg viewBox="0 0 200 150" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="150" fill="#0f1116"/>'+inner+'</svg>'; }
-const _L='#363b45', GOLD='#ffd54a', GRN='#34c777', BLU='#4ea1ff', ORG='#ff8a4c';
-const MM='<ellipse cx="52" cy="58" rx="40" ry="28" fill="'+_L+'"/><ellipse cx="150" cy="50" rx="33" ry="24" fill="'+_L+'"/><ellipse cx="98" cy="112" rx="34" ry="21" fill="'+_L+'"/>';
-function studyRows(){ let s=''; for(let i=0;i<4;i++){ const y=22+i*30, on=i===0;
-  s+='<rect x="18" y="'+y+'" width="164" height="24" rx="6" fill="'+(on?'rgba(52,199,119,.14)':'#171a20')+'" stroke="'+(on?GRN:'#262b33')+'"/>';
-  s+='<rect x="26" y="'+(y+5)+'" width="18" height="14" rx="3" fill="'+(on?GRN:'#8b909c')+'"/>';
-  s+='<rect x="52" y="'+(y+8)+'" width="72" height="8" rx="4" fill="#c9ced8"/>'; } return s; }
-function hintLines(){ let s=''; for(let i=0;i<3;i++){ const y=34+i*20;
-  s+='<circle cx="42" cy="'+(y+7)+'" r="7" fill="'+(i===0?ORG:'#2d323b')+'"/><text x="42" y="'+(y+10.5)+'" font-size="9" fill="'+(i===0?'#0b0b0d':'#8b909c')+'" text-anchor="middle" font-weight="800">'+(i+1)+'</text>';
-  s+='<rect x="56" y="'+(y+2)+'" width="'+(98-i*16)+'" height="9" rx="4" fill="#c9ced8"/>'; } return s; }
-function rankBars(){ const h=[86,68,54,42,30]; let s='<line x1="22" y1="126" x2="178" y2="126" stroke="#3a3f49" stroke-width="2"/>';
-  h.forEach((hh,i)=>{ const t=1-i/4, v=[Math.round(38+(86-38)*t),Math.round(52+(178-52)*t),Math.round(72+(255-72)*t)];
-    s+='<rect x="'+(30+i*30)+'" y="'+(126-hh)+'" width="22" height="'+hh+'" rx="3" fill="rgb('+v.join(',')+')"/>'; }); return s; }
-function triviaScene(){ let s='<rect x="26" y="22" width="148" height="16" rx="4" fill="#737b88"/>';
-  [[26,58],[104,58],[26,92],[104,92]].forEach((p,i)=>{ const ok=i===2; s+='<rect x="'+p[0]+'" y="'+p[1]+'" width="70" height="26" rx="7" fill="'+(ok?'rgba(52,199,119,.2)':'#20242c')+'" stroke="'+(ok?GRN:'#2d323b')+'" stroke-width="'+(ok?2:1)+'"/>';
-    if(ok) s+='<path d="M'+(p[0]+50)+' '+(p[1]+13)+' l4 5 8 -10" fill="none" stroke="'+GRN+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'; }); return s; }
-const THUMBS={
- free:scn(MM+'<ellipse cx="150" cy="50" rx="33" ry="24" fill="'+GRN+'"/>'),
- study:scn(studyRows()),
- rank:scn(rankBars()),
- locate:scn(MM+'<ellipse cx="52" cy="58" rx="40" ry="28" fill="'+GRN+'"/><circle cx="150" cy="50" r="16" fill="none" stroke="#fff" stroke-width="3"/><line x1="161" y1="61" x2="177" y2="77" stroke="#fff" stroke-width="4" stroke-linecap="round"/>'),
- quiz:scn(MM+'<ellipse cx="150" cy="50" rx="33" ry="24" fill="'+GOLD+'"/><text x="150" y="60" font-size="30" fill="#0b0b0d" text-anchor="middle" font-weight="900">?</text>'),
- findmap:scn(MM+'<circle cx="150" cy="50" r="19" fill="none" stroke="'+GOLD+'" stroke-width="4"/><line x1="163" y1="63" x2="180" y2="80" stroke="'+GOLD+'" stroke-width="4.5" stroke-linecap="round"/>'),
- flag:scn('<rect x="56" y="32" width="6" height="88" rx="2" fill="#737b88"/><path d="M62 38 q22 -9 44 0 t44 0 v42 q-22 9 -44 0 t-44 0Z" fill="#eef1f5"/><text x="150" y="118" font-size="36" fill="'+GOLD+'" text-anchor="middle" font-weight="900">?</text>'),
- capital:scn(MM+'<circle cx="150" cy="50" r="6" fill="'+GOLD+'"/><path d="M150 44 l1.8 3.8 4 .4-3 2.6 .9 4-3.7-2.1-3.7 2.1 .9-4-3-2.6 4-.4z" fill="#0f1116"/><path d="M150 56 v10" stroke="'+GOLD+'" stroke-width="2"/>'),
- compare:scn('<ellipse cx="55" cy="75" rx="44" ry="34" fill="'+GRN+'"/><ellipse cx="150" cy="78" rx="26" ry="20" fill="'+BLU+'"/><text x="55" y="82" font-size="26" fill="#0b0b0d" text-anchor="middle" font-weight="900">?</text><text x="150" y="85" font-size="20" fill="#eef1f5" text-anchor="middle" font-weight="900">?</text><text x="102" y="30" font-size="15" fill="#c9ced8" text-anchor="middle" font-weight="800">VS</text>'),
- hint:scn('<rect x="22" y="20" width="156" height="110" rx="12" fill="#1b1f27" stroke="#2d323b"/>'+hintLines()+'<text x="150" y="120" font-size="30" fill="'+ORG+'" text-anchor="middle" font-weight="900">?</text>'),
- place:scn(MM+'<ellipse cx="150" cy="50" rx="33" ry="24" fill="none" stroke="'+GOLD+'" stroke-width="2.5" stroke-dasharray="5 5"/><rect x="118" y="12" width="64" height="22" rx="6" fill="'+GOLD+'"/><path d="M150 34 L150 44" stroke="'+GOLD+'" stroke-width="3"/><path d="M150 50 l-5 -8 h10 z" fill="'+GOLD+'"/>'),
- conquer:scn('<ellipse cx="52" cy="58" rx="40" ry="28" fill="'+GRN+'"/><ellipse cx="150" cy="50" rx="33" ry="24" fill="#2e7d50"/><ellipse cx="98" cy="112" rx="34" ry="21" fill="#1f4c34"/>'),
- region:scn('<ellipse cx="52" cy="58" rx="40" ry="28" fill="'+BLU+'"/><ellipse cx="150" cy="50" rx="33" ry="24" fill="#2c5c8f"/><ellipse cx="98" cy="112" rx="34" ry="21" fill="#3d6fa0"/>'),
- countdown:scn(MM+'<circle cx="162" cy="116" r="20" fill="#0f1116" stroke="'+GOLD+'" stroke-width="3"/><path d="M162 116 V104 M162 116 l9 5" stroke="'+GOLD+'" stroke-width="3" stroke-linecap="round"/>'),
- trivia:scn(triviaScene()),
-};
-
 /* ---- pre-game setup (choose place/criteria before the timer starts) ---- */
 const SETUP_CFG={ study:['region'],place:['region'],
   quiz:['region','vs'],findmap:['region','vs'],flag:['region','vs'],hint:['region','vs'],
@@ -7855,22 +7831,24 @@ function showSetup(mode){
   state.pendingMode=mode;
   if(['study','place','region','hint','conquer'].includes(mode) && state.region==='전세계') state.region='동아시아';
   const meta=MODES_META.find(x=>x.m===mode);
-  el.setupIc.innerHTML=THUMBS[mode]||ICONS[meta.ic]||'';
+  el.setupIc.innerHTML=ICONS[meta.ic]||''; el.setupIc.style.setProperty('--gc',GROUP_ACCENT[meta.g]||'#4ea1ff');
   el.setupTitle.textContent=modeTitle(meta); el.setupDesc.textContent=modeDesc(meta);
   el.setupBody.innerHTML='';
   (SETUP_CFG[mode]||[]).forEach(c=>el.setupBody.appendChild(setupControl(c)));
   el.home.classList.remove('show'); el.setup.classList.add('show');
 }
+const GROUP_ACCENT={'배우기':'#34c777','이름·위치 맞히기':'#ffb454','퀴즈':'#4ea1ff','비교·순위':'#a78bfa','도전':'#ff8a4c','트리비아':'#f472b6'};
 function buildHome(){
   el.homeContent.innerHTML='';
   [...new Set(MODES_META.map(x=>x.g))].forEach((g,gi)=>{
-    const gname=EN()?(GROUP_EN[g]||g):g, secId='sec-'+gi;
+    const gname=EN()?(GROUP_EN[g]||g):g, secId='sec-'+gi, accent=GROUP_ACCENT[g]||'#4ea1ff';
     const h=document.createElement('h2'); h.className='home-sec'; h.id=secId; h.textContent=gname; el.homeContent.appendChild(h);
     const grid=document.createElement('div'); grid.className='home-grid'; grid.setAttribute('role','list'); grid.setAttribute('aria-labelledby',secId);
     MODES_META.filter(x=>x.g===g).forEach(x=>{
       const c=document.createElement('button'); c.className='gcard'; c.setAttribute('role','listitem');
+      c.style.setProperty('--gc',accent);
       c.setAttribute('aria-label',modeTitle(x)+'. '+modeDesc(x));
-      c.innerHTML='<div class="thumb">'+(THUMBS[x.m]||ICONS[x.ic]||'')+'<div class="cov"><div class="ctitle"></div><div class="cdesc"></div></div></div>';
+      c.innerHTML='<span class="gicon">'+(ICONS[x.ic]||'')+'</span><span class="gtext"><span class="ctitle"></span><span class="cdesc"></span></span>';
       c.querySelector('.ctitle').textContent=modeTitle(x); c.querySelector('.cdesc').textContent=modeDesc(x);
       c.onclick=()=>enterMode(x.m); grid.appendChild(c);
     });
