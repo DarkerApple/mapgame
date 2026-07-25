@@ -290,6 +290,62 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 @media(max-width:540px){ .gcard .ctitle{font-size:21px} .home-grid{grid-template-columns:1fr;gap:14px} }
 #homebtn .ic{width:16px;height:16px}
 
+/* home top bar (profile + language) */
+.home-title{margin:0}
+.home-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:20px}
+.home-chip{display:inline-flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border2);
+  color:var(--text);font:inherit;font-size:13.5px;font-weight:700;padding:8px 14px;border-radius:999px;cursor:pointer;transition:.14s}
+.home-chip:hover{background:var(--surface3);border-color:var(--muted)}
+.home-chip .ic{width:16px;height:16px}
+/* profile / stats card */
+#profilecard{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:16px 18px;margin:4px 0 10px}
+.pc-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.pc-avatar{width:40px;height:40px;border-radius:50%;background:var(--accent);color:var(--accent-ink);
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px}
+.pc-name{font-size:18px;font-weight:800}
+.pc-sub{color:var(--muted);font-size:12.5px}
+.pc-logout{margin-left:auto}
+.pc-stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:13px}
+.pc-stat{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:9px 14px;min-width:76px}
+.pc-stat .n{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
+.pc-stat .l{font-size:11px;color:var(--muted);margin-top:2px}
+/* auth modal */
+#auth{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:18px;
+  background:rgba(6,6,8,.74);backdrop-filter:blur(5px)}
+#auth.show{display:flex;animation:fade .2s ease}
+.auth-card{position:relative;background:var(--surface);border:1px solid var(--border2);border-radius:18px;
+  padding:26px 26px 20px;width:min(400px,94vw);box-shadow:var(--shadow);animation:cardPop .3s cubic-bezier(.2,.9,.3,1.2)}
+.auth-x{position:absolute;top:12px;right:12px;background:none;border:none;color:var(--muted);font-size:17px;cursor:pointer;
+  width:34px;height:34px;border-radius:9px;line-height:1}
+.auth-x:hover{background:var(--surface2);color:var(--text)}
+.auth-title{font-size:20px;font-weight:800;margin-bottom:2px}
+.auth-tabs{display:flex;gap:6px;background:var(--surface2);border-radius:12px;padding:4px;margin:15px 0 16px}
+.auth-tab{flex:1;background:none;border:none;color:var(--muted);font:inherit;font-weight:700;font-size:14px;padding:9px;border-radius:9px;cursor:pointer}
+.auth-tab.on{background:var(--accent);color:var(--accent-ink)}
+.auth-field{display:block;margin-bottom:12px}
+.auth-field span{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px;font-weight:700}
+.auth-field input{width:100%;background:var(--surface2);border:1px solid var(--border2);color:var(--text);font:inherit;font-size:15px;padding:11px 13px;border-radius:11px}
+.auth-field input:focus{outline:none;border-color:var(--accent)}
+.auth-msg{font-size:13px;min-height:18px;margin:2px 0 10px;font-weight:700}
+.auth-msg.err{color:var(--bad)} .auth-msg.ok{color:var(--ok)}
+.auth-submit{width:100%;padding:12px;font-size:15px}
+.auth-note{color:var(--faint);font-size:11.5px;margin-top:13px;text-align:center;line-height:1.5}
+.auth-sub2{color:var(--muted);font-size:13px;line-height:1.5;margin:8px 0 12px;text-align:center}
+.auth-xfer{display:flex;gap:8px;margin-top:12px;justify-content:center;flex-wrap:wrap}
+.auth-mini{flex:1;min-width:120px;padding:10px 12px;font-size:13px;justify-content:center}
+.auth-link{background:none;border:none;color:var(--muted);font:inherit;font-size:12.5px;font-weight:700;
+  cursor:pointer;text-decoration:underline;text-underline-offset:3px;margin-top:12px;width:100%;text-align:center;padding:6px}
+.auth-link:hover{color:var(--text)}
+.auth-code{width:100%;background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+  font:12px ui-monospace,SFMono-Regular,Menlo,monospace;padding:11px 12px;border-radius:11px;resize:vertical;word-break:break-all}
+.auth-code:focus{outline:none;border-color:var(--accent)}
+.auth-signedin{text-align:center}
+.auth-signedin .pc-avatar{margin:4px auto 10px;width:56px;height:56px;font-size:24px}
+/* keyboard focus visibility */
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.gcard:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
 /* ---------- pre-game setup screen ---------- */
 #setup{position:fixed;inset:0;z-index:41;display:none;align-items:center;justify-content:center;padding:20px;
   overflow-y:auto;background:radial-gradient(120% 80% at 50% -10%,#16181d,var(--bg) 70%)}
@@ -425,8 +481,8 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
     </div>
   </header>
 
-  <div id="vsbar" class="hidden"></div>
-  <div id="promptbar"></div>
+  <div id="vsbar" class="hidden" aria-live="polite"></div>
+  <div id="promptbar" aria-live="polite"></div>
 
   <div id="inputrow">
     <input id="q" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
@@ -440,7 +496,7 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
     <button class="btn hidden step" id="shuffle" data-icon="shuffle"><span class="t">섞기</span></button>
     <button class="btn hidden step" id="next" data-icon="next"><span class="t">다음</span></button>
   </div>
-  <div id="feedback"></div>
+  <div id="feedback" aria-live="polite"></div>
 
   <div id="stage">
     <div id="mapwrap">
@@ -452,9 +508,9 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
         <span><span class="sw tgt"></span>문제</span>
       </div>
       <div id="mapctrl">
-        <button class="btn" id="zin" data-icon="plus" title="확대"></button>
-        <button class="btn" id="zout" data-icon="minus" title="축소"></button>
-        <button class="btn" id="zfit" data-icon="fit" title="전체 보기"></button>
+        <button class="btn" id="zin" data-icon="plus" title="확대" aria-label="확대"></button>
+        <button class="btn" id="zout" data-icon="minus" title="축소" aria-label="축소"></button>
+        <button class="btn" id="zfit" data-icon="fit" title="전체 보기" aria-label="전체 보기"></button>
       </div>
       <div id="trivia">
         <div class="tv-head"><span id="tv-war"></span><span id="tv-prog"></span></div>
@@ -490,14 +546,18 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
   </footer>
 </div>
 
-<div id="home">
+<main id="home" aria-label="게임 홈">
   <div class="home-inner">
-    <button class="btn" id="homelang" title="Language / 언어" style="position:absolute;top:18px;right:18px">English</button>
-    <div class="home-title"><span data-icon="globe"></span> 세계 지도 하이라이트</div>
-    <div class="home-sub">지도로 배우고 겨루는 지리 게임 모음 · 원하는 놀이를 골라 보세요</div>
+    <div class="home-top">
+      <button class="home-chip" id="profilebtn" aria-haspopup="dialog"><span data-icon="user"></span> <span id="profilebtn-t">로그인</span></button>
+      <button class="home-chip" id="homelang" title="Language / 언어">English</button>
+    </div>
+    <h1 class="home-title"><span data-icon="globe"></span> 세계 지도 하이라이트</h1>
+    <p class="home-sub">지도로 배우고 겨루는 지리 게임 모음 · 원하는 놀이를 골라 보세요</p>
+    <section id="profilecard" class="hidden" aria-label="내 기록"></section>
     <div id="home-content"></div>
   </div>
-</div>
+</main>
 
 <div id="setup">
   <div class="setup-card">
@@ -512,11 +572,18 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
 </div>
 
 <div id="overlay">
-  <div class="card">
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="ovtitle">
     <h2 id="ovtitle">결과</h2>
     <div class="big" id="ovbig">0</div>
     <p id="ovsub"></p>
     <button class="btn solid" id="ovbtn">다시 하기</button>
+  </div>
+</div>
+
+<div id="auth" aria-hidden="true">
+  <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+    <button class="auth-x" id="auth-close" aria-label="닫기">✕</button>
+    <div id="auth-body"></div>
   </div>
 </div>
 
@@ -525,7 +592,7 @@ const MAPDATA = {"vb":[0,0,360,180],"list":[{"id":"AF","ko":"아프가니스탄"
 const MAPSTATS = {"AF":{"pop":42647492,"gdp":14502158192,"gpc":340,"area":652230,"dens":65.4,"temp":13.4,"gov":"이슬람 토후국","gove":"Islamic Emirate","cap":"카불","cape":"Kabul","lat":33,"land":1,"nb":["이란","파키스탄","투르크메니스탄","우즈베키스탄","타지키스탄","중국"],"nbe":["Iran","Pakistan","Turkmenistan","Uzbekistan","Tajikistan","China"]},"AO":{"pop":37885849,"gdp":84722957642,"gpc":2236,"area":1246700,"dens":30.4,"elev":1112,"temp":21.8,"gov":"공화국","gove":"Republic","cap":"루안다","cape":"Luanda","lat":-12.5,"land":0,"nb":["콩고공화국","콩고민주공화국","잠비아","나미비아"],"nbe":["Republic of the Congo","Democratic Republic of the Congo","Zambia","Namibia"]},"AL":{"pop":2377128,"gdp":22977677861,"gpc":9666,"area":28748,"dens":82.7,"temp":12.4,"gov":"공화국","gove":"Republic","cap":"티라나","cape":"Tirana","lat":41,"land":0,"nb":["몬테네그로","그리스","북마케도니아","코소보"],"nbe":["Montenegro","Greece","Macedonia","Kosovo"]},"AE":{"pop":10986400,"gdp":504173451327,"gpc":45891,"area":83600,"dens":131.4,"elev":149,"temp":28.2,"gov":"토후국 연방","gove":"Emirate Federation","cap":"아부다비","cape":"Abu Dhabi","lat":24,"land":0,"nb":["오만","사우디아라비아"],"nbe":["Oman","Saudi Arabia"]},"AR":{"pop":45696159,"gdp":640591410664,"gpc":14018,"area":2780400,"dens":16.4,"elev":595,"temp":15.1,"gov":"연방 공화국","gove":"Federal Republic","cap":"부에노스아이레스","cape":"Buenos Aires","lat":-34,"land":0,"nb":["볼리비아","브라질","칠레","파라과이","우루과이"],"nbe":["Bolivia","Brazil","Chile","Paraguay","Uruguay"]},"AM":{"pop":3033500,"gdp":24212134631,"gpc":7982,"area":29743,"dens":102.0,"elev":1792,"temp":7.8,"gov":"공화국","gove":"Republic","cap":"예레반","cape":"Yerevan","lat":40,"land":1,"nb":["아제르바이잔","조지아","이란","튀르키예"],"nbe":["Azerbaijan","Georgia","Iran","Turkey"]},"AQ":{"area":14000000,"elev":2300,"gov":"공동 통치","gove":"Co-administrated","lat":-90,"land":0},"TF":{"area":7747,"temp":4.1,"gov":"프랑스 해외 영토","gove":"Nonmetropolitan Territory of France","cap":"Port-aux-Français","cape":"Port-aux-Français","lat":-49.2,"land":0},"AU":{"pop":27196812,"gdp":1723827215335,"gpc":63383,"area":7692024,"dens":3.5,"elev":330,"temp":22.1,"gov":"연방 입헌군주국","gove":"Federation Constitutional Monarchy","cap":"캔버라","cape":"Canberra","lat":-27,"land":0},"AT":{"pop":9177982,"gdp":516034144116,"gpc":56225,"area":83871,"dens":109.4,"elev":910,"temp":7.4,"gov":"연방 공화국","gove":"Federal Republic","cap":"빈","cape":"Vienna","lat":47.3,"land":1,"nb":["체코","독일","헝가리","이탈리아","리히텐슈타인","슬로바키아","슬로베니아","스위스"],"nbe":["Czech Republic","Germany","Hungary","Italy","Liechtenstein","Slovakia","Slovenia","Switzerland"]},"AZ":{"pop":10202830,"gdp":72356176471,"gpc":7092,"area":86600,"dens":117.8,"elev":384,"temp":13.0,"gov":"연방 공화국","gove":"Federal Republic","cap":"바쿠","cape":"Baku","lat":40.5,"land":1,"nb":["아르메니아","조지아","이란","러시아","튀르키예"],"nbe":["Armenia","Georgia","Iran","Russia","Turkey"]},"BI":{"pop":14047786,"gdp":2642161669,"gpc":188,"area":27834,"dens":504.7,"elev":1504,"temp":20.5,"gov":"공화국","gove":"Republic","cap":"부줌부라","cape":"Gitega","lat":-3.5,"land":1,"nb":["콩고민주공화국","르완다","탄자니아"],"nbe":["Democratic Republic of the Congo","Rwanda","United Republic of Tanzania"]},"BE":{"pop":11858610,"gdp":632216577075,"gpc":53313,"area":30528,"dens":388.5,"temp":10.7,"gov":"연방 입헌군주국","gove":"Federation Constitutional Monarchy","cap":"브뤼셀","cape":"Brussels","lat":50.8,"land":0,"nb":["프랑스","독일","룩셈부르크","네덜란드"],"nbe":["France","Germany","Luxembourg","Netherlands"]},"BJ":{"pop":14462724,"gdp":19673284686,"gpc":1360,"area":112622,"dens":128.4,"elev":273,"temp":28.0,"gov":"공화국","gove":"Republic","cap":"포르토노보","cape":"Porto-Novo","lat":9.5,"land":0,"nb":["부르키나파소","니제르","나이지리아","토고"],"nbe":["Burkina Faso","Niger","Nigeria","Togo"]},"BF":{"pop":23548781,"gdp":20324617839,"gpc":863,"area":272967,"dens":86.3,"elev":297,"temp":29.3,"gov":"공화국","gove":"Republic","cap":"와가두구","cape":"Ouagadougou","lat":13,"land":1,"nb":["베냉","코트디부아르","가나","말리","니제르","토고"],"nbe":["Benin","Ivory Coast","Ghana","Mali","Niger","Togo"]},"BD":{"pop":173562364,"gdp":437415331041,"gpc":2520,"area":147570,"dens":1176.1,"elev":85,"temp":25.7,"gov":"공화국","gove":"Republic","cap":"다카","cape":"Dhaka","lat":24,"land":0,"nb":["미얀마","인도"],"nbe":["Myanmar","India"]},"BG":{"pop":6441421,"gdp":101584384673,"gpc":15770,"area":110879,"dens":58.1,"elev":472,"temp":11.3,"gov":"공화국","gove":"Republic","cap":"소피아","cape":"Sofia","lat":43,"land":0,"nb":["그리스","북마케도니아","루마니아","세르비아","튀르키예"],"nbe":["Greece","Macedonia","Romania","Republic of Serbia","Turkey"]},"BS":{"pop":401283,"gdp":14338500000,"gpc":35732,"area":13943,"dens":28.8,"temp":25.6,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"나소","cape":"Nassau","lat":24.2,"land":0},"BA":{"pop":3164253,"gdp":27054889363,"gpc":8550,"area":51209,"dens":61.8,"elev":500,"temp":10.3,"gov":"연방 공화국","gove":"Federal Republic","cap":"사라예보","cape":"Sarajevo","lat":44,"land":0,"nb":["크로아티아","몬테네그로","세르비아"],"nbe":["Croatia","Montenegro","Republic of Serbia"]},"BY":{"pop":9132629,"gdp":71857382746,"gpc":7868,"area":207600,"dens":44.0,"elev":160,"temp":7.5,"gov":"공화국","gove":"Republic","cap":"민스크","cape":"Minsk","lat":53,"land":1,"nb":["라트비아","리투아니아","폴란드","러시아","우크라이나"],"nbe":["Latvia","Lithuania","Poland","Russia","Ukraine"]},"BZ":{"pop":417072,"gdp":3281500000,"gpc":7868,"area":22966,"dens":18.2,"elev":173,"temp":25.7,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"벨모판","cape":"Belmopan","lat":17.2,"land":0,"nb":["과테말라","멕시코"],"nbe":["Guatemala","Mexico"]},"BM":{"pop":64636,"gdp":7827980000,"gpc":121109,"area":54,"dens":1197.0,"temp":21.7,"gov":"영국 속령","gove":"Dependent Territory of the UK","cap":"Hamilton","cape":"Hamilton","lat":32.3,"land":0},"BO":{"pop":12413315,"gdp":45849832906,"gpc":3694,"area":1098581,"dens":11.3,"elev":1192,"temp":20.8,"gov":"공화국","gove":"Republic","cap":"라파스","cape":"Sucre","lat":-17,"land":1,"nb":["아르헨티나","브라질","칠레","파라과이","페루"],"nbe":["Argentina","Brazil","Chile","Paraguay","Peru"]},"BR":{"pop":211998573,"gdp":2173665655937,"gpc":10253,"area":8515767,"dens":24.9,"elev":320,"temp":25.4,"gov":"연방 공화국","gove":"Federal Republic","cap":"브라질리아","cape":"Brasília","lat":-10,"land":0,"nb":["아르헨티나","볼리비아","콜롬비아","프랑스령 기아나","가이아나","파라과이","페루","수리남","우루과이","베네수엘라"],"nbe":["Argentina","Bolivia","Colombia","French Guiana","Guyana","Paraguay","Peru","Suriname","Uruguay","Venezuela"]},"BN":{"pop":462721,"gdp":15128292954,"gpc":32694,"area":5765,"dens":80.3,"elev":478,"temp":26.9,"gov":"군주국(술탄국)","gove":"Monarchy (Sultanate)","cap":"반다르스리브가완","cape":"Bandar Seri Begawan","lat":4.5,"land":0,"nb":["말레이시아"],"nbe":["Malaysia"]},"BT":{"pop":791524,"gdp":2898227713,"gpc":3662,"area":38394,"dens":20.6,"elev":3280,"temp":10.4,"gov":"군주국","gove":"Monarchy","cap":"팀부","cape":"Thimphu","lat":27.5,"land":1,"nb":["중국","인도"],"nbe":["China","India"]},"BW":{"pop":2521139,"gdp":19395765126,"gpc":7693,"area":582000,"dens":4.3,"elev":1013,"temp":22.1,"gov":"공화국","gove":"Republic","cap":"가보로네","cape":"Gaborone","lat":-22,"land":1,"nb":["나미비아","남아프리카공화국","잠비아","짐바브웨"],"nbe":["Namibia","South Africa","Zambia","Zimbabwe"]},"CF":{"pop":5330690,"gdp":2555492085,"gpc":479,"area":622984,"dens":8.6,"elev":635,"temp":25.5,"gov":"공화국","gove":"Republic","cap":"방기","cape":"Bangui","lat":7,"land":1,"nb":["카메룬","차드","콩고민주공화국","콩고공화국","남수단","수단"],"nbe":["Cameroon","Chad","Democratic Republic of the Congo","Republic of the Congo","South Sudan","Sudan"]},"CA":{"pop":41288599,"gdp":2140085567791,"gpc":51832,"area":9984670,"dens":4.1,"elev":487,"temp":-4.0,"gov":"연방 입헌군주국","gove":"Constitutional Monarchy, Federation","cap":"오타와","cape":"Ottawa","lat":60,"land":0,"nb":["미국"],"nbe":["United States of America"]},"CH":{"pop":9005582,"gdp":884940402230,"gpc":98266,"area":41284,"dens":218.1,"elev":1350,"temp":6.5,"gov":"연방","gove":"Federation","cap":"베른","cape":"Bern","lat":47,"land":1,"nb":["오스트리아","프랑스","이탈리아","리히텐슈타인","독일"],"nbe":["Austria","France","Italy","Liechtenstein","Germany"]},"CL":{"pop":19764771,"gdp":335533331669,"gpc":16976,"area":756102,"dens":26.1,"elev":1871,"temp":9.4,"gov":"공화국","gove":"Republic","cap":"산티아고","cape":"Santiago","lat":-30,"land":0,"nb":["아르헨티나","볼리비아","페루"],"nbe":["Argentina","Bolivia","Peru"]},"CN":{"pop":1408975000,"gdp":17794781986104,"gpc":12630,"area":9706961,"dens":145.2,"elev":1840,"temp":7.6,"gov":"인민공화국","gove":"People's Republic","cap":"베이징","cape":"Beijing","lat":35,"land":0,"nb":["아프가니스탄","부탄","미얀마","홍콩","인도","카자흐스탄","네팔","조선민주주의인민공화국","키르기스스탄","라오스","마카오","몽골","파키스탄","러시아","타지키스탄","베트남"],"nbe":["Afghanistan","Bhutan","Myanmar","Hong Kong","India","Kazakhstan","Nepal","North Korea","Kyrgyzstan","Laos","Macau","Mongolia","Pakistan","Russia","Tajikistan","Vietnam"]},"CI":{"pop":31934230,"gdp":78788828907,"gpc":2467,"area":322463,"dens":99.0,"elev":250,"temp":26.8,"gov":"공화국","gove":"Republic","cap":"야무수크로","cape":"Yamoussoukro","lat":8,"land":0,"nb":["부르키나파소","가나","기니","라이베리아","말리"],"nbe":["Burkina Faso","Ghana","Guinea","Liberia","Mali"]},"CM":{"pop":29123744,"gdp":47945510090,"gpc":1646,"area":475442,"dens":61.3,"elev":667,"temp":24.8,"gov":"공화국","gove":"Republic","cap":"야운데","cape":"Yaoundé","lat":6,"land":0,"nb":["중앙아프리카공화국","차드","콩고공화국","적도기니","가봉","나이지리아"],"nbe":["Central African Republic","Chad","Republic of the Congo","Equatorial Guinea","Gabon","Nigeria"]},"CD":{"pop":109276265,"gdp":66383287003,"gpc":607,"area":2344858,"dens":46.6,"cap":"킨샤사","cape":"Kinshasa","lat":0,"land":0,"nb":["앙골라","부룬디","중앙아프리카공화국","콩고공화국","르완다","남수단","탄자니아","우간다","잠비아"],"nbe":["Angola","Burundi","Central African Republic","Republic of the Congo","Rwanda","South Sudan","United Republic of Tanzania","Uganda","Zambia"]},"CG":{"pop":6332961,"gdp":15321055818,"gpc":2419,"area":342000,"dens":18.5,"elev":430,"temp":24.7,"gov":"공화국","gove":"Republic","cap":"브라자빌","cape":"Brazzaville","lat":-1,"land":0,"nb":["앙골라","카메룬","중앙아프리카공화국","콩고민주공화국","가봉"],"nbe":["Angola","Cameroon","Central African Republic","Democratic Republic of the Congo","Gabon"]},"CO":{"pop":52886363,"gdp":363540156235,"gpc":6874,"area":1141748,"dens":46.3,"elev":593,"temp":25.0,"gov":"공화국","gove":"Republic","cap":"보고타","cape":"Bogotá","lat":4,"land":0,"nb":["브라질","에콰도르","파나마","페루","베네수엘라"],"nbe":["Brazil","Ecuador","Panama","Peru","Venezuela"]},"CR":{"pop":5129910,"gdp":86497941439,"gpc":16861,"area":51100,"dens":100.4,"elev":746,"temp":24.8,"gov":"공화국","gove":"Republic","cap":"산호세","cape":"San José","lat":10,"land":0,"nb":["니카라과","파나마"],"nbe":["Nicaragua","Panama"]},"CU":{"pop":10979783,"gdp":107351800000,"gpc":9777,"area":109884,"dens":99.9,"elev":108,"temp":25.8,"gov":"사회주의 공화국","gove":"Socialistic Republic","cap":"아바나","cape":"Havana","lat":21.5,"land":0},"CY":{"pop":1358282,"gdp":32229622669,"gpc":23728,"area":9251,"dens":146.8,"elev":91,"temp":18.9,"gov":"공화국","gove":"Republic","cap":"니코시아","cape":"Nicosia","lat":35,"land":0},"CZ":{"pop":10905028,"gdp":330858339872,"gpc":30340,"area":78865,"dens":138.3,"elev":433,"temp":8.6,"gov":"공화국","gove":"Republic","cap":"프라하","cape":"Prague","lat":49.8,"land":1,"nb":["오스트리아","독일","폴란드","슬로바키아"],"nbe":["Austria","Germany","Poland","Slovakia"]},"DE":{"pop":83516593,"gdp":4456081016706,"gpc":53356,"area":357114,"dens":233.9,"elev":263,"temp":9.6,"gov":"연방 공화국","gove":"Federal Republic","cap":"베를린","cape":"Berlin","lat":51,"land":0,"nb":["오스트리아","벨기에","체코","덴마크","프랑스","룩셈부르크","네덜란드","폴란드","스위스"],"nbe":["Austria","Belgium","Czech Republic","Denmark","France","Luxembourg","Netherlands","Poland","Switzerland"]},"DJ":{"pop":1168722,"gdp":4098530514,"gpc":3507,"area":23200,"dens":50.4,"elev":430,"temp":28.5,"gov":"공화국","gove":"Republic","cap":"지부티","cape":"Djibouti","lat":11.5,"land":0,"nb":["에리트레아","에티오피아","소말리아"],"nbe":["Eritrea","Ethiopia","Somalia"]},"DK":{"pop":5976992,"gdp":404198757538,"gpc":67626,"area":43094,"dens":138.7,"elev":34,"temp":8.9,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"코펜하겐","cape":"Copenhagen","lat":56,"land":0,"nb":["독일"],"nbe":["Germany"]},"DO":{"pop":11427557,"gdp":121444279314,"gpc":10627,"area":48671,"dens":234.8,"elev":424,"temp":24.6,"gov":"공화국","gove":"Republic","cap":"산토도밍고","cape":"Santo Domingo","lat":19,"land":0,"nb":["아이티"],"nbe":["Haiti"]},"DZ":{"pop":46814308,"gdp":239899491128,"gpc":5124,"area":2381741,"dens":19.7,"elev":800,"temp":23.6,"gov":"공화국","gove":"Republic","cap":"알제","cape":"Algiers","lat":28,"land":0,"nb":["튀니지","리비아","니제르","서사하라","모리타니","말리","모로코"],"nbe":["Tunisia","Libya","Niger","Western Sahara","Mauritania","Mali","Morocco"]},"EC":{"pop":18135478,"gdp":118844826000,"gpc":6553,"area":276841,"dens":65.5,"elev":1117,"temp":21.4,"gov":"공화국","gove":"Republic","cap":"키토","cape":"Quito","lat":-2,"land":0,"nb":["콜롬비아","페루"],"nbe":["Colombia","Peru"]},"EG":{"pop":116538258,"gdp":395926075163,"gpc":3397,"area":1002450,"dens":116.3,"elev":321,"temp":23.1,"gov":"공화국","gove":"Republic","cap":"카이로","cape":"Cairo","lat":27,"land":0,"nb":["이스라엘","리비아","팔레스타인","수단"],"nbe":["Israel","Libya","West Bank","Sudan"]},"ER":{"pop":3535603,"gdp":2065001626,"gpc":584,"area":117600,"dens":30.1,"elev":853,"temp":26.6,"gov":"공화국","gove":"Republic","cap":"아스마라","cape":"Asmara","lat":15,"land":0,"nb":["지부티","에티오피아","수단"],"nbe":["Djibouti","Ethiopia","Sudan"]},"ES":{"pop":48848840,"gdp":1580694712516,"gpc":32359,"area":505992,"dens":96.5,"elev":660,"temp":14.1,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"마드리드","cape":"Madrid","lat":40,"land":0,"nb":["안도라","프랑스","지브롤터","포르투갈","모로코"],"nbe":["Andorra","France","Gibraltar","Portugal","Morocco"]},"EE":{"pop":1372341,"gdp":40744848828,"gpc":29690,"area":45227,"dens":30.3,"elev":61,"temp":6.3,"gov":"공화국","gove":"Republic","cap":"탈린","cape":"Tallinn","lat":59,"land":0,"nb":["라트비아","러시아"],"nbe":["Latvia","Russia"]},"ET":{"pop":132059767,"gdp":163697927594,"gpc":1240,"area":1104300,"dens":119.6,"elev":1330,"temp":23.4,"gov":"공화국","gove":"Republic","cap":"아디스아바바","cape":"Addis Ababa","lat":8,"land":1,"nb":["지부티","에리트레아","케냐","소말리아","남수단","수단"],"nbe":["Djibouti","Eritrea","Kenya","Somalia","South Sudan","Sudan"]},"FI":{"pop":5619911,"gdp":300187202696,"gpc":53415,"area":338424,"dens":16.6,"elev":164,"temp":2.5,"gov":"공화국","gove":"Republic","cap":"헬싱키","cape":"Helsinki","lat":64,"land":0,"nb":["노르웨이","스웨덴","러시아"],"nbe":["Norway","Sweden","Russia"]},"FJ":{"pop":928784,"gdp":5494797541,"gpc":5916,"area":18272,"dens":50.8,"cap":"수바","cape":"Suva","lat":-18,"land":0},"FK":{"area":12173,"gov":"영국 속령","gove":"Dependent Territory of the UK","cap":"Stanley","cape":"Stanley","lat":-51.8,"land":0},"FR":{"pop":68551653,"gdp":3030904089608,"gpc":44213,"area":551695,"dens":124.3,"elev":375,"temp":11.7,"gov":"공화국","gove":"Republic","cap":"파리","cape":"Paris","lat":46,"land":0,"nb":["안도라","벨기에","독일","이탈리아","룩셈부르크","모나코","스페인","스위스"],"nbe":["Andorra","Belgium","Germany","Italy","Luxembourg","Monaco","Spain","Switzerland"]},"GA":{"pop":2538952,"gdp":20516134389,"gpc":8081,"area":267668,"dens":9.5,"elev":377,"temp":25.2,"gov":"공화국","gove":"Republic","cap":"리브르빌","cape":"Libreville","lat":-1,"land":0,"nb":["카메룬","콩고공화국","적도기니"],"nbe":["Cameroon","Republic of the Congo","Equatorial Guinea"]},"GB":{"pop":69226000,"gdp":3340032380668,"gpc":48248,"area":242900,"dens":285.0,"temp":9.2,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"런던","cape":"London","lat":54,"land":0,"nb":["아일랜드"],"nbe":["Ireland"]},"GE":{"pop":3699557,"gdp":30535530479,"gpc":8254,"area":69700,"dens":53.1,"elev":1432,"temp":9.0,"gov":"공화국","gove":"Republic","cap":"트빌리시","cape":"Tbilisi","lat":42,"land":0,"nb":["아르메니아","아제르바이잔","러시아","튀르키예"],"nbe":["Armenia","Azerbaijan","Russia","Turkey"]},"GH":{"pop":34427414,"gdp":76370394412,"gpc":2218,"area":238533,"dens":144.3,"elev":190,"temp":27.7,"gov":"공화국","gove":"Republic","cap":"아크라","cape":"Accra","lat":8,"land":0,"nb":["부르키나파소","코트디부아르","토고"],"nbe":["Burkina Faso","Ivory Coast","Togo"]},"GN":{"pop":14754785,"gdp":23612295818,"gpc":1600,"area":245857,"dens":60.0,"elev":472,"temp":25.9,"gov":"공화국","gove":"Republic","cap":"코나크리","cape":"Conakry","lat":11,"land":0,"nb":["코트디부아르","기니비사우","라이베리아","말리","세네갈","시에라리온"],"nbe":["Ivory Coast","Guinea Bissau","Liberia","Mali","Senegal","Sierra Leone"]},"GM":{"pop":2759988,"gdp":2339904157,"gpc":848,"area":10689,"dens":258.2,"elev":34,"temp":28.4,"gov":"공화국","gove":"Republic","cap":"반줄","cape":"Banjul","lat":13.5,"land":0,"nb":["세네갈"],"nbe":["Senegal"]},"GW":{"pop":2201352,"gdp":1966461400,"gpc":893,"area":36125,"dens":60.9,"elev":70,"temp":28.0,"gov":"공화국","gove":"Republic","cap":"비사우","cape":"Bissau","lat":12,"land":0,"nb":["기니","세네갈"],"nbe":["Guinea","Senegal"]},"GQ":{"pop":1892516,"gdp":12116922539,"gpc":6403,"area":28051,"dens":67.5,"elev":577,"temp":24.7,"gov":"공화국","gove":"Republic","cap":"말라보","cape":"Malabo","lat":2,"land":0,"nb":["카메룬","가봉"],"nbe":["Cameroon","Gabon"]},"GR":{"pop":10405134,"gdp":238206312633,"gpc":22893,"area":131990,"dens":78.8,"elev":498,"temp":14.3,"gov":"공화국","gove":"Republic","cap":"아테네","cape":"Athens","lat":39,"land":0,"nb":["알바니아","불가리아","튀르키예","북마케도니아"],"nbe":["Albania","Bulgaria","Turkey","Macedonia"]},"GL":{"pop":56836,"gdp":3235809504,"gpc":56932,"area":2166086,"dens":0.0,"elev":1792,"temp":-18.7,"gov":"덴마크의 일부","gove":"Part of Denmark","cap":"Nuuk","cape":"Nuuk","lat":72,"land":0},"GT":{"pop":18406359,"gdp":102050473864,"gpc":5544,"area":108889,"dens":169.0,"elev":759,"temp":23.6,"gov":"공화국","gove":"Republic","cap":"과테말라시티","cape":"Guatemala City","lat":15.5,"land":0,"nb":["벨리즈","엘살바도르","온두라스","멕시코"],"nbe":["Belize","El Salvador","Honduras","Mexico"]},"GF":{"area":83534,"elev":207,"temp":26.1,"gov":"공화국","gove":"Republic","cap":"Cayenne","cape":"Cayenne","lat":4,"land":0,"nb":["브라질","수리남"],"nbe":["Brazil","Suriname"]},"GY":{"pop":831087,"gdp":16786302158,"gpc":20198,"area":214969,"dens":3.9,"cap":"조지타운","cape":"Georgetown","lat":5,"land":0,"nb":["브라질","수리남","베네수엘라"],"nbe":["Brazil","Suriname","Venezuela"]},"HN":{"pop":10825703,"gdp":34400509852,"gpc":3178,"area":112492,"dens":96.2,"elev":684,"temp":24.7,"gov":"공화국","gove":"Republic","cap":"테구시갈파","cape":"Tegucigalpa","lat":15,"land":0,"nb":["과테말라","엘살바도르","니카라과"],"nbe":["Guatemala","El Salvador","Nicaragua"]},"HR":{"pop":3866200,"gdp":82688842717,"gpc":21388,"area":56594,"dens":68.3,"elev":331,"temp":12.0,"gov":"공화국","gove":"Republic","cap":"자그레브","cape":"Zagreb","lat":45.2,"land":0,"nb":["보스니아 헤르체고비나","헝가리","몬테네그로","세르비아","슬로베니아"],"nbe":["Bosnia and Herzegovina","Hungary","Montenegro","Republic of Serbia","Slovenia"]},"HT":{"pop":11772557,"gdp":19850829758,"gpc":1686,"area":27750,"dens":424.2,"elev":470,"temp":24.9,"gov":"공화국","gove":"Republic","cap":"포르토프랭스","cape":"Port-au-Prince","lat":19,"land":0,"nb":["도미니카공화국"],"nbe":["Dominican Republic"]},"HU":{"pop":9562065,"gdp":212388906459,"gpc":22212,"area":93028,"dens":102.8,"elev":143,"temp":11.5,"gov":"공화국","gove":"Republic","cap":"부다페스트","cape":"Budapest","lat":47,"land":1,"nb":["오스트리아","크로아티아","루마니아","세르비아","슬로바키아","슬로베니아","우크라이나"],"nbe":["Austria","Croatia","Romania","Republic of Serbia","Slovakia","Slovenia","Ukraine"]},"ID":{"pop":283487931,"gdp":1371171152331,"gpc":4837,"area":1904569,"dens":148.8,"elev":367,"temp":26.0,"gov":"공화국","gove":"Republic","cap":"자카르타","cape":"Jakarta","lat":-5,"land":0,"nb":["동티모르","말레이시아","파푸아뉴기니"],"nbe":["East Timor","Malaysia","Papua New Guinea"]},"IN":{"pop":1450935791,"gdp":3549918918778,"gpc":2447,"area":3287590,"dens":441.3,"elev":160,"temp":24.9,"gov":"연방 공화국","gove":"Federal Republic","cap":"뉴델리","cape":"New Delhi","lat":20,"land":0,"nb":["방글라데시","부탄","미얀마","중국","네팔","파키스탄"],"nbe":["Bangladesh","Bhutan","Myanmar","China","Nepal","Pakistan"]},"IE":{"pop":5395790,"gdp":545629450404,"gpc":101121,"area":70273,"dens":76.8,"elev":118,"temp":9.7,"gov":"공화국","gove":"Republic","cap":"더블린","cape":"Dublin","lat":53,"land":0,"nb":["영국"],"nbe":["United Kingdom"]},"IR":{"pop":91567738,"gdp":401504514719,"gpc":4385,"area":1648195,"dens":55.6,"elev":1305,"temp":18.3,"gov":"이슬람 공화국","gove":"Islamic Republic","cap":"테헤란","cape":"Tehran","lat":32,"land":0,"nb":["아프가니스탄","아르메니아","아제르바이잔","이라크","파키스탄","튀르키예","투르크메니스탄"],"nbe":["Afghanistan","Armenia","Azerbaijan","Iraq","Pakistan","Turkey","Turkmenistan"]},"IQ":{"pop":46042015,"gdp":250842782139,"gpc":5448,"area":438317,"dens":105.0,"elev":312,"temp":22.9,"gov":"공화국","gove":"Republic","cap":"바그다드","cape":"Baghdad","lat":33,"land":0,"nb":["이란","요르단","쿠웨이트","사우디아라비아","시리아","튀르키예"],"nbe":["Iran","Jordan","Kuwait","Saudi Arabia","Syria","Turkey"]},"IS":{"pop":386506,"gdp":31020032583,"gpc":80258,"area":103000,"dens":3.8,"elev":557,"temp":1.9,"gov":"공화국","gove":"Republic","cap":"레이캬비크","cape":"Reykjavik","lat":65,"land":0},"IL":{"pop":9974400,"gdp":509901495702,"gpc":51121,"area":20770,"dens":480.2,"elev":508,"temp":20.0,"gov":"공화국","gove":"Republic","cap":"예루살렘","cape":"Jerusalem","lat":31.5,"land":0,"nb":["이집트","요르단","레바논","팔레스타인","시리아"],"nbe":["Egypt","Jordan","Lebanon","West Bank","Syria"]},"IT":{"pop":58952704,"gdp":2254851212732,"gpc":38248,"area":301336,"dens":195.6,"elev":538,"temp":13.2,"gov":"공화국","gove":"Republic","cap":"로마","cape":"Rome","lat":42.8,"land":0,"nb":["오스트리아","프랑스","산마리노","슬로베니아","스위스","바티칸"],"nbe":["Austria","France","San Marino","Slovenia","Switzerland","Vatican"]},"JM":{"pop":2839175,"gdp":19423355367,"gpc":6841,"area":10991,"dens":258.3,"elev":18,"temp":25.9,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"킹스턴","cape":"Kingston","lat":18.2,"land":0},"JO":{"pop":11552876,"gdp":50813642349,"gpc":4398,"area":89342,"dens":129.3,"elev":812,"temp":19.5,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"암만","cape":"Amman","lat":31,"land":0,"nb":["이라크","이스라엘","팔레스타인","사우디아라비아","시리아"],"nbe":["Iraq","Israel","West Bank","Saudi Arabia","Syria"]},"JP":{"pop":123975371,"gdp":4212945159781,"gpc":33982,"area":377930,"dens":328.0,"elev":438,"temp":11.8,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"도쿄","cape":"Tokyo","lat":36,"land":0},"KZ":{"pop":20592571,"gdp":261421121086,"gpc":12695,"area":2724900,"dens":7.6,"temp":7.1,"gov":"공화국","gove":"Republic","cap":"아스타나","cape":"Astana","lat":48,"land":1,"nb":["중국","키르기스스탄","러시아","투르크메니스탄","우즈베키스탄"],"nbe":["China","Kyrgyzstan","Russia","Turkmenistan","Uzbekistan"]},"KE":{"pop":56432944,"gdp":107440575838,"gpc":1904,"area":580367,"dens":97.2,"elev":762,"temp":25.1,"gov":"공화국","gove":"Republic","cap":"나이로비","cape":"Nairobi","lat":1,"land":0,"nb":["에티오피아","소말리아","남수단","탄자니아","우간다"],"nbe":["Ethiopia","Somalia","South Sudan","United Republic of Tanzania","Uganda"]},"KG":{"pop":7221868,"gdp":13987627909,"gpc":1937,"area":199951,"dens":36.1,"elev":2988,"temp":2.6,"gov":"공화국","gove":"Republic","cap":"비슈케크","cape":"Bishkek","lat":41,"land":1,"nb":["중국","카자흐스탄","타지키스탄","우즈베키스탄"],"nbe":["China","Kazakhstan","Tajikistan","Uzbekistan"]},"KH":{"pop":17638801,"gdp":31772759999,"gpc":1801,"area":181035,"dens":97.4,"elev":126,"temp":27.4,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"프놈펜","cape":"Phnom Penh","lat":13,"land":0,"nb":["라오스","태국","베트남"],"nbe":["Laos","Thailand","Vietnam"]},"KR":{"pop":51751065,"gdp":1712792854202,"gpc":33097,"area":100210,"dens":516.4,"elev":282,"temp":12.2,"gov":"공화국","gove":"Republic","cap":"서울","cape":"Seoul","lat":37,"land":0,"nb":["조선민주주의인민공화국"],"nbe":["North Korea"]},"XK":{"area":10908,"cap":"프리슈티나","cape":"Pristina","lat":42.7,"land":1,"nb":["알바니아","북마케도니아","몬테네그로","세르비아"],"nbe":["Albania","Macedonia","Montenegro","Republic of Serbia"]},"KW":{"pop":4897263,"gdp":161772221951,"gpc":33033,"area":17818,"dens":274.8,"elev":108,"temp":26.3,"gov":"입헌군주국(토후국)","gove":"Constitutional Monarchy (Emirate)","cap":"쿠웨이트시티","cape":"Kuwait City","lat":29.5,"land":0,"nb":["이라크","사우디아라비아"],"nbe":["Iraq","Saudi Arabia"]},"LA":{"pop":7769819,"gdp":15843155731,"gpc":2039,"area":236800,"dens":32.8,"elev":710,"temp":24.2,"gov":"공화국","gove":"Republic","cap":"비엔티안","cape":"Vientiane","lat":18,"land":1,"nb":["미얀마","캄보디아","중국","태국","베트남"],"nbe":["Myanmar","Cambodia","China","Thailand","Vietnam"]},"LB":{"pop":5805962,"gdp":20992421949,"gpc":3616,"area":10452,"dens":555.5,"elev":1250,"temp":15.4,"gov":"공화국","gove":"Republic","cap":"베이루트","cape":"Beirut","lat":33.8,"land":0,"nb":["이스라엘","시리아"],"nbe":["Israel","Syria"]},"LR":{"pop":5612817,"gdp":4332000000,"gpc":772,"area":111369,"dens":50.4,"elev":243,"temp":25.4,"gov":"공화국","gove":"Republic","cap":"몬로비아","cape":"Monrovia","lat":6.5,"land":0,"nb":["기니","코트디부아르","시에라리온"],"nbe":["Guinea","Ivory Coast","Sierra Leone"]},"LY":{"pop":7381023,"gdp":50491722446,"gpc":6841,"area":1759540,"dens":4.2,"temp":22.8,"gov":"사회주의 국가","gove":"Socialistic State","cap":"트리폴리","cape":"Tripoli","lat":25,"land":0,"nb":["알제리","차드","이집트","니제르","수단","튀니지"],"nbe":["Algeria","Chad","Egypt","Niger","Sudan","Tunisia"]},"LK":{"pop":21916000,"gdp":84356860421,"gpc":3849,"area":65610,"dens":334.0,"temp":27.2,"gov":"단일 이원집정부제 공화국","gove":"Unitary Semi-Presidential Republic","cap":"스리자야와르데네푸라코테","cape":"Colombo","lat":7,"land":0,"nb":["인도"],"nbe":["India"]},"LS":{"pop":2337423,"gdp":2046039024,"gpc":875,"area":30355,"dens":77.0,"elev":2161,"temp":12.4,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"마세루","cape":"Maseru","lat":-29.5,"land":1,"nb":["남아프리카공화국"],"nbe":["South Africa"]},"LT":{"pop":2888278,"gdp":77836396963,"gpc":26949,"area":65300,"dens":44.2,"elev":110,"temp":7.4,"gov":"공화국","gove":"Republic","cap":"빌뉴스","cape":"Vilnius","lat":56,"land":0,"nb":["벨라루스","라트비아","폴란드","러시아"],"nbe":["Belarus","Latvia","Poland","Russia"]},"LU":{"pop":677012,"gdp":85755006124,"gpc":126667,"area":2586,"dens":261.8,"elev":325,"temp":10.0,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"룩셈부르크","cape":"Luxembourg","lat":49.8,"land":1,"nb":["벨기에","프랑스","독일"],"nbe":["Belgium","France","Germany"]},"LV":{"pop":1866124,"gdp":43627078481,"gpc":23378,"area":64559,"dens":28.9,"elev":87,"temp":6.9,"gov":"공화국","gove":"Republic","cap":"리가","cape":"Riga","lat":57,"land":0,"nb":["벨라루스","에스토니아","리투아니아","러시아"],"nbe":["Belarus","Estonia","Lithuania","Russia"]},"MA":{"pop":38081173,"gdp":141109373209,"gpc":3705,"area":446550,"dens":85.3,"elev":909,"temp":18.1,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"라바트","cape":"Rabat","lat":32,"land":0,"nb":["알제리","서사하라","스페인"],"nbe":["Algeria","Western Sahara","Spain"]},"MD":{"pop":2402306,"gdp":16539436547,"gpc":6885,"area":33846,"dens":71.0,"elev":139,"temp":10.9,"gov":"공화국","gove":"Republic","cap":"키시너우","cape":"Chișinău","lat":47,"land":1,"nb":["루마니아","우크라이나"],"nbe":["Romania","Ukraine"]},"MG":{"pop":31964956,"gdp":16031702915,"gpc":502,"area":587041,"dens":54.5,"elev":615,"temp":22.6,"gov":"연방 공화국","gove":"Federal Republic","cap":"안타나나리보","cape":"Antananarivo","lat":-20,"land":0},"MX":{"pop":130861007,"gdp":1788886821047,"gpc":13670,"area":1964375,"dens":66.6,"elev":1111,"temp":21.3,"gov":"연방 공화국","gove":"Federal Republic","cap":"멕시코시티","cape":"Mexico City","lat":23,"land":0,"nb":["벨리즈","과테말라","미국"],"nbe":["Belize","Guatemala","United States of America"]},"MK":{"pop":1824359,"gdp":14761237042,"gpc":8091,"area":25713,"dens":71.0,"elev":741,"temp":10.8,"gov":"공화국","gove":"Republic","cap":"스코페","cape":"Skopje","lat":41.8,"land":1,"nb":["알바니아","불가리아","그리스","코소보","세르비아"],"nbe":["Albania","Bulgaria","Greece","Kosovo","Republic of Serbia"]},"ML":{"pop":24478595,"gdp":20904898296,"gpc":854,"area":1240192,"dens":19.7,"elev":343,"temp":29.2,"gov":"공화국","gove":"Republic","cap":"바마코","cape":"Bamako","lat":17,"land":1,"nb":["알제리","부르키나파소","기니","코트디부아르","모리타니","니제르","세네갈"],"nbe":["Algeria","Burkina Faso","Guinea","Ivory Coast","Mauritania","Niger","Senegal"]},"MT":{"pop":568847,"gdp":20956999452,"gpc":36841,"area":316,"dens":1800.1,"temp":19.6,"gov":"공화국","gove":"Republic","cap":"발레타","cape":"Valletta","lat":35.8,"land":0},"MM":{"pop":54500091,"gdp":64815031669,"gpc":1189,"area":676578,"dens":80.6,"temp":23.8,"gov":"공화국","gove":"Republic","cap":"네피도","cape":"Naypyidaw","lat":22,"land":0,"nb":["방글라데시","중국","인도","라오스","태국"],"nbe":["Bangladesh","China","India","Laos","Thailand"]},"ME":{"pop":623525,"gdp":7404541965,"gpc":11875,"area":13812,"dens":45.1,"cap":"포드고리차","cape":"Podgorica","lat":42.5,"land":0,"nb":["알바니아","보스니아 헤르체고비나","크로아티아","코소보","세르비아"],"nbe":["Albania","Bosnia and Herzegovina","Croatia","Kosovo","Republic of Serbia"]},"MN":{"pop":3524788,"gdp":19872180370,"gpc":5638,"area":1564110,"dens":2.3,"elev":1528,"temp":1.1,"gov":"공화국","gove":"Republic","cap":"울란바토르","cape":"Ulan Bator","lat":46,"land":1,"nb":["중국","러시아"],"nbe":["China","Russia"]},"MZ":{"pop":34631766,"gdp":20624597847,"gpc":596,"area":801590,"dens":43.2,"elev":345,"temp":24.4,"gov":"공화국","gove":"Republic","cap":"마푸투","cape":"Maputo","lat":-18.2,"land":0,"nb":["말라위","남아프리카공화국","에스와티니","탄자니아","잠비아","짐바브웨"],"nbe":["Malawi","South Africa","Swaziland","United Republic of Tanzania","Zambia","Zimbabwe"]},"MR":{"pop":5169395,"gdp":10452577063,"gpc":2022,"area":1030700,"dens":5.0,"elev":276,"temp":28.8,"gov":"공화국","gove":"Republic","cap":"누악쇼트","cape":"Nouakchott","lat":20,"land":0,"nb":["알제리","말리","세네갈","서사하라"],"nbe":["Algeria","Mali","Senegal","Western Sahara"]},"MW":{"pop":21655286,"gdp":14084341062,"gpc":650,"area":118484,"dens":182.8,"elev":779,"temp":22.7,"gov":"공화국","gove":"Republic","cap":"릴롱궤","cape":"Lilongwe","lat":-13.5,"land":1,"nb":["모잠비크","탄자니아","잠비아"],"nbe":["Mozambique","United Republic of Tanzania","Zambia"]},"MY":{"pop":35557673,"gdp":399648828547,"gpc":11239,"area":330803,"dens":107.5,"elev":538,"temp":26.4,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"쿠알라룸푸르","cape":"Kuala Lumpur","lat":2.5,"land":0,"nb":["브루나이","인도네시아","태국"],"nbe":["Brunei","Indonesia","Thailand"]},"NA":{"pop":3030131,"gdp":12351024844,"gpc":4076,"area":825615,"dens":3.7,"elev":1141,"temp":20.4,"gov":"공화국","gove":"Republic","cap":"빈트후크","cape":"Windhoek","lat":-22,"land":0,"nb":["앙골라","보츠와나","남아프리카공화국","잠비아"],"nbe":["Angola","Botswana","South Africa","Zambia"]},"NC":{"pop":292639,"gdp":9623318718,"gpc":32885,"area":18575,"dens":15.8,"temp":22.7,"gov":"프랑스 해외 영토","gove":"Nonmetropolitan Territory of France","cap":"Nouméa","cape":"Nouméa","lat":-21.5,"land":0},"NE":{"pop":27032412,"gdp":16819170421,"gpc":622,"area":1267000,"dens":21.3,"elev":474,"temp":28.0,"gov":"공화국","gove":"Republic","cap":"니아메","cape":"Niamey","lat":16,"land":1,"nb":["알제리","베냉","부르키나파소","차드","리비아","말리","나이지리아"],"nbe":["Algeria","Benin","Burkina Faso","Chad","Libya","Mali","Nigeria"]},"NG":{"pop":232679478,"gdp":362814951696,"gpc":1559,"area":923768,"dens":251.9,"elev":380,"temp":27.3,"gov":"연방 공화국","gove":"Federal Republic","cap":"아부자","cape":"Abuja","lat":10,"land":0,"nb":["베냉","카메룬","차드","니제르"],"nbe":["Benin","Cameroon","Chad","Niger"]},"NI":{"pop":6916140,"gdp":17829215284,"gpc":2578,"area":130373,"dens":53.0,"elev":298,"temp":25.9,"gov":"공화국","gove":"Republic","cap":"마나과","cape":"Managua","lat":13,"land":0,"nb":["코스타리카","온두라스"],"nbe":["Costa Rica","Honduras"]},"NL":{"pop":17993485,"gdp":1118124749886,"gpc":62141,"area":41850,"dens":430.0,"elev":30,"temp":10.5,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"암스테르담","cape":"Amsterdam","lat":52.5,"land":0,"nb":["벨기에","독일"],"nbe":["Belgium","Germany"]},"NO":{"pop":5572279,"gdp":485513316504,"gpc":87130,"area":323802,"dens":17.2,"elev":460,"temp":2.2,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"오슬로","cape":"Oslo","lat":62,"land":0,"nb":["핀란드","스웨덴","러시아"],"nbe":["Finland","Sweden","Russia"]},"NP":{"pop":29651054,"gdp":40908073367,"gpc":1380,"area":147181,"dens":201.5,"elev":3265,"temp":14.2,"gove":"Federal parliamentary republic","cap":"카트만두","cape":"Kathmandu","lat":28,"land":1,"nb":["중국","인도"],"nbe":["China","India"]},"NZ":{"pop":5287500,"gdp":253465703232,"gpc":47937,"area":270467,"dens":19.5,"elev":388,"temp":10.5,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"웰링턴","cape":"Wellington","lat":-41,"land":0},"OM":{"pop":5281538,"gdp":108192457737,"gpc":20485,"area":309500,"dens":17.1,"elev":310,"temp":27.6,"gov":"군주국(술탄국)","gove":"Monarchy (Sultanate)","cap":"무스카트","cape":"Muscat","lat":21,"land":0,"nb":["사우디아라비아","아랍에미리트","예멘"],"nbe":["Saudi Arabia","United Arab Emirates","Yemen"]},"PK":{"pop":251269164,"gdp":338368455318,"gpc":1347,"area":881912,"dens":284.9,"elev":900,"temp":21.4,"gov":"공화국","gove":"Republic","cap":"이슬라마바드","cape":"Islamabad","lat":30,"land":0,"nb":["아프가니스탄","중국","인도","이란"],"nbe":["Afghanistan","China","India","Iran"]},"PA":{"pop":4515577,"gdp":83382400000,"gpc":18466,"area":75417,"dens":59.9,"elev":360,"temp":25.6,"gov":"공화국","gove":"Republic","cap":"파나마시티","cape":"Panama City","lat":9,"land":0,"nb":["콜롬비아","코스타리카"],"nbe":["Colombia","Costa Rica"]},"PE":{"pop":34217848,"gdp":267603248655,"gpc":7821,"area":1285216,"dens":26.6,"elev":1555,"temp":19.7,"gov":"공화국","gove":"Republic","cap":"리마","cape":"Lima","lat":-10,"land":0,"nb":["볼리비아","브라질","칠레","콜롬비아","에콰도르"],"nbe":["Bolivia","Brazil","Chile","Colombia","Ecuador"]},"PH":{"pop":115843670,"gdp":437146372730,"gpc":3774,"area":342353,"dens":338.4,"elev":442,"temp":26.3,"gov":"공화국","gove":"Republic","cap":"마닐라","cape":"Manila","lat":13,"land":0},"PG":{"pop":10576502,"gdp":30932496250,"gpc":2925,"area":462840,"dens":22.9,"elev":667,"temp":24.7,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"포트모르즈비","cape":"Port Moresby","lat":-6,"land":0,"nb":["인도네시아"],"nbe":["Indonesia"]},"PL":{"pop":36559233,"gdp":811229100688,"gpc":22189,"area":312679,"dens":116.9,"elev":173,"temp":8.8,"gov":"공화국","gove":"Republic","cap":"바르샤바","cape":"Warsaw","lat":52,"land":0,"nb":["벨라루스","체코","독일","리투아니아","러시아","슬로바키아","우크라이나"],"nbe":["Belarus","Czech Republic","Germany","Lithuania","Russia","Slovakia","Ukraine"]},"PR":{"pop":3203295,"gdp":117902300000,"gpc":36807,"area":8870,"dens":361.1,"elev":261,"temp":25.0,"gov":"미국 자치령","gove":"Commonwealth of the US","cap":"San Juan","cape":"San Juan","lat":18.2,"land":0},"KP":{"pop":26498823,"area":120538,"dens":219.8,"elev":400,"temp":7.0,"gov":"사회주의 공화국","gove":"Socialistic Republic","cap":"평양","cape":"Pyongyang","lat":40,"land":0,"nb":["중국","대한민국","러시아"],"nbe":["China","South Korea","Russia"]},"PT":{"pop":10694681,"gdp":287080013574,"gpc":26843,"area":92090,"dens":116.1,"elev":372,"temp":15.8,"gov":"공화국","gove":"Republic","cap":"리스본","cape":"Lisbon","lat":39.5,"land":0,"nb":["스페인"],"nbe":["Spain"]},"PY":{"pop":6929153,"gdp":42956263544,"gpc":6199,"area":406752,"dens":17.0,"elev":178,"temp":23.9,"gov":"공화국","gove":"Republic","cap":"아순시온","cape":"Asunción","lat":-23,"land":1,"nb":["아르헨티나","볼리비아","브라질"],"nbe":["Argentina","Bolivia","Brazil"]},"QA":{"pop":2857822,"gdp":235770403735,"gpc":82500,"area":11586,"dens":246.7,"elev":28,"temp":28.0,"gov":"군주국","gove":"Monarchy","cap":"도하","cape":"Doha","lat":25.5,"land":0,"nb":["사우디아라비아"],"nbe":["Saudi Arabia"]},"RO":{"pop":19051804,"gdp":351002579630,"gpc":18424,"area":238391,"dens":79.9,"elev":414,"temp":10.2,"gov":"공화국","gove":"Republic","cap":"부쿠레슈티","cape":"Bucharest","lat":46,"land":0,"nb":["불가리아","헝가리","몰도바","세르비아","우크라이나"],"nbe":["Bulgaria","Hungary","Moldova","Republic of Serbia","Ukraine"]},"RU":{"pop":143533851,"gdp":2021421476035,"gpc":14083,"area":17098242,"dens":8.4,"temp":-3.8,"gov":"연방 공화국","gove":"Federal Republic","cap":"모스크바","cape":"Moscow","lat":60,"land":0,"nb":["아제르바이잔","벨라루스","중국","에스토니아","핀란드","조지아","카자흐스탄","조선민주주의인민공화국","라트비아","리투아니아","몽골","노르웨이","폴란드","우크라이나"],"nbe":["Azerbaijan","Belarus","China","Estonia","Finland","Georgia","Kazakhstan","North Korea","Latvia","Lithuania","Mongolia","Norway","Poland","Ukraine"]},"RW":{"pop":14256567,"gdp":14097768648,"gpc":989,"area":26338,"dens":541.3,"elev":1598,"temp":19.2,"gov":"공화국","gove":"Republic","cap":"키갈리","cape":"Kigali","lat":-2,"land":1,"nb":["부룬디","콩고민주공화국","탄자니아","우간다"],"nbe":["Burundi","Democratic Republic of the Congo","United Republic of Tanzania","Uganda"]},"EH":{"area":266000,"elev":256,"gov":"모로코 점령지","gove":"Occupied by Marocco","cap":"El Aaiún","cape":"El Aaiún","lat":24.5,"land":0,"nb":["알제리","모리타니","모로코"],"nbe":["Algeria","Mauritania","Morocco"]},"SA":{"pop":35300280,"gdp":1067582933333,"gpc":30243,"area":2149690,"dens":16.4,"elev":665,"temp":25.9,"gov":"군주국","gove":"Monarchy","cap":"리야드","cape":"Riyadh","lat":25,"land":0,"nb":["이라크","요르단","쿠웨이트","오만","카타르","아랍에미리트","예멘"],"nbe":["Iraq","Jordan","Kuwait","Oman","Qatar","United Arab Emirates","Yemen"]},"SD":{"pop":50448963,"gdp":109327023589,"gpc":2167,"area":1886068,"dens":26.7,"elev":568,"temp":27.9,"gov":"이슬람 공화국","gove":"Islamic Republic","cap":"하르툼","cape":"Khartoum","lat":15,"land":0,"nb":["중앙아프리카공화국","차드","이집트","에리트레아","에티오피아","리비아","남수단"],"nbe":["Central African Republic","Chad","Egypt","Eritrea","Ethiopia","Libya","South Sudan"]},"SS":{"pop":11943408,"gdp":11997800760,"gpc":1005,"area":619745,"dens":19.3,"temp":28.0,"cap":"주바","cape":"Juba","lat":7,"land":1,"nb":["중앙아프리카공화국","콩고민주공화국","에티오피아","케냐","수단","우간다"],"nbe":["Central African Republic","Democratic Republic of the Congo","Ethiopia","Kenya","Sudan","Uganda"]},"SN":{"pop":18501984,"gdp":31013986429,"gpc":1676,"area":196722,"dens":94.1,"elev":69,"temp":28.9,"gov":"공화국","gove":"Republic","cap":"다카르","cape":"Dakar","lat":14,"land":0,"nb":["감비아","기니","기니비사우","말리","모리타니"],"nbe":["Gambia","Guinea","Guinea Bissau","Mali","Mauritania"]},"SB":{"pop":819198,"gdp":1631286701,"gpc":1991,"area":28896,"dens":28.3,"temp":25.9,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"호니아라","cape":"Honiara","lat":-8,"land":0},"SL":{"pop":8642022,"gdp":3809832237,"gpc":441,"area":71740,"dens":120.5,"elev":279,"temp":26.5,"gov":"공화국","gove":"Republic","cap":"프리타운","cape":"Freetown","lat":8.5,"land":0,"nb":["기니","라이베리아"],"nbe":["Guinea","Liberia"]},"SV":{"pop":6338193,"gdp":34015620000,"gpc":5367,"area":21041,"dens":301.2,"elev":442,"temp":25.2,"gov":"공화국","gove":"Republic","cap":"산살바도르","cape":"San Salvador","lat":13.8,"land":0,"nb":["과테말라","온두라스"],"nbe":["Guatemala","Honduras"]},"SO":{"pop":19009151,"gdp":11679800110,"gpc":614,"area":637657,"dens":29.8,"elev":410,"temp":26.9,"gov":"공화국","gove":"Republic","cap":"모가디슈","cape":"Mogadishu","lat":10,"land":0,"nb":["지부티","에티오피아","케냐"],"nbe":["Djibouti","Ethiopia","Kenya"]},"RS":{"pop":6586476,"gdp":75187125427,"gpc":11415,"area":88361,"dens":74.5,"elev":2826,"temp":11.4,"gov":"공화국","gove":"Republic","cap":"베오그라드","cape":"Belgrade","lat":44,"land":1,"nb":["보스니아 헤르체고비나","불가리아","크로아티아","헝가리","코소보","북마케도니아","몬테네그로","루마니아"],"nbe":["Bosnia and Herzegovina","Bulgaria","Croatia","Hungary","Kosovo","Macedonia","Montenegro","Romania"]},"SR":{"pop":634431,"gdp":3782437296,"gpc":5962,"area":163820,"dens":3.9,"elev":246,"temp":26.6,"gov":"공화국","gove":"Republic","cap":"파라마리보","cape":"Paramaribo","lat":4,"land":0,"nb":["브라질","프랑스령 기아나","가이아나"],"nbe":["Brazil","French Guiana","Guyana"]},"SK":{"pop":5422069,"gdp":132793622283,"gpc":24491,"area":49037,"dens":110.6,"elev":458,"temp":8.8,"gov":"공화국","gove":"Republic","cap":"브라티슬라바","cape":"Bratislava","lat":48.7,"land":1,"nb":["오스트리아","체코","헝가리","폴란드","우크라이나"],"nbe":["Austria","Czech Republic","Hungary","Poland","Ukraine"]},"SI":{"pop":2127400,"gdp":68216781411,"gpc":32066,"area":20273,"dens":104.9,"elev":492,"temp":9.9,"gov":"공화국","gove":"Republic","cap":"류블랴나","cape":"Ljubljana","lat":46.1,"land":0,"nb":["오스트리아","크로아티아","이탈리아","헝가리"],"nbe":["Austria","Croatia","Italy","Hungary"]},"SE":{"pop":10569709,"gdp":593267701033,"gpc":56129,"area":450295,"dens":23.5,"elev":320,"temp":3.2,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"스톡홀름","cape":"Stockholm","lat":62,"land":0,"nb":["핀란드","노르웨이"],"nbe":["Finland","Norway"]},"SZ":{"pop":1242822,"gdp":4597855845,"gpc":3700,"area":17364,"dens":71.6,"elev":305,"temp":20.6,"gov":"군주국","gove":"Monarchy","cap":"음바바네","cape":"Lobamba","lat":-26.5,"land":1,"nb":["모잠비크","남아프리카공화국"],"nbe":["Mozambique","South Africa"]},"SY":{"pop":24672760,"gdp":8980060819,"gpc":364,"area":185180,"dens":133.2,"elev":514,"temp":18.8,"gov":"공화국","gove":"Republic","cap":"다마스쿠스","cape":"Damascus","lat":35,"land":0,"nb":["이라크","이스라엘","요르단","레바논","튀르키예"],"nbe":["Iraq","Israel","Jordan","Lebanon","Turkey"]},"TD":{"pop":20299123,"gdp":13149325359,"gpc":648,"area":1284000,"dens":15.8,"elev":543,"temp":27.6,"gov":"공화국","gove":"Republic","cap":"은자메나","cape":"N'Djamena","lat":15,"land":1,"nb":["카메룬","중앙아프리카공화국","리비아","니제르","나이지리아","수단"],"nbe":["Cameroon","Central African Republic","Libya","Niger","Nigeria","Sudan"]},"TG":{"pop":9515236,"gdp":9171261835,"gpc":964,"area":56785,"dens":167.6,"elev":236,"temp":27.3,"gov":"공화국","gove":"Republic","cap":"로메","cape":"Lomé","lat":8,"land":0,"nb":["베냉","부르키나파소","가나"],"nbe":["Benin","Burkina Faso","Ghana"]},"TH":{"pop":71668011,"gdp":514944993834,"gpc":7185,"area":513120,"dens":139.7,"elev":287,"temp":26.9,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"방콕","cape":"Bangkok","lat":15,"land":0,"nb":["미얀마","캄보디아","라오스","말레이시아"],"nbe":["Myanmar","Cambodia","Laos","Malaysia"]},"TJ":{"pop":10590927,"gdp":12060602009,"gpc":1139,"area":143100,"dens":74.0,"elev":3186,"temp":3.9,"gov":"공화국","gove":"Republic","cap":"두샨베","cape":"Dushanbe","lat":39,"land":1,"nb":["아프가니스탄","중국","키르기스스탄","우즈베키스탄"],"nbe":["Afghanistan","China","Kyrgyzstan","Uzbekistan"]},"TM":{"pop":7494498,"gdp":59887334844,"gpc":7991,"area":488100,"dens":15.4,"elev":230,"temp":16.7,"gov":"공화국","gove":"Republic","cap":"아시가바트","cape":"Ashgabat","lat":40,"land":1,"nb":["아프가니스탄","이란","카자흐스탄","우즈베키스탄"],"nbe":["Afghanistan","Iran","Kazakhstan","Uzbekistan"]},"TL":{"pop":1400638,"gdp":2243142908,"gpc":1602,"area":14874,"dens":94.2,"temp":24.6,"gov":"유엔 관리 지역","gove":"Administrated by the UN","cap":"딜리","cape":"Dili","lat":-8.8,"land":0,"nb":["인도네시아"],"nbe":["Indonesia"]},"TT":{"pop":1368333,"gdp":28139944790,"gpc":20565,"area":5130,"dens":266.7,"elev":83,"temp":26.6,"gov":"공화국","gove":"Republic","cap":"포트오브스페인","cape":"Port of Spain","lat":11,"land":0},"TN":{"pop":12277109,"gdp":48529595417,"gpc":3953,"area":163610,"dens":75.0,"elev":246,"temp":20.5,"gov":"공화국","gove":"Republic","cap":"튀니스","cape":"Tunis","lat":34,"land":0,"nb":["알제리","리비아"],"nbe":["Algeria","Libya"]},"TR":{"pop":85518661,"gdp":1108022373260,"gpc":12956,"area":783562,"dens":109.1,"cap":"앙카라","cape":"Ankara","lat":39,"land":0,"nb":["아르메니아","아제르바이잔","불가리아","조지아","그리스","이란","이라크","시리아"],"nbe":["Armenia","Azerbaijan","Bulgaria","Georgia","Greece","Iran","Iraq","Syria"]},"TW":{"area":36193,"cap":"타이베이","cape":"Taipei","lat":23.5,"land":0},"TZ":{"pop":68560157,"gdp":79158286334,"gpc":1155,"area":945087,"dens":72.5,"elev":1018,"temp":22.9,"gov":"공화국","gove":"Republic","cap":"도도마","cape":"Dodoma","lat":-6,"land":0,"nb":["부룬디","콩고민주공화국","케냐","말라위","모잠비크","르완다","우간다","잠비아"],"nbe":["Burundi","Democratic Republic of the Congo","Kenya","Malawi","Mozambique","Rwanda","Uganda","Zambia"]},"UG":{"pop":50015092,"gdp":49272882214,"gpc":985,"area":241550,"dens":207.1,"temp":23.2,"gov":"공화국","gove":"Republic","cap":"캄팔라","cape":"Kampala","lat":1,"land":1,"nb":["콩고민주공화국","케냐","르완다","남수단","탄자니아"],"nbe":["Democratic Republic of the Congo","Kenya","Rwanda","South Sudan","United Republic of Tanzania"]},"UA":{"pop":37860221,"gdp":178757021387,"gpc":4721,"area":603500,"dens":62.7,"elev":175,"temp":9.3,"gov":"공화국","gove":"Republic","cap":"키이우","cape":"Kyiv","lat":49,"land":0,"nb":["벨라루스","헝가리","몰도바","폴란드","루마니아","러시아","슬로바키아"],"nbe":["Belarus","Hungary","Moldova","Poland","Romania","Russia","Slovakia"]},"UY":{"pop":3386588,"gdp":77240831587,"gpc":22808,"area":181034,"dens":18.7,"elev":109,"temp":18.0,"gov":"공화국","gove":"Republic","cap":"몬테비데오","cape":"Montevideo","lat":-33,"land":0,"nb":["아르헨티나","브라질"],"nbe":["Argentina","Brazil"]},"US":{"pop":340110988,"gdp":27360935000000,"gpc":80447,"area":9372610,"dens":36.3,"elev":760,"temp":9.5,"gov":"연방 공화국","gove":"Federal Republic","cap":"워싱턴 D.C.","cape":"Washington D.C.","lat":38,"land":0,"nb":["캐나다","멕시코"],"nbe":["Canada","Mexico"]},"UZ":{"pop":36361859,"gdp":90889149307,"gpc":2500,"area":447400,"dens":81.3,"temp":13.7,"gov":"공화국","gove":"Republic","cap":"타슈켄트","cape":"Tashkent","lat":41,"land":1,"nb":["아프가니스탄","카자흐스탄","키르기스스탄","타지키스탄","투르크메니스탄"],"nbe":["Afghanistan","Kazakhstan","Kyrgyzstan","Tajikistan","Turkmenistan"]},"VE":{"pop":28405543,"gdp":482359318768,"gpc":16981,"area":916445,"dens":31.0,"elev":450,"temp":25.7,"gov":"연방 공화국","gove":"Federal Republic","cap":"카라카스","cape":"Caracas","lat":8,"land":0,"nb":["브라질","콜롬비아","가이아나"],"nbe":["Brazil","Colombia","Guyana"]},"VN":{"pop":100987686,"gdp":429716969050,"gpc":4255,"area":331212,"dens":304.9,"temp":24.8,"gov":"사회주의 공화국","gove":"Socialistic Republic","cap":"하노이","cape":"Hanoi","lat":16.2,"land":0,"nb":["캄보디아","중국","라오스"],"nbe":["Cambodia","China","Laos"]},"VU":{"pop":327777,"gdp":1126313359,"gpc":3436,"area":12189,"dens":26.9,"temp":24.4,"gov":"공화국","gove":"Republic","cap":"포트빌라","cape":"Port Vila","lat":-16,"land":0},"PS":{"pop":5289152,"gdp":17396300000,"gpc":3289,"area":6220,"dens":850.3,"temp":19.5,"gov":"자치 지역","gove":"Autonomous Area","cap":"라말라","cape":"Ramallah","lat":31.9,"land":0,"nb":["이스라엘","이집트","요르단"],"nbe":["Israel","Egypt","Jordan"]},"YE":{"pop":40583164,"gdp":21606160663,"gpc":532,"area":527968,"dens":76.9,"elev":999,"temp":25.5,"gov":"공화국","gove":"Republic","cap":"사나","cape":"Sana'a","lat":15,"land":0,"nb":["오만","사우디아라비아"],"nbe":["Oman","Saudi Arabia"]},"ZA":{"pop":64007187,"gdp":377781600986,"gpc":5902,"area":1221037,"dens":52.4,"elev":1034,"temp":18.2,"gov":"공화국","gove":"Republic","cap":"프리토리아","cape":"Pretoria","lat":-29,"land":0,"nb":["보츠와나","레소토","모잠비크","나미비아","에스와티니","짐바브웨"],"nbe":["Botswana","Lesotho","Mozambique","Namibia","Swaziland","Zimbabwe"]},"ZM":{"pop":21314956,"gdp":28162630954,"gpc":1321,"area":752612,"dens":28.3,"elev":1138,"temp":22.2,"gov":"공화국","gove":"Republic","cap":"루사카","cape":"Lusaka","lat":-15,"land":1,"nb":["앙골라","보츠와나","콩고민주공화국","말라위","모잠비크","나미비아","탄자니아","짐바브웨"],"nbe":["Angola","Botswana","Democratic Republic of the Congo","Malawi","Mozambique","Namibia","United Republic of Tanzania","Zimbabwe"]},"ZW":{"pop":16634373,"gdp":26538273499,"gpc":1595,"area":390757,"dens":42.6,"elev":961,"temp":21.9,"gov":"공화국","gove":"Republic","cap":"하라레","cape":"Harare","lat":-20,"land":1,"nb":["보츠와나","모잠비크","남아프리카공화국","잠비아"],"nbe":["Botswana","Mozambique","South Africa","Zambia"]},"SG":{"pop":6036860,"gdp":501427500080,"gpc":83061,"area":710,"dens":8502.6,"temp":27.7,"gov":"공화국","gove":"Republic","cap":"싱가포르","cape":"Singapore","lat":1.4,"land":0},"MV":{"pop":527799,"gdp":6600000000,"gpc":12505,"area":300,"dens":1759.3,"elev":2,"temp":28.1,"gov":"공화국","gove":"Republic","cap":"말레","cape":"Malé","lat":3.2,"land":0},"MU":{"pop":1245779,"gdp":14397127281,"gpc":11557,"area":2040,"dens":610.7,"temp":23.3,"gov":"공화국","gove":"Republic","cap":"포트루이스","cape":"Port Louis","lat":-20.3,"land":0},"KM":{"pop":866628,"gdp":1352380972,"gpc":1561,"area":1862,"dens":465.4,"temp":23.7,"gov":"공화국","gove":"Republic","cap":"모로니","cape":"Moroni","lat":-12.2,"land":0},"SC":{"pop":121354,"gdp":2141450171,"gpc":17646,"area":452,"dens":268.5,"temp":27.1,"gov":"공화국","gove":"Republic","cap":"빅토리아","cape":"Victoria","lat":-4.6,"land":0},"CV":{"pop":524877,"gdp":2587252076,"gpc":4929,"area":4033,"dens":130.1,"temp":22.5,"gov":"공화국","gove":"Republic","cap":"프라이아","cape":"Praia","lat":16,"land":0},"BH":{"pop":1588670,"gdp":43205000000,"gpc":27196,"area":765,"dens":2076.7,"temp":27.7,"gov":"군주국(토후국)","gove":"Monarchy (Emirate)","cap":"마나마","cape":"Manama","lat":26,"land":0},"AD":{"pop":81938,"gdp":3727673593,"gpc":45494,"area":468,"dens":175.1,"elev":1996,"temp":8.3,"gov":"의회 공동공국","gove":"Parliamentary Coprincipality","cap":"안도라라베야","cape":"Andorra la Vella","lat":42.5,"land":1,"nb":["프랑스","스페인"],"nbe":["France","Spain"]},"MC":{"pop":38631,"gdp":8784002932,"gpc":227382,"area":2,"dens":19124.3,"temp":13.5,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"모나코","cape":"Monaco","lat":43.7,"land":0,"nb":["프랑스"],"nbe":["France"]},"LI":{"pop":40450,"gdp":7364654515,"gpc":182068,"area":160,"dens":252.8,"temp":7.5,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"파두츠","cape":"Vaduz","lat":47.3,"land":1,"nb":["오스트리아","스위스"],"nbe":["Austria","Switzerland"]},"SM":{"pop":33977,"gdp":1855382833,"gpc":54607,"area":61,"dens":557.0,"temp":12.8,"gov":"공화국","gove":"Republic","cap":"산마리노","cape":"City of San Marino","lat":43.8,"land":1,"nb":["이탈리아"],"nbe":["Italy"]},"VA":{"area":0,"temp":16.3,"gov":"독립 교회 국가","gove":"Independent Church State","cap":"바티칸","cape":"Vatican City","lat":41.9,"land":1,"nb":["이탈리아"],"nbe":["Italy"]},"ST":{"pop":235536,"gdp":603240749,"gpc":2561,"area":964,"dens":244.3,"temp":24.5,"gov":"공화국","gove":"Republic","cap":"상투메","cape":"São Tomé","lat":1,"land":0},"AG":{"pop":93772,"gdp":2033085185,"gpc":21681,"area":442,"dens":212.2,"temp":27.2,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"세인트존스","cape":"Saint John's","lat":17.1,"land":0},"BB":{"pop":282467,"gdp":6393564190,"gpc":22635,"area":430,"dens":656.9,"temp":26.6,"gov":"공화국","gove":"Republic","cap":"브리지타운","cape":"Bridgetown","lat":13.2,"land":0},"DM":{"pop":66205,"gdp":653992593,"gpc":9878,"area":751,"dens":88.2,"temp":26.8,"gov":"공화국","gove":"Republic","cap":"로조","cape":"Roseau","lat":15.4,"land":0},"GD":{"pop":117207,"gdp":1320334236,"gpc":11265,"area":344,"dens":340.7,"temp":26.5,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"세인트조지스","cape":"St. George's","lat":12.1,"land":0},"LC":{"pop":179744,"gdp":2519925939,"gpc":14020,"area":616,"dens":291.8,"temp":27.0,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"캐스트리스","cape":"Castries","lat":13.9,"land":0},"VC":{"pop":100616,"gdp":1065962963,"gpc":10594,"area":389,"dens":258.7,"temp":26.2,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"킹스타운","cape":"Kingstown","lat":13.2,"land":0},"KN":{"pop":46843,"gdp":1077033111,"gpc":22992,"area":261,"dens":179.5,"temp":27.5,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"바스테르","cape":"Basseterre","lat":17.3,"land":0},"KI":{"pop":134518,"gdp":279034355,"gpc":2074,"area":811,"dens":165.9,"temp":27.8,"gov":"공화국","gove":"Republic","cap":"타라와","cape":"South Tarawa","lat":1.4,"land":0},"TV":{"pop":9646,"gdp":62280312,"gpc":6457,"area":26,"dens":371.0,"temp":28.6,"gov":"입헌군주국","gove":"Constitutional Monarchy","cap":"푸나푸티","cape":"Funafuti","lat":-8,"land":0},"NR":{"pop":11947,"gdp":154127798,"gpc":12901,"area":21,"dens":568.9,"temp":27.8,"gov":"공화국","gove":"Republic","cap":"야렌","cape":"Yaren","lat":-0.5,"land":0},"MH":{"pop":37548,"gdp":284000000,"gpc":7564,"area":181,"dens":207.4,"temp":28.0,"gov":"공화국","gove":"Republic","cap":"마주로","cape":"Majuro","lat":9,"land":0},"FM":{"pop":113160,"gdp":460000000,"gpc":4065,"area":702,"dens":161.2,"temp":27.3,"gov":"연방 공화국","gove":"Federal Republic","cap":"팔리키르","cape":"Palikir","lat":6.9,"land":0},"PW":{"pop":17695,"gdp":263020734,"gpc":14864,"area":459,"dens":38.6,"temp":27.9,"gov":"공화국","gove":"Republic","cap":"응게룰무드","cape":"Ngerulmud","lat":7.5,"land":0},"TO":{"pop":104175,"gdp":500274898,"gpc":4802,"area":747,"dens":139.5,"temp":25.0,"gov":"군주국","gove":"Monarchy","cap":"누쿠알로파","cape":"Nuku'alofa","lat":-20,"land":0},"WS":{"pop":218019,"gdp":934100336,"gpc":4284,"area":2842,"dens":76.7,"temp":27.6,"gov":"의원내각제 공화국","gove":"Parliamentary Republic","cap":"아피아","cape":"Apia","lat":-13.6,"land":0}};
 
 /* ================= icons ================= */
-function svg(inner){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ic">'+inner+'</svg>'; }
+function svg(inner){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ic" aria-hidden="true" focusable="false">'+inner+'</svg>'; }
 const ICONS={
   globe:svg('<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.7 2.9 2.7 15.1 0 18M12 3c-2.7 2.9-2.7 15.1 0 18"/>'),
   check:svg('<path d="M20 6 9 17l-5-5"/>'),
@@ -553,6 +620,8 @@ const ICONS={
   shield:svg('<path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M12 9v3M12 15h.01"/>'),
   star:svg('<path d="M12 3l2.6 5.6 6 .7-4.4 4.1 1.2 6L12 16.9 6.6 19.5l1.2-6L3.4 9.3l6-.7z"/>'),
   scale:svg('<path d="M12 3v18M7 21h10M5 7h14M5 7l-3 6h6zM19 7l-3 6h6z"/>'),
+  user:svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>'),
+  logout:svg('<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l-5-5 5-5M5 12h11"/>'),
 };
 document.querySelectorAll('[data-icon]').forEach(e=>e.insertAdjacentHTML('afterbegin', ICONS[e.dataset.icon]||''));
 
@@ -865,6 +934,8 @@ const el={
   burst:$('burst'),burstIc:$('burst-ic'),burstTxt:$('burst-txt'),
   langbtn:$('langbtn'),homelang:$('homelang'),vsbar:$('vsbar'),
   compare:$('compare'),cmpQ:$('cmp-q'),cmpA:$('cmp-a'),cmpB:$('cmp-b'),cmpFact:$('cmp-fact'),
+  profilebtn:$('profilebtn'),profilebtnT:$('profilebtn-t'),profilecard:$('profilecard'),
+  auth:$('auth'),authBody:$('auth-body'),authClose:$('auth-close'),
 };
 const ICO_CHECK=svg('<path d="M20 6 9 17l-5-5"/>'), ICO_X=svg('<path d="M18 6 6 18M6 6l12 12"/>');
 let burstT=null;
@@ -7664,6 +7735,8 @@ function answerTrivia(i){
 function endTrivia(){
   stopTrivia(); state.ended=true; const n=state.triviaQueue.length, pct=Math.round(state.score/n*100);
   showOverlay(pct>=80?LT('🏆 명장!','🏆 Master!'):pct>=50?LT('좋아요!','Nice!'):LT('끝!','Done!'), state.score+' / '+n, LT('전쟁 트리비아 · ','War Trivia · ')+pct+LT('점',''));
+  const r=recordResult('trivia',state.score);
+  if(r&&r.isBest&&state.score>0){ const s=$('ovsub'); s.textContent=s.textContent+LT(' · 🏆 최고 기록!',' · 🏆 New best!'); }
 }
 el.warsel.onchange=()=>{ state.triviaSel=el.warsel.value; if(state.mode==='trivia') resetMode(); };
 // trivia keyboard shortcuts: 1-4 or A-D to answer
@@ -7677,22 +7750,22 @@ document.addEventListener('keydown',e=>{
 });
 
 /* ================= home screen (neal.fun-style cards) ================= */
-const GROUP_EN={'배우기':'Learn','게임':'Games','트리비아':'Trivia'};
+const GROUP_EN={'배우기':'Learn','이름·위치 맞히기':'Name & Locate','퀴즈':'Quizzes','비교·순위':'Compare & Rank','도전':'Challenges','트리비아':'Trivia'};
 const MODES_META=[
  {m:'free',t:'자유 탐색',te:'Free Explore',d:'나라를 입력·클릭해 위치 확인',de:'Type or click a country to see where it is',ic:'globe',g:'배우기'},
  {m:'study',t:'학습 카드',te:'Study Cards',d:'지역별로 목록·카드로 외우고 자가 테스트',de:'Memorize by region with a list & self-test',ic:'cards',g:'배우기'},
- {m:'rank',t:'순위표',te:'Rankings',d:'인구·면적·GDP 등 지표별 순위와 지도',de:'Rank countries by population, area, GDP…',ic:'bars',g:'배우기'},
  {m:'locate',t:'위치 학습',te:'Location Study',d:'이름을 보고 지도에서 찾으며 위치를 익혀요',de:'Learn where countries are by finding them',ic:'search',g:'배우기'},
- {m:'quiz',t:'이름 맞히기',te:'Name It',d:'표시된 나라 이름을 90초 안에',de:'Type the name of the highlighted country',ic:'target',g:'게임'},
- {m:'findmap',t:'지도에서 찾기',te:'Find on Map',d:'제시된 이름을 지도에서 눌러 찾기',de:'Click the named country on the map',ic:'search',g:'게임'},
- {m:'flag',t:'국기 퀴즈',te:'Flag Quiz',d:'국기를 보고 나라 이름 맞히기',de:'Name the country from its flag',ic:'flag2',g:'게임'},
- {m:'capital',t:'수도 퀴즈',te:'Capital Quiz',d:'나라를 보고 수도 이름 입력',de:'Type the capital of the shown country',ic:'star',g:'게임'},
- {m:'compare',t:'더 큰 나라?',te:'Bigger?',d:'두 나라 중 더 큰(많은) 쪽 고르기',de:'Pick the bigger of two countries',ic:'scale',g:'게임'},
- {m:'hint',t:'힌트 퀴즈',te:'Hint Quiz',d:'인접국·크기·수도 등 힌트로 추리',de:'Guess from neighbors, size, capital…',ic:'bulb',g:'게임'},
- {m:'place',t:'이름표 놓기',te:'Drag & Drop',d:'이름표를 알맞은 땅으로 드래그',de:'Drag each label onto the right land',ic:'tag',g:'게임'},
- {m:'conquer',t:'정복 모드',te:'Conquer',d:'나라를 반복해 눌러 칠하고 지역 정복',de:'Tap countries repeatedly to paint the region',ic:'trophy',g:'게임'},
- {m:'region',t:'지역별 도전',te:'Region Challenge',d:'고른 지역의 모든 나라 입력',de:'Name every country in a chosen region',ic:'layers',g:'게임'},
- {m:'countdown',t:'전세계 도전',te:'World Countdown',d:'제한 시간 안에 최대한 많이',de:'Name as many as you can before time runs out',ic:'clock',g:'게임'},
+ {m:'quiz',t:'이름 맞히기',te:'Name It',d:'표시된 나라 이름을 90초 안에',de:'Type the name of the highlighted country',ic:'target',g:'이름·위치 맞히기'},
+ {m:'findmap',t:'지도에서 찾기',te:'Find on Map',d:'제시된 이름을 지도에서 눌러 찾기',de:'Click the named country on the map',ic:'search',g:'이름·위치 맞히기'},
+ {m:'place',t:'이름표 놓기',te:'Drag & Drop',d:'이름표를 알맞은 땅으로 드래그',de:'Drag each label onto the right land',ic:'tag',g:'이름·위치 맞히기'},
+ {m:'flag',t:'국기 퀴즈',te:'Flag Quiz',d:'국기를 보고 나라 이름 맞히기',de:'Name the country from its flag',ic:'flag2',g:'퀴즈'},
+ {m:'capital',t:'수도 퀴즈',te:'Capital Quiz',d:'나라를 보고 수도 이름 입력',de:'Type the capital of the shown country',ic:'star',g:'퀴즈'},
+ {m:'hint',t:'힌트 퀴즈',te:'Hint Quiz',d:'인접국·크기·수도 등 힌트로 추리',de:'Guess from neighbors, size, capital…',ic:'bulb',g:'퀴즈'},
+ {m:'compare',t:'더 큰 나라?',te:'Bigger?',d:'두 나라 중 더 큰(많은) 쪽 고르기',de:'Pick the bigger of two countries',ic:'scale',g:'비교·순위'},
+ {m:'rank',t:'순위표',te:'Rankings',d:'인구·면적·GDP 등 지표별 순위와 지도',de:'Rank countries by population, area, GDP…',ic:'bars',g:'비교·순위'},
+ {m:'region',t:'지역별 도전',te:'Region Challenge',d:'고른 지역의 모든 나라 입력',de:'Name every country in a chosen region',ic:'layers',g:'도전'},
+ {m:'countdown',t:'전세계 도전',te:'World Countdown',d:'제한 시간 안에 최대한 많이',de:'Name as many as you can before time runs out',ic:'clock',g:'도전'},
+ {m:'conquer',t:'정복 모드',te:'Conquer',d:'나라를 반복해 눌러 칠하고 지역 정복',de:'Tap countries repeatedly to paint the region',ic:'trophy',g:'도전'},
  {m:'trivia',t:'전쟁 트리비아',te:'War Trivia',d:'전쟁·주제별 4지선다 퀴즈(Kahoot 스타일)',de:'Kahoot-style multiple-choice war quiz',ic:'shield',g:'트리비아'},
 ];
 function modeTitle(x){ return EN()?(x.te||x.t):x.t; }
@@ -7790,11 +7863,13 @@ function showSetup(mode){
 }
 function buildHome(){
   el.homeContent.innerHTML='';
-  [...new Set(MODES_META.map(x=>x.g))].forEach(g=>{
-    const h=document.createElement('div'); h.className='home-sec'; h.textContent=EN()?(GROUP_EN[g]||g):g; el.homeContent.appendChild(h);
-    const grid=document.createElement('div'); grid.className='home-grid';
+  [...new Set(MODES_META.map(x=>x.g))].forEach((g,gi)=>{
+    const gname=EN()?(GROUP_EN[g]||g):g, secId='sec-'+gi;
+    const h=document.createElement('h2'); h.className='home-sec'; h.id=secId; h.textContent=gname; el.homeContent.appendChild(h);
+    const grid=document.createElement('div'); grid.className='home-grid'; grid.setAttribute('role','list'); grid.setAttribute('aria-labelledby',secId);
     MODES_META.filter(x=>x.g===g).forEach(x=>{
-      const c=document.createElement('button'); c.className='gcard';
+      const c=document.createElement('button'); c.className='gcard'; c.setAttribute('role','listitem');
+      c.setAttribute('aria-label',modeTitle(x)+'. '+modeDesc(x));
       c.innerHTML='<div class="thumb">'+(THUMBS[x.m]||ICONS[x.ic]||'')+'<div class="cov"><div class="ctitle"></div><div class="cdesc"></div></div></div>';
       c.querySelector('.ctitle').textContent=modeTitle(x); c.querySelector('.cdesc').textContent=modeDesc(x);
       c.onclick=()=>enterMode(x.m); grid.appendChild(c);
@@ -7994,6 +8069,11 @@ function endGame(){
     showOverlay(done?(EN()?('🏆 '+regionName(state.region)+' conquered!'):('🏆 '+regionName(state.region)+' 정복!')):TIMEUP, state.conquerDone+' / '+state.conquerTotal,
       done? (EN()?('Painted every country in '+regionName(state.region)+' in '+fmtTime(state.elapsed)+'!'):(regionName(state.region)+'의 모든 나라를 '+fmtTime(state.elapsed)+' 만에 칠했어요!')) : (EN()?('Almost! '+state.conquerDone+' of '+state.conquerTotal+' painted.'):('조금만 더! '+state.conquerTotal+'개 중 '+state.conquerDone+'개 칠했어요.'))); }
   else { const sov=sovFoundCount(); showOverlay(TIMEUP,sov+' / '+TOTAL_SOV,EN()?('You found '+sov+' of '+TOTAL_SOV+' sovereign states!'):('주권국 '+TOTAL_SOV+'개 중 '+sov+'개를 찾았어요!')); }
+  // save the result for the logged-in profile & flag a new best
+  const scoreMap={quiz:state.score,flag:state.score,capital:state.score,findmap:state.score,compare:state.score,
+    countdown:sovFoundCount(),region:regionFoundCount(),conquer:state.conquerDone,place:state.placeTotal,locate:state.locTotal};
+  if(scoreMap[m]!==undefined){ const r=recordResult(m,scoreMap[m]);
+    if(r&&r.isBest&&scoreMap[m]>0){ const s=$('ovsub'); s.textContent=s.textContent+LT(' · 🏆 최고 기록!',' · 🏆 New best!'); } }
 }
 function showOverlay(title,big,sub){ $('ovtitle').textContent=title; $('ovbig').textContent=big; $('ovsub').textContent=sub; overlay.classList.add('show'); }
 function hideOverlay(){ overlay.classList.remove('show'); }
@@ -8076,8 +8156,10 @@ function applyLang(){
   el.q.placeholder=en?'Country name or code…  (e.g. USA, Japan, KR)':'나라 이름이나 약자 입력…  (예: 대한민국, 미국, JP)';
   // titles/tooltips
   el.warsel.title=LT('전쟁 선택','Select war'); el.metric.title=LT('지표 선택','Select metric'); el.region.title=LT('지역 선택','Select region');
-  $('zin').title=LT('확대','Zoom in'); $('zout').title=LT('축소','Zoom out'); $('zfit').title=LT('전체 보기','Fit');
-  if(el.micbtn) el.micbtn.title=LT('음성으로 답하기','Answer by voice');
+  [['zin','확대','Zoom in'],['zout','축소','Zoom out'],['zfit','전체 보기','Fit']].forEach(([id,ko,en])=>{ const b=$(id); if(b){ b.title=LT(ko,en); b.setAttribute('aria-label',LT(ko,en)); } });
+  if(el.micbtn){ el.micbtn.title=LT('음성으로 답하기','Answer by voice'); el.micbtn.setAttribute('aria-label',LT('음성으로 답하기','Answer by voice')); }
+  if(el.langbtn) el.langbtn.setAttribute('aria-label',LT('언어를 영어로 바꾸기','Switch to Korean'));
+  if(el.homelang) el.homelang.setAttribute('aria-label',LT('언어를 영어로 바꾸기','Switch to Korean'));
   // legend
   const lg=$('legend'); if(lg) lg.innerHTML=
     '<span><span class="sw" style="background:var(--land)"></span>'+LT('기본','Land')+'</span>'+
@@ -8093,6 +8175,8 @@ function applyLang(){
   if(el.metric.children.length){ fillMetricOptions(el.metric); el.metric.value=mv||state.metric; }
   if(el.warsel.children.length){ fillWarOptions(el.warsel); el.warsel.value=wv||state.triviaSel; }
   buildHome();
+  if(typeof renderProfile==='function') renderProfile();
+  if(el.auth.classList.contains('show') && typeof renderAuth==='function') renderAuth();
   // relocalize the live screen
   if(el.home.classList.contains('show')){ /* home already rebuilt */ }
   else if(el.setup.classList.contains('show')){ showSetup(state.pendingMode); }
@@ -8102,9 +8186,181 @@ function toggleLang(){ state.lang=EN()?'ko':'en'; applyLang(); }
 el.langbtn.onclick=toggleLang;
 el.homelang.onclick=toggleLang;
 
+/* ================= local profiles (saved in THIS browser only — no server) ================= */
+const AKEY='wmh_accounts_v1';
+let ACC=(function(){ try{ return JSON.parse(localStorage.getItem(AKEY))||{users:{},current:null}; }catch(e){ return {users:{},current:null}; } })();
+function accSave(){ try{ localStorage.setItem(AKEY,JSON.stringify(ACC)); }catch(e){} }
+function curUser(){ return (ACC.current && ACC.users[ACC.current]) ? ACC.users[ACC.current] : null; }
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+const MODE_LABEL={}; MODES_META.forEach(x=>MODE_LABEL[x.m]=x);
+async function hashPass(pw,salt){
+  try{ const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(salt+'|'+pw));
+       return 's:'+[...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join(''); }
+  catch(e){ let h=5381; const s=salt+'|'+pw; for(let i=0;i<s.length;i++) h=((h*33)^s.charCodeAt(i))>>>0; return 'f:'+h.toString(16); }
+}
+function randSalt(){ try{ const a=new Uint8Array(8); crypto.getRandomValues(a); return [...a].map(b=>b.toString(16).padStart(2,'0')).join(''); }catch(e){ return 'saltxx'; } }
+// record a SOLO result for the logged-in user → {isBest,best} | null
+function recordResult(key,score){
+  const u=curUser(); if(!u||key==null||state.vs) return null;
+  u.stats=u.stats||{games:0,best:{},plays:{},points:0};
+  u.stats.games++; u.stats.plays[key]=(u.stats.plays[key]||0)+1;
+  u.stats.points=(u.stats.points||0)+Math.max(0,score||0);
+  const prev=u.stats.best[key]||0, isBest=(score||0)>prev;
+  if(isBest) u.stats.best[key]=score;
+  accSave(); renderProfile();
+  return {isBest,best:u.stats.best[key]};
+}
+
+/* ---- data transfer between devices (export/import a backup code) ---- */
+function b64enc(str){ return btoa(unescape(encodeURIComponent(str))); }
+function b64dec(b64){ return decodeURIComponent(escape(atob(b64.trim()))); }
+function exportCode(u){ return b64enc(JSON.stringify({v:1,user:{name:u.name,salt:u.salt,hash:u.hash,stats:u.stats||{games:0,best:{},plays:{},points:0}}})); }
+function importCode(code){
+  let o; try{ o=JSON.parse(b64dec(code)); }catch(e){ return {err:'bad'}; }
+  const u=o&&o.user;
+  if(!u||!u.name||!u.hash||!u.salt) return {err:'bad'};
+  const key=String(u.name).toLowerCase();
+  ACC.users[key]={name:u.name,salt:u.salt,hash:u.hash,stats:u.stats||{games:0,best:{},plays:{},points:0}};
+  ACC.current=key; accSave(); return {name:u.name};
+}
+function downloadText(filename,text){
+  try{ const blob=new Blob([text],{type:'text/plain'}); const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click();
+    setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); },100);
+  }catch(e){}
+}
+
+/* ---- auth modal (login / signup / signed-in / export / import) ---- */
+let authTab='login', authView='main', authPrevFocus=null;
+function authNote(){ return LT('이 브라우저에만 저장되는 로컬 프로필이에요 · 서버로 전송되지 않아요.','A local profile saved only in this browser — nothing is sent to a server.'); }
+function authMsg(text,cls){ const m=el.authBody.querySelector('#auth-msg'); if(m){ m.textContent=text||''; m.className='auth-msg '+(cls||''); } }
+function renderAuth(){
+  if(authView==='export'){ renderExport(); return; }
+  if(authView==='import'){ renderImport(); return; }
+  const u=curUser();
+  if(u){
+    el.authBody.innerHTML='<div class="auth-signedin">'
+      +'<h2 class="auth-title" id="auth-title">'+LT('내 프로필','My profile')+'</h2>'
+      +'<div class="pc-avatar">'+esc(u.name.charAt(0).toUpperCase())+'</div>'
+      +'<div class="pc-name">'+esc(u.name)+'</div>'
+      +'<div class="pc-sub">'+LT('플레이 ','Games ')+((u.stats&&u.stats.games)||0)+' · '+LT('누적 점수 ','Total ')+((u.stats&&u.stats.points)||0)+'</div>'
+      +'<button class="btn solid auth-submit" id="auth-logout" style="margin-top:16px">'+LT('로그아웃','Log out')+'</button>'
+      +'<div class="auth-xfer"><button class="btn auth-mini" id="auth-export">'+LT('다른 기기로 내보내기','Export to another device')+'</button>'
+        +'<button class="btn auth-mini" id="auth-import">'+LT('가져오기','Import')+'</button></div>'
+      +'<p class="auth-note">'+authNote()+'</p></div>';
+    el.authBody.querySelector('#auth-logout').onclick=()=>{ ACC.current=null; accSave(); closeAuth(); renderProfile(); };
+    el.authBody.querySelector('#auth-export').onclick=()=>{ authView='export'; renderAuth(); };
+    el.authBody.querySelector('#auth-import').onclick=()=>{ authView='import'; renderAuth(); };
+    return;
+  }
+  const login=authTab==='login';
+  el.authBody.innerHTML=''
+    +'<h2 class="auth-title" id="auth-title">'+LT('로그인 / 회원가입','Log in / Sign up')+'</h2>'
+    +'<div class="auth-tabs" role="tablist">'
+      +'<button class="auth-tab'+(login?' on':'')+'" id="tab-login" role="tab" aria-selected="'+login+'">'+LT('로그인','Log in')+'</button>'
+      +'<button class="auth-tab'+(login?'':' on')+'" id="tab-signup" role="tab" aria-selected="'+(!login)+'">'+LT('회원가입','Sign up')+'</button>'
+    +'</div>'
+    +'<form id="auth-form" autocomplete="on">'
+      +'<label class="auth-field"><span>'+LT('이름','Name')+'</span><input id="auth-name" name="username" autocomplete="username" maxlength="20" required></label>'
+      +'<label class="auth-field"><span>'+LT('비밀번호','Password')+'</span><input id="auth-pass" name="password" type="password" autocomplete="'+(login?'current-password':'new-password')+'" required></label>'
+      +'<div class="auth-msg" id="auth-msg" role="alert" aria-live="assertive"></div>'
+      +'<button class="btn solid auth-submit" type="submit">'+(login?LT('로그인','Log in'):LT('가입하고 시작','Sign up & start'))+'</button>'
+    +'</form>'
+    +'<button class="auth-link" id="auth-import-link">'+LT('다른 기기의 데이터 가져오기','Import data from another device')+'</button>'
+    +'<p class="auth-note">'+authNote()+'</p>';
+  el.authBody.querySelector('#tab-login').onclick=()=>{ authTab='login'; renderAuth(); el.authBody.querySelector('#auth-name').focus(); };
+  el.authBody.querySelector('#tab-signup').onclick=()=>{ authTab='signup'; renderAuth(); el.authBody.querySelector('#auth-name').focus(); };
+  el.authBody.querySelector('#auth-form').onsubmit=onAuthSubmit;
+  el.authBody.querySelector('#auth-import-link').onclick=()=>{ authView='import'; renderAuth(); };
+}
+function renderExport(){
+  const u=curUser(); if(!u){ authView='main'; renderAuth(); return; }
+  const code=exportCode(u);
+  el.authBody.innerHTML=''
+    +'<h2 class="auth-title" id="auth-title">'+LT('다른 기기로 내보내기','Export to another device')+'</h2>'
+    +'<p class="auth-sub2">'+LT('아래 코드를 복사하거나 파일로 저장해서, 다른 기기의 “가져오기”에 붙여 넣으세요.','Copy this code or save it as a file, then paste it into “Import” on the other device.')+'</p>'
+    +'<textarea class="auth-code" id="auth-codebox" readonly rows="4">'+esc(code)+'</textarea>'
+    +'<div class="auth-xfer"><button class="btn solid auth-mini" id="auth-copy">'+LT('복사','Copy')+'</button>'
+      +'<button class="btn auth-mini" id="auth-savefile">'+LT('파일로 저장','Save file')+'</button></div>'
+    +'<div class="auth-msg" id="auth-msg" role="status" aria-live="polite"></div>'
+    +'<button class="auth-link" id="auth-back">‹ '+LT('뒤로','Back')+'</button>';
+  el.authBody.querySelector('#auth-copy').onclick=async()=>{ const box=el.authBody.querySelector('#auth-codebox'); box.select();
+    try{ await navigator.clipboard.writeText(code); }catch(e){ try{document.execCommand('copy');}catch(e2){} }
+    authMsg(LT('복사됐어요!','Copied!'),'ok'); };
+  el.authBody.querySelector('#auth-savefile').onclick=()=>{ downloadText('worldmap-profile-'+u.name+'.txt',code); authMsg(LT('파일을 저장했어요.','File saved.'),'ok'); };
+  el.authBody.querySelector('#auth-back').onclick=()=>{ authView='main'; renderAuth(); };
+}
+function renderImport(){
+  el.authBody.innerHTML=''
+    +'<h2 class="auth-title" id="auth-title">'+LT('데이터 가져오기','Import data')+'</h2>'
+    +'<p class="auth-sub2">'+LT('다른 기기에서 내보낸 코드를 붙여 넣거나 파일을 선택하세요.','Paste the code exported from another device, or choose the file.')+'</p>'
+    +'<textarea class="auth-code" id="auth-codein" rows="4" placeholder="'+LT('백업 코드 붙여넣기…','Paste backup code…')+'"></textarea>'
+    +'<div class="auth-xfer"><button class="btn solid auth-mini" id="auth-doimport">'+LT('가져오기','Import')+'</button>'
+      +'<label class="btn auth-mini" style="cursor:pointer">'+LT('파일 선택','Choose file')+'<input type="file" id="auth-file" accept=".txt,.json,text/plain" hidden></label></div>'
+    +'<div class="auth-msg" id="auth-msg" role="alert" aria-live="assertive"></div>'
+    +'<button class="auth-link" id="auth-back">‹ '+LT('뒤로','Back')+'</button>';
+  const doImport=(code)=>{ const r=importCode(code);
+    if(r.err){ authMsg(LT('코드를 읽을 수 없어요. 다시 확인해 주세요.','Couldn’t read that code — please check it.'),'err'); return; }
+    renderProfile(); closeAuth(); };
+  el.authBody.querySelector('#auth-doimport').onclick=()=>{ const v=el.authBody.querySelector('#auth-codein').value.trim(); if(!v){ authMsg(LT('코드를 붙여 넣으세요.','Paste a code first.'),'err'); return; } doImport(v); };
+  el.authBody.querySelector('#auth-file').onchange=(e)=>{ const f=e.target.files&&e.target.files[0]; if(!f) return;
+    const rd=new FileReader(); rd.onload=()=>doImport(String(rd.result||'')); rd.readAsText(f); };
+  el.authBody.querySelector('#auth-back').onclick=()=>{ authView='main'; renderAuth(); };
+}
+async function onAuthSubmit(e){
+  e.preventDefault();
+  const name=el.authBody.querySelector('#auth-name').value.trim();
+  const pw=el.authBody.querySelector('#auth-pass').value;
+  if(name.length<1){ authMsg(LT('이름을 입력하세요.','Enter a name.'),'err'); return; }
+  if(pw.length<4){ authMsg(LT('비밀번호는 4자 이상이어야 해요.','Password must be at least 4 characters.'),'err'); return; }
+  const key=name.toLowerCase();
+  if(authTab==='signup'){
+    if(ACC.users[key]){ authMsg(LT('이미 있는 이름이에요 — 로그인하세요.','That name already exists — log in instead.'),'err'); return; }
+    const salt=randSalt(), hash=await hashPass(pw,salt);
+    ACC.users[key]={name,salt,hash,stats:{games:0,best:{},plays:{},points:0}};
+    ACC.current=key; accSave(); closeAuth(); renderProfile();
+  } else {
+    const u=ACC.users[key];
+    if(!u){ authMsg(LT('그런 이름이 없어요 — 회원가입하세요.','No such name — sign up instead.'),'err'); return; }
+    const hash=await hashPass(pw,u.salt);
+    if(hash!==u.hash){ authMsg(LT('비밀번호가 틀렸어요.','Wrong password.'),'err'); return; }
+    ACC.current=key; accSave(); closeAuth(); renderProfile();
+  }
+}
+function openAuth(){ authPrevFocus=document.activeElement; authView='main'; renderAuth(); el.auth.classList.add('show'); el.auth.setAttribute('aria-hidden','false');
+  const f=el.authBody.querySelector('input,button'); if(f) f.focus(); }
+function closeAuth(){ el.auth.classList.remove('show'); el.auth.setAttribute('aria-hidden','true'); if(authPrevFocus&&authPrevFocus.focus) authPrevFocus.focus(); }
+
+/* ---- profile button + stats card on the home screen ---- */
+function renderProfile(){
+  const u=curUser();
+  el.profilebtnT.textContent=u?u.name:LT('로그인','Log in');
+  el.profilebtn.setAttribute('aria-label',u?(LT('프로필: ','Profile: ')+u.name):LT('로그인 또는 회원가입','Log in or sign up'));
+  if(!u){ el.profilecard.classList.add('hidden'); el.profilecard.innerHTML=''; return; }
+  const st=u.stats||{games:0,best:{},points:0};
+  const bests=Object.keys(st.best||{}).map(k=>({k,v:st.best[k]})).sort((a,b)=>b.v-a.v).slice(0,4);
+  let bh=''; bests.forEach(b=>{ const meta=MODE_LABEL[b.k], nm=meta?(EN()?(meta.te||meta.t):meta.t):b.k;
+    bh+='<div class="pc-stat"><div class="n">'+b.v+'</div><div class="l">'+esc(nm)+'</div></div>'; });
+  el.profilecard.classList.remove('hidden');
+  el.profilecard.innerHTML='<div class="pc-head">'
+    +'<div class="pc-avatar">'+esc(u.name.charAt(0).toUpperCase())+'</div>'
+    +'<div><div class="pc-name">'+esc(u.name)+'</div><div class="pc-sub">'+LT('플레이 ','Games ')+(st.games||0)+' · '+LT('누적 점수 ','Total points ')+(st.points||0)+'</div></div>'
+    +'<button class="btn pc-logout" id="pc-logout"><span data-icon="logout"></span> <span>'+LT('로그아웃','Log out')+'</span></button>'
+    +'</div>'
+    +(bh?('<div class="pc-stats">'+bh+'</div>'):('<div class="pc-sub" style="margin-top:11px">'+LT('게임을 하면 최고 기록이 여기에 쌓여요.','Play a game and your best scores show up here.')+'</div>'));
+  const lg=el.profilecard.querySelector('#pc-logout');
+  lg.querySelector('[data-icon]').insertAdjacentHTML('afterbegin',ICONS.logout);
+  lg.onclick=()=>{ ACC.current=null; accSave(); renderProfile(); };
+}
+el.profilebtn.onclick=openAuth;
+el.authClose.onclick=closeAuth;
+el.auth.addEventListener('click',e=>{ if(e.target===el.auth) closeAuth(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&el.auth.classList.contains('show')) closeAuth(); });
+
 buildHome();
 showHome();
 applyLang();
+renderProfile();
 </script>
 </body>
 </html>
