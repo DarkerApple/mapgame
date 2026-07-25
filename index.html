@@ -498,8 +498,16 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
 .mg-card.lose{border-color:var(--bad);background:var(--bad-dim)}
 .mg-card.dim{opacity:.5}
 .mg-ladder{display:flex;align-items:stretch;gap:14px;width:100%;justify-content:center}
-.mg-ladder .mg-card{flex:1;min-width:0;max-width:300px}
-.mg-arrow{display:flex;align-items:center;font-weight:900;color:var(--faint);font-size:18px}
+.mg-ladder .mg-card{flex:1;min-width:0;max-width:300px;cursor:default}
+/* ladder cards are display-only — the ▲/▼ buttons are the controls */
+.mg-ladder .mg-card:hover{background:var(--surface);border-color:var(--border2)}
+.mg-ladder .mg-card.win:hover{border-color:var(--ok);background:var(--ok-dim)}
+.mg-ladder .mg-card.lose:hover{border-color:var(--bad);background:var(--bad-dim)}
+.mg-ladder .mg-card:active{transform:none}
+.mg-tag{font-size:10.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.mg-card.nxt .mg-tag{color:var(--target)}
+.mg-rel{font-weight:900} .mg-rel.up{color:var(--ok)} .mg-rel.down{color:var(--bad)}
+.mg-arrow{display:flex;align-items:center;font-weight:900;color:var(--faint);font-size:15px}
 .mg-btns{display:flex;gap:12px;width:100%;max-width:420px}
 .mg-btns button{flex:1;background:var(--surface);border:2px solid var(--border2);border-radius:14px;padding:16px 10px;
   cursor:pointer;font:inherit;font-size:16px;font-weight:800;color:var(--text);transition:.12s}
@@ -2783,17 +2791,20 @@ function ladderPickNext(){
   while((n===cur||cmpVal(n)===cv)&&tries<80){ n=rndOf(state.ladderPool); tries++; }
   return n;
 }
-function ladderCardHTML(e,showVal){
-  return '<div class="mf">'+flagEmoji(e.i2)+'</div><div class="mn">'+esc(NM(e))+'</div><div class="mv">'+(showVal?esc(cmpFmt(cmpVal(e))):'?')+'</div>';
+function ladderCardHTML(e,showVal,tag){
+  return '<div class="mg-tag">'+tag+'</div><div class="mf">'+flagEmoji(e.i2)+'</div><div class="mn">'+esc(NM(e))+'</div><div class="mv">'+(showVal?esc(cmpFmt(cmpVal(e))):'?')+'</div>';
 }
 function renderLadder(){
   state.mgLock=false;
   state.ladderNext=ladderPickNext();
-  el.mgQ.innerHTML=EN()?('Does the right country have a <b>higher</b> or <b>lower</b> '+cmpLabel()+'?'):('오른쪽 나라의 <b>'+cmpLabel()+'</b> — 더 클까요, 작을까요?');
+  const cur=state.ladderCur, nxt=state.ladderNext, cv=cmpVal(cur);
+  el.mgQ.innerHTML=EN()
+    ?('Is <b>'+esc(NM(nxt))+'</b>’s '+cmpLabel()+' <b>higher</b> or <b>lower</b> than <b>'+esc(NM(cur))+'</b> ('+cmpFmt(cv)+')?')
+    :('<b>'+esc(NM(nxt))+'</b>의 '+cmpLabel()+' — <b>'+esc(NM(cur))+'</b> ('+cmpFmt(cv)+')보다 더 클까요, 작을까요?');
   el.mgBody.innerHTML='<div class="mg-ladder">'
-    +'<div class="mg-card cur">'+ladderCardHTML(state.ladderCur,true)+'</div>'
-    +'<div class="mg-arrow">→</div>'
-    +'<div class="mg-card nxt">'+ladderCardHTML(state.ladderNext,false)+'</div></div>'
+    +'<div class="mg-card cur">'+ladderCardHTML(cur,true,LT('아는 나라','Known'))+'</div>'
+    +'<div class="mg-arrow">vs</div>'
+    +'<div class="mg-card nxt">'+ladderCardHTML(nxt,false,LT('맞힐 나라','Guess'))+'</div></div>'
     +'<div class="mg-btns"><button data-hl="higher">▲ '+LT('더 큼','Higher')+'</button><button data-hl="lower">▼ '+LT('더 작음','Lower')+'</button></div>';
   el.mgBody.querySelectorAll('.mg-btns button').forEach(b=>b.onclick=()=>ladderGuess(b.dataset.hl));
 }
@@ -2804,7 +2815,8 @@ function ladderGuess(choice){
   const cv=cmpVal(state.ladderCur), nv=cmpVal(state.ladderNext);
   const correct=(choice==='higher')?(nv>cv):(nv<cv);
   const nxtCard=el.mgBody.querySelector('.mg-card.nxt');
-  nxtCard.querySelector('.mv').textContent=cmpFmt(nv);
+  // reveal the value plus an explicit ▲/▼ showing how it actually compares
+  nxtCard.querySelector('.mv').innerHTML=esc(cmpFmt(nv))+' <span class="mg-rel '+(nv>cv?'up':'down')+'">'+(nv>cv?'▲':'▼')+'</span>';
   nxtCard.classList.add(correct?'win':'lose');
   if(correct){
     state.ladderStreak++; state.score=state.ladderStreak; updateScore();
