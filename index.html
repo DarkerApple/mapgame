@@ -291,19 +291,20 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
   background:rgba(6,6,8,.72);backdrop-filter:blur(4px);animation:fade .25s ease}
 #overlay.show{display:flex}
 @keyframes fade{from{opacity:0}to{opacity:1}}
-.card{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:34px 38px;
-  text-align:center;max-width:min(500px,94vw);width:min(500px,94vw);box-shadow:var(--shadow);animation:cardPop .34s cubic-bezier(.2,.9,.3,1.2)}
-@keyframes cardPop{from{opacity:0;transform:translateY(12px) scale(.93)}to{opacity:1;transform:none}}
-.card h2{font-size:20px;margin-bottom:4px;font-weight:800}
-.card .big{font-size:58px;font-weight:900;margin:12px 0;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1}
-.card p{color:var(--muted);font-size:14px;margin-bottom:18px;line-height:1.5}
+.card{background:var(--surface);border:1px solid var(--border2);border-radius:24px;padding:clamp(32px,5vw,52px) clamp(28px,5vw,56px);
+  text-align:center;max-width:min(640px,96vw);width:min(640px,96vw);max-height:92vh;overflow-y:auto;box-shadow:var(--shadow);animation:cardPop .34s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes cardPop{from{opacity:0;transform:translateY(14px) scale(.92)}to{opacity:1;transform:none}}
+.card h2{font-size:clamp(20px,3.6vw,26px);margin-bottom:5px;font-weight:800}
+.card .big{font-size:clamp(58px,12vw,84px);font-weight:900;margin:14px 0;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1}
+.card p{color:var(--muted);font-size:clamp(14px,2.6vw,16px);margin-bottom:20px;line-height:1.55}
+.card .btn.solid{font-size:16px;padding:14px 22px}
 /* end-screen extras: tier bar + miss list */
 #ov-extra{text-align:left}
 #ov-extra:empty{display:none}
 .ov-tier{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:12px}
 .ov-tier-h{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:7px}
 .tb-segs{display:flex;gap:3px;margin-bottom:7px}
-.tb-seg{flex:1;text-align:center;font-size:10px;font-weight:800;color:var(--faint);background:var(--surface3);border-radius:4px;padding:3px 0;border:1px solid transparent}
+.tb-seg{flex:1;text-align:center;font-size:11.5px;font-weight:800;color:var(--faint);background:var(--surface3);border-radius:5px;padding:5px 0;border:1px solid transparent}
 .tb-seg.on{color:var(--accent-ink);background:var(--target);border-color:var(--target)}
 .tb-seg.cur{outline:2px solid var(--accent);outline-offset:1px}
 .tb-bar{height:7px;border-radius:99px;background:var(--surface3);overflow:hidden}
@@ -424,7 +425,14 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 .rh-mp-n{min-width:74px;font-size:13px;font-weight:700}
 .rh-mp-bar{flex:1;height:8px;border-radius:99px;background:var(--surface3);overflow:hidden}
 .rh-mp-bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--target));border-radius:99px}
-.rh-mp-v{min-width:44px;text-align:right;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.rh-mp-v{min-width:52px;text-align:right;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.rh-mrows{display:flex;flex-direction:column;gap:7px}
+.rh-mrow{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border2);border-radius:11px;padding:9px 12px}
+.rh-mrow.locked{opacity:.6}
+.rh-mrow-n{flex:1;font-weight:800;font-size:14px}
+.rh-mrow-e{font-size:13px;color:var(--target);font-weight:800;font-variant-numeric:tabular-nums}
+.rh-mrow-x{font-size:12px;color:var(--muted)}
+.rh-mrow-go{padding:6px 14px;font-weight:800}
 .rh-chip{background:var(--surface2);border:1px solid var(--border2);border-radius:999px;padding:9px 15px;font:inherit;font-weight:700;font-size:13.5px;color:var(--text);cursor:pointer;transition:.13s}
 .rh-chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .rh-chip.lock{opacity:.45;cursor:not-allowed}
@@ -3633,19 +3641,45 @@ function rankNextTier(elo){ for(const x of RANK_TIERS){ if(elo<x.elo) return x; 
 function myElo(){ const u=curUser(); return (u&&u.stats&&u.stats.elo!=null)?u.stats.elo:ELO_START; }
 function isPlaced(){ const u=curUser(); return !!(u&&u.stats&&u.stats.placed); }
 function expectedScore(D,elo){ return 1/(1+Math.pow(10,(D-elo)/400)); }
-/* ---- per-mode ranked progress: you must be good in EVERY mode to promote ---- */
-const RANK_MODES=[{k:'quiz',ko:'이름',en:'Name'},{k:'flag',ko:'국기',en:'Flag'},{k:'silhouette',ko:'실루엣',en:'Outline'},{k:'capcountry',ko:'수도',en:'Capital'},{k:'clue',ko:'히스토리',en:'History'}];
-function modeReq(i){ return Math.max(0, Math.round(i*3)); }   // per-mode correct ranked answers needed to certify tier index i
-function tierIndexOf(elo){ let idx=0; for(let i=0;i<RANK_TIERS.length;i++){ if(elo>=RANK_TIERS[i].elo) idx=i; } return idx; }
-const RANK_GATE_FROM=12;   // mode-gating only applies at Diamond III and above — everything below is pure ELO
-function certTierIndex(u){ const rp=(u&&u.stats&&u.stats.modeRP)||{}; let cap=RANK_GATE_FROM-1; for(let i=RANK_GATE_FROM;i<RANK_TIERS.length;i++){ if(RANK_MODES.every(m=>(rp[m.k]||0)>=modeReq(i))) cap=i; else break; } return cap; }
-function effTierIndex(u){ const elo=(u&&u.stats&&u.stats.elo!=null)?u.stats.elo:ELO_START; const idx=tierIndexOf(elo); return (idx<RANK_GATE_FROM)?idx:Math.min(idx, certTierIndex(u)); }
-function rankTierEff(u){ return RANK_TIERS[effTierIndex(u)]; }        // display tier — only Diamond+ is capped by mode progress
-function rankGated(u){ return isPlaced() && tierIndexOf((u&&u.stats&&u.stats.elo)||ELO_START) > effTierIndex(u); }   // ELO wants higher but modes hold you back
-function rankTierLabel(elo){ const t=rankTierOf(elo); return t.ic+' '+LT(t.ko,t.en)+' '+Math.round(elo); }
-// unlock the highlight cosmetic for every tier at/below your EFFECTIVE (mode-gated) rank
-function unlockTierCosmetics(){ const u=curUser(); if(!u) return; u.stats.cos=u.stats.cos||{}; const eff=effTierIndex(u);
-  for(let i=0;i<=eff;i++){ const t=RANK_TIERS[i]; if(t&&t.hl) u.stats.cos[t.hl]=true; } }
+/* ============ per-mode ELO ranked: separate rating per gamemode; promote via exams ============ */
+const RANK_MAIN=[
+  {ko:'브론즈',en:'Bronze',ic:'🥉',hl:null},
+  {ko:'실버',en:'Silver',ic:'🥈',hl:'silver'},
+  {ko:'골드',en:'Gold',ic:'🥇',hl:'gold'},
+  {ko:'플래티넘',en:'Platinum',ic:'💎',hl:'plat'},
+  {ko:'다이아몬드',en:'Diamond',ic:'💠',hl:'diamond'},
+  {ko:'마스터',en:'Master',ic:'👑',hl:'master'},
+  {ko:'그랜드마스터',en:'Grandmaster',ic:'🔱',hl:'grand'},
+  {ko:'챌린저',en:'Challenger',ic:'🏆',hl:'chal'},
+];
+const RM=[{k:'quiz',ko:'국가 이름',en:'Country Name'},{k:'flag',ko:'국기',en:'Flag'},{k:'silhouette',ko:'실루엣',en:'Outline'},{k:'capcountry',ko:'수도',en:'Capital'},{k:'clue',ko:'히스토리',en:'History'}];
+const RM_LABEL={}; RM.forEach(x=>RM_LABEL[x.k]=x);
+// per-mode ELO needed to promote INTO each rank. Early ranks: Name only (easy). Harder modes join later.
+const RANK_REQ=[
+  {},
+  {quiz:200},
+  {quiz:400},
+  {quiz:800, flag:50},
+  {quiz:1200, flag:400, silhouette:120},
+  {quiz:1500, flag:800, silhouette:450, capcountry:120},
+  {quiz:1800, flag:1150, silhouette:800, capcountry:450, clue:120},
+  {quiz:2050, flag:1450, silhouette:1100, capcountry:800, clue:400},
+];
+const MODE_ELO_MAX=2200;
+function rmElo(u,m){ return (u&&u.stats&&u.stats.rankElo&&u.stats.rankElo[m]!=null)?u.stats.rankElo[m]:null; }
+function rankMain(u){ return Math.max(0,Math.min(RANK_MAIN.length-1,(u&&u.stats&&u.stats.rank)||0)); }
+function rankMainTier(u){ return RANK_MAIN[rankMain(u)]; }
+function modeUnlocked(u,m){ if(rmElo(u,m)!=null) return true; const nxt=RANK_REQ[Math.min(rankMain(u)+1,RANK_REQ.length-1)]||{}; return Object.prototype.hasOwnProperty.call(nxt,m); }
+function unlockedModes(u){ return RM.filter(x=>modeUnlocked(u,x.k)); }
+function reqMet(u,R){ const req=RANK_REQ[R]||{}; return Object.keys(req).every(m=>(rmElo(u,m)||0)>=req[m]); }
+function canPromote(u){ const r=rankMain(u); return r<RANK_MAIN.length-1 && reqMet(u,r+1); }
+// difficulty (~0..2100) of a country as a per-mode ELO opponent
+function diffScale(e){ if(e._d==null) e._d=countryDifficulty(e); return Math.max(0, e._d-700); }
+function rankPower(u){ return rankMain(u)*100000 + RM.reduce((s,x)=>s+(rmElo(u,x.k)||0),0); }   // leaderboard sort key
+function rankTierLabel(u){ const t=rankMainTier(u); return t.ic+' '+LT(t.ko,t.en); }
+// unlock the highlight cosmetic for every rank at/below your current major rank
+function unlockTierCosmetics(){ const u=curUser(); if(!u) return; u.stats.cos=u.stats.cos||{}; const r=rankMain(u);
+  for(let i=0;i<=r;i++){ const t=RANK_MAIN[i]; if(t&&t.hl) u.stats.cos[t.hl]=true; } }
 /* ---- hidden/special full-palette themes (rare unlocks & secrets) ---- */
 const HIDDEN_THEMES={
   firelord:{ko:'파이어로드',en:'Firelord',ic:'🔥',vars:{bg:'#160a08',ocean1:'#271311',ocean2:'#160a08',ocean3:'#0d0504',surface:'#251312',surface2:'#331a17',surface3:'#40211d',border:'#4d2621',border2:'#63302a',land:'#4a2a24','land-stroke':'#7c4238',hover:'#8f4c40',found:'#ff7a2e','found-stroke':'#ffd0a0',target:'#ffd24a',text:'#ffece2',muted:'#cb9c8e',accent:'#ff6a3a','accent-ink':'#160a08','home-grad1':'#2c1510','home-grad2':'#160a08','card-grad':'#1d0e0c'}},
@@ -3697,35 +3731,30 @@ function pickRankedBase(e,elo){ const b=rankedBasesFor(e);
   if((elo||0)>=1600){ const w=[]; b.forEach(x=>{ const n=BASE_HARD[x]||1; for(let i=0;i<n;i++) w.push(x); }); return w[Math.floor(Math.random()*w.length)]; }
   return b[Math.floor(Math.random()*b.length)]; }
 // ranked is MIXED: every question is a random gamemode (name-on-map / flag / outline / capital / history)
-function buildRankedMatch(elo, u, placement){
-  let pool=allEntries.filter(e=>e.sov&&!e.isMarker&&e.i2);
-  pool.forEach(e=>{ if(e._d==null) e._d=countryDifficulty(e); });
-  const mk=(e,fever)=>({entry:e, base:pickRankedBase(e,elo), fever:!!fever});
-  if(placement){ // spread across difficulty bands, random country per band → a different test each time
-    const sorted=pool.slice().sort((a,b)=>a._d-b._d), n=sorted.length, q=[], used=new Set();
-    for(let i=0;i<RANKED_N;i++){ const lo=Math.floor(i/RANKED_N*n), hi=Math.max(lo+1,Math.floor((i+1)/RANKED_N*n));
-      let e=null; for(let tries=0;tries<8;tries++){ const cand=sorted[Math.min(n-1,lo+Math.floor(Math.random()*(hi-lo)))]; if(!used.has(cand.id)){ e=cand; break; } }
-      if(!e) e=sorted[Math.min(n-1,lo)]; used.add(e.id); q.push(mk(e,false)); }
-    return shuffleArr(q);
-  }
-  // difficulty scales with elo. At high ELO, draw straight from the hardest / most obscure countries.
-  let near;
-  if(elo>=1800) near=pool.slice().sort((a,b)=>b._d-a._d).slice(0,64);                                   // hardest countries only
-  else near=pool.slice().sort((a,b)=>Math.abs(a._d-elo)-Math.abs(b._d-elo)).slice(0,55);
-  const main=shuffleArr(near);
-  // fever: re-test the player's most-missed countries
-  const cc=(u&&u.stats&&u.stats.cc)||{};
-  const weak=pool.filter(e=>cc[e.i2]&&cc[e.i2].w>0&&cc[e.i2].w>=cc[e.i2].r)
-    .sort((a,b)=>(cc[b.i2].w-cc[b.i2].r)-(cc[a.i2].w-cc[a.i2].r));
-  const q=[], used=new Set();
-  weak.slice(0,4).forEach(e=>{ q.push(mk(e,true)); used.add(e.id); });
-  for(const e of main){ if(q.length>=RANKED_N) break; if(!used.has(e.id)){ q.push(mk(e,false)); used.add(e.id); } }
-  const out=shuffleArr(q).slice(0,RANKED_N);
-  if(FUN_ROUNDS.length && Math.random()<0.15){ const fr=FUN_ROUNDS[Math.floor(Math.random()*FUN_ROUNDS.length)]; out[Math.floor(Math.random()*out.length)]={fun:fr}; }   // slim chance of a bonus round
-  // Platinum+ only: a flag-symbol question (name a country whose flag has the symbol — no flags shown)
-  if(elo>=1680 && typeof symPickable==='function'){ const pk=symPickable(); if(pk.length && Math.random()<0.28){ const sy=pk[Math.floor(Math.random()*pk.length)];
-      let idx=-1; for(let k=0;k<out.length;k++){ if(!out[k].fun){ idx=k; break; } } if(idx>=0) out[idx]={sym:sy, base:'symname'}; } }
+function rankModePool(m){ let p=allEntries.filter(e=>e.sov&&!e.isMarker&&e.i2);
+  if(m==='silhouette') p=p.filter(e=>e.d);
+  else if(m==='capcountry') p=p.filter(e=>e.st&&(e.st.cap||e.st.cape));
+  else if(m==='clue') p=p.filter(hasHistFact);
+  p.forEach(e=>{ if(e._d==null) e._d=countryDifficulty(e); }); return p; }
+function pickNear(pool, targetD, n, used){ used=used||new Set();
+  const sorted=pool.filter(e=>!used.has(e.id)).sort((a,b)=>Math.abs(diffScale(a)-targetD)-Math.abs(diffScale(b)-targetD));
+  const band=sorted.slice(0, Math.max(n*3, 26)); return shuffleArr(band).slice(0,n); }
+// a single-mode ranked match (questions calibrated to `elo` on that mode)
+function buildModeMatch(m, elo){ const pool=rankModePool(m); let picks;
+  if(state.rankedPlacement){ const sorted=pool.slice().sort((a,b)=>diffScale(a)-diffScale(b)), nn=sorted.length, used=new Set(); picks=[];
+    for(let i=0;i<RANKED_N;i++){ const lo=Math.floor(i/RANKED_N*nn), hi=Math.max(lo+1,Math.floor((i+1)/RANKED_N*nn)); let e=null;
+      for(let t=0;t<8;t++){ const c=sorted[Math.min(nn-1,lo+Math.floor(Math.random()*(hi-lo)))]; if(!used.has(c.id)){ e=c; break; } }
+      if(!e) e=sorted[Math.min(nn-1,lo)]; used.add(e.id); picks.push(e); }
+  } else picks=pickNear(pool, elo, RANKED_N);
+  const out=picks.map(e=>({entry:e, base:m, targetD:diffScale(e)}));
+  if(!state.rankedPlacement && FUN_ROUNDS.length && Math.random()<0.12){ out[Math.floor(Math.random()*out.length)]={fun:FUN_ROUNDS[Math.floor(Math.random()*FUN_ROUNDS.length)]}; }
   return out;
+}
+// a promotion exam: questions from every required mode, each at that mode's REQUIRED difficulty
+function buildExamMatch(u, R){ const req=RANK_REQ[R]||{}, modes=Object.keys(req); if(!modes.length) return [];
+  const per=Math.max(2, Math.ceil(RANKED_N/modes.length)), out=[], used=new Set();
+  modes.forEach(m=>{ const pool=rankModePool(m); pickNear(pool, req[m], per, used).forEach(e=>{ used.add(e.id); out.push({entry:e, base:m, targetD:req[m], exam:true}); }); });
+  return shuffleArr(out);
 }
 function rankedRenderQ(base, e){
   state.target=e; allEntries.forEach(x=>x.el.classList.remove('target'));
@@ -3753,13 +3782,14 @@ function startRankedTimer(){ stopRankedTimer();
 }
 function startRanked(){
   const u=curUser(); state.ranked=true; state.countUp=false; state.mode='ranked'; resetView(); clearMap();
-  state.rankedElo0=myElo(); state.rankedIdx=0; state.rankedDelta=0; state.rankedHit=0; state.rankedActive=true; state.rankedCheated=false; state.score=0;
-  state.rankedTabWarned=false; state.rankedTabWarnPending=false; state.rankedEffIdx0=effTierIndex(u);   // for one-time tab warning + mode-gated promotion
-  state.rankedQueue=buildRankedMatch(state.rankedElo0, u, state.rankedPlacement);
-  if(u){ u.stats=u.stats||{}; u.stats.rankedPending={t:Date.now(),n:state.rankedQueue.length}; accSave(); }
+  state.rankedIdx=0; state.rankedDelta=0; state.rankedHit=0; state.rankedActive=true; state.rankedCheated=false; state.score=0;
+  state.rankedTabWarned=false; state.rankedTabWarnPending=false;
+  if(state.rankedExam){ state.rankedExamR=rankMain(u)+1; state.rankedElo0=0; state.rankedQueue=buildExamMatch(u, state.rankedExamR); }
+  else { const m=state.rankedMode||'quiz'; state.rankedMode=m; state.rankedElo0=(rmElo(u,m)!=null?rmElo(u,m):0); state.rankedQueue=buildModeMatch(m, state.rankedElo0); }
+  if(u){ u.stats=u.stats||{}; u.stats.rankedPending={t:Date.now(),mode:state.rankedMode,exam:!!state.rankedExam,placement:!!state.rankedPlacement}; accSave(); }
   el.timer.classList.remove('hidden'); el.q.disabled=false; updateScore();
-  const modeTxt=state.rankedPlacement?LT('배치고사','Placement'):(rankTierLabel(state.rankedElo0));
-  setFeedback(modeTxt+' · '+LT('정확한 이름만 · 문제당 '+RANKED_QTIME+'초 · 건너뛰기 없음','exact names · '+RANKED_QTIME+'s per question · no skips'),'info');
+  const modeTxt=state.rankedExam?LT('승급 시험','Promotion exam'):(state.rankedPlacement?LT('배치고사','Placement'):LT(RM_LABEL[state.rankedMode].ko,RM_LABEL[state.rankedMode].en));
+  setFeedback(modeTxt+' · '+LT('정확한 이름만 · 문제당 '+RANKED_QTIME+'초 · 기회 2번','exact names · '+RANKED_QTIME+'s/question · 2 tries'),'info');
   rankedShowQuestion(); el.q.focus();
 }
 function rankedRenderSym(sy){ state.target=null; allEntries.forEach(x=>x.el.classList.remove('target')); resetView();
@@ -3789,20 +3819,9 @@ function rankedAnswer(correct){
     const gg=state.gen; setTimeout(()=>{ if(state.gen!==gg||state.ended||state.mode!=='ranked') return; rankedShowQuestion(); }, 900);
     return;
   }
-  if(state.rankedItem.sym){   // Platinum+ flag-symbol question — name any country with the symbol
-    const sy=state.rankedItem.sym, exp=expectedScore(state.rankedElo0, state.rankedElo0);   // neutral difficulty
-    state.rankedDelta += ELO_K*((correct?1:0)-exp);
-    if(correct){ state.rankedHit++; state.score++; updateScore(); }
-    celebrate(correct, correct?LT('정답!','Correct!'):LT('땡!','Miss'));
-    setFeedback(correct?(LT('정답! ','Correct! ')+sy.emoji+' '+LT(sy.ko,sy.en)):(LT('아쉬워요 · ','Missed · ')+sy.emoji+' '+LT(sy.ko,sy.en)), correct?'ok':'no', correct?'check':'x');
-    el.q.value=''; state.rankedIdx++;
-    const gs=state.gen; setTimeout(()=>{ if(state.gen!==gs||state.ended||state.mode!=='ranked') return; rankedShowQuestion(); }, correct?750:1250);
-    return;
-  }
-  const e=state.rankedItem.entry, D=countryDifficulty(e), exp=expectedScore(D,state.rankedElo0);
-  state.rankedDelta += ELO_K*((correct?1:0)-exp);
-  if(correct){ state.rankedHit++; state.score++; updateScore(); trackCountry(e,true); maybeUnlockTheme();
-    if(!state.rankedPlacement){ const uu=curUser(); if(uu){ uu.stats.modeRP=uu.stats.modeRP||{}; const bk=state.rankedItem.base||'quiz'; uu.stats.modeRP[bk]=(uu.stats.modeRP[bk]||0)+1; } } }
+  const e=state.rankedItem.entry, D=(state.rankedItem.targetD!=null?state.rankedItem.targetD:diffScale(e));
+  if(!state.rankedExam) state.rankedDelta += ELO_K*((correct?1:0)-expectedScore(D,state.rankedElo0));   // exams are pass/fail, not ELO
+  if(correct){ state.rankedHit++; state.score++; updateScore(); trackCountry(e,true); maybeUnlockTheme(); }
   else { trackCountry(e,false); noteMiss(e); }
   const nm=NM(e)+((state.rankedItem.base==='capcountry')?(' · '+capitalDisplay(e)):'');
   celebrate(correct, correct?LT('정답!','Correct!'):LT('땡!','Miss'));
@@ -3810,40 +3829,50 @@ function rankedAnswer(correct){
   el.q.value=''; state.rankedIdx++;
   const g=state.gen; setTimeout(()=>{ if(state.gen!==g||state.ended||state.mode!=='ranked') return; rankedShowQuestion(); }, correct?750:1250);
 }
+const EXAM_PASS=0.7;
+function highestNameRank(u){ let r=0; for(let R=1;R<RANK_REQ.length;R++){ const req=RANK_REQ[R]; if(Object.keys(req).length===1 && req.quiz!=null && (rmElo(u,'quiz')||0)>=req.quiz) r=R; else break; } return r; }
 function endRanked(quit){
   if(state.ended) return; state.ended=true; state.running=false; state.ranked=false; state.rankedActive=false; stopRankedTimer(); el.q.disabled=true;
-  let deltaRaw=state.rankedDelta;
-  if(quit){ for(let i=state.rankedIdx;i<state.rankedQueue.length;i++){ const e=state.rankedQueue[i].entry; deltaRaw += ELO_K*(0-expectedScore(countryDifficulty(e),state.rankedElo0)); } deltaRaw-=15; }
-  if(state.rankedCheated) deltaRaw=Math.min(deltaRaw, 0);   // no ELO gain if you left the tab mid-match
-  const u=curUser(); const placement=state.rankedPlacement; state.rankedPlacement=false;
-  let big, sub, cut=null;
-  if(u){ u.stats=u.stats||{games:0,best:{},plays:{},points:0};
-    let old=(u.stats.elo!=null)?u.stats.elo:state.rankedElo0, nw;
-    if(placement){ const rate=state.rankedHit/Math.max(1,state.rankedQueue.length); nw=Math.round(400+Math.pow(rate,1.8)*1250); u.stats.placed=true; }   // convex: even a perfect placement caps around Platinum; Diamond+ must be earned in ranked
-    else nw=Math.max(0, old+Math.round(deltaRaw));
-    u.stats.elo=nw; u.stats.best=u.stats.best||{}; if(state.rankedHit>(u.stats.best.ranked||0)) u.stats.best.ranked=state.rankedHit;
-    u.stats.plays=u.stats.plays||{}; u.stats.plays.ranked=(u.stats.plays.ranked||0)+1;
-    u.stats.games=(u.stats.games||0)+1; u.stats.points=(u.stats.points||0)+state.rankedHit; u.stats.rankedPending=null;
-    addXP(u, state.rankedHit*4 + (placement?20:0));
-    unlockTierCosmetics(); accSave(); renderProfile(); if(typeof checkAchievements==='function') checkAchievements(); if(typeof maybeUnlockTheme==='function') maybeUnlockTheme();
-    const effIdx=effTierIndex(u), t=RANK_TIERS[effIdx], nt=rankNextTier(nw), promoted=(!placement && effIdx>(state.rankedEffIdx0||0));
-    const gated=rankGated(u);
-    big=state.rankedHit+' / '+state.rankedQueue.length;
-    if(placement){ sub=LT('배치 완료! 시작 등급: ','Placed! Starting rank: ')+t.ic+' '+LT(t.ko,t.en)+' '+nw; cut={ic:t.ic,label:LT(t.ko,t.en),sub:LT('배치 완료','Placement complete')}; }
-    else{ const d=Math.round(deltaRaw); sub=(d>=0?('ELO +'+d):('ELO '+d))+' · '+t.ic+' '+LT(t.ko,t.en)+' '+nw+(nt?(' · '+LT('다음까지 ','to next ')+(nt.elo-nw)):'')+(promoted?LT(' · ⬆️ 승급!',' · ⬆️ Promoted!'):'')+(gated?LT(' · 🔒 모드 진행 필요',' · 🔒 mode progress needed'):'')+(quit?LT(' · ⚠️ 중도 포기',' · ⚠️ abandoned'):'')+(state.rankedCheated?LT(' · 🚫 탭 이탈',' · 🚫 left tab'):'');
-      if(promoted) cut={ic:t.ic,label:LT(t.ko,t.en),sub:LT('승급!','Promoted!')}; }
-  } else { big=state.rankedHit+' / '+state.rankedQueue.length; sub=LT('로그인해야 랭크가 저장돼요.','Log in to save your rank.'); }
-  showOverlay(quit?LT('랭크 포기','Match abandoned'):(placement?LT('배치고사 결과','Placement result'):LT('랭크전 결과','Ranked result')), big, sub);
+  const u=curUser(); const total=state.rankedQueue.length;
+  const exam=state.rankedExam, placement=state.rankedPlacement, mode=state.rankedMode;
+  state.rankedExam=false; state.rankedPlacement=false;
+  let big=state.rankedHit+' / '+total, sub='', cut=null, title=LT('랭크전 결과','Ranked result');
+  if(!u){ showOverlay(title,big,LT('로그인해야 랭크가 저장돼요.','Log in to save your rank.')); renderOverlayExtras('ranked',state.rankedHit); return; }
+  u.stats=u.stats||{games:0,best:{},plays:{},points:0}; u.stats.plays=u.stats.plays||{}; u.stats.plays.ranked=(u.stats.plays.ranked||0)+1;
+  u.stats.games=(u.stats.games||0)+1; u.stats.points=(u.stats.points||0)+state.rankedHit; u.stats.rankedPending=null;
+  addXP(u, state.rankedHit*3);
+
+  if(exam){
+    title=LT('승급 시험','Promotion exam'); const R=state.rankedExamR, pass=!quit && (state.rankedHit/Math.max(1,total))>=EXAM_PASS;
+    if(pass){ u.stats.rank=Math.max(rankMain(u), R); const t=rankMainTier(u); cut={ic:t.ic,label:LT(t.ko,t.en),sub:LT('승급 시험 합격!','Promotion passed!')};
+      sub=LT('🎉 합격! ','🎉 Passed! ')+t.ic+' '+LT(t.ko,t.en)+LT('(으)로 승급!',' — promoted!'); }
+    else sub=LT('불합격 — 70% 이상 필요해요. 다시 도전하세요!','Failed — you need 70%+. Try again!');
+  } else {
+    // single-mode match: update that mode's ELO (chess-style)
+    let delta=state.rankedDelta;
+    if(quit){ for(let i=state.rankedIdx;i<total;i++){ const it=state.rankedQueue[i]; if(it.entry) delta += ELO_K*(0-expectedScore(it.targetD!=null?it.targetD:diffScale(it.entry), state.rankedElo0)); } delta-=15; }
+    if(state.rankedCheated) delta=Math.min(delta,0);
+    const m=mode||'quiz'; u.stats.rankElo=u.stats.rankElo||{};
+    if(placement && m==='quiz'){ const rate=state.rankedHit/Math.max(1,total); u.stats.rankElo.quiz=Math.round(Math.pow(rate,1.5)*900); u.stats.placed=true; u.stats.rank=Math.max(rankMain(u),highestNameRank(u));
+      const t=rankMainTier(u); sub=LT('배치 완료! 시작 등급 ','Placed! Starting rank ')+t.ic+' '+LT(t.ko,t.en)+' · '+LT('국가 이름 ELO ','Name ELO ')+u.stats.rankElo.quiz; cut={ic:t.ic,label:LT(t.ko,t.en),sub:LT('배치 완료','Placement complete')}; title=LT('배치고사 결과','Placement result'); }
+    else { const old=(rmElo(u,m)!=null?rmElo(u,m):0), nw=Math.max(0,Math.min(MODE_ELO_MAX, old+Math.round(delta))); u.stats.rankElo[m]=nw;
+      const d=nw-old, ml=RM_LABEL[m]; sub=LT(ml.ko,ml.en)+' ELO '+nw+' ('+(d>=0?'+'+d:d)+')'+(canPromote(u)?LT(' · ⭐ 승급 시험 가능!',' · ⭐ Promotion exam ready!'):'')+(quit?LT(' · ⚠️ 중도 포기',' · ⚠️ abandoned'):'')+(state.rankedCheated?LT(' · 🚫 탭 이탈',' · 🚫 left tab'):''); }
+  }
+  if(state.rankedHit>(u.stats.best.ranked||0)) u.stats.best.ranked=state.rankedHit;
+  u.stats.elo=rankPower(u);   // leaderboard sort key
+  unlockTierCosmetics(); accSave(); renderProfile(); if(typeof checkAchievements==='function') checkAchievements(); if(typeof maybeUnlockTheme==='function') maybeUnlockTheme();
+  showOverlay(quit?LT('랭크 포기','Match abandoned'):title, big, sub);
   renderOverlayExtras('ranked', state.rankedHit);
   if(cut) playTierCutscene('rank', cut.label, cut.sub, cut.ic);
 }
 function abandonRankedIfActive(){ if(state.mode==='ranked'&&state.rankedActive&&!state.ended){ const u=curUser();
-  // apply the loss silently (no overlay) — quitting mid-match costs ELO
   state.ended=true; state.rankedActive=false; stopRankedTimer();
-  let d=state.rankedDelta; for(let i=state.rankedIdx;i<state.rankedQueue.length;i++){ const e=state.rankedQueue[i].entry; d+=ELO_K*(0-expectedScore(countryDifficulty(e),state.rankedElo0)); } d-=15;
-  if(u&&!state.rankedPlacement){ u.stats.elo=Math.max(0,(u.stats.elo!=null?u.stats.elo:state.rankedElo0)+Math.round(d)); u.stats.rankedPending=null; u.stats.plays=u.stats.plays||{}; u.stats.plays.ranked=(u.stats.plays.ranked||0)+1; accSave(); renderProfile(); }
+  if(u && !state.rankedExam && !state.rankedPlacement){ let d=state.rankedDelta;
+    for(let i=state.rankedIdx;i<state.rankedQueue.length;i++){ const it=state.rankedQueue[i]; if(it.entry) d += ELO_K*(0-expectedScore(it.targetD!=null?it.targetD:diffScale(it.entry), state.rankedElo0)); } d-=15;
+    const m=state.rankedMode||'quiz'; const old=(rmElo(u,m)!=null?rmElo(u,m):0); u.stats.rankElo=u.stats.rankElo||{}; u.stats.rankElo[m]=Math.max(0,Math.min(MODE_ELO_MAX,old+Math.round(d)));
+    u.stats.elo=rankPower(u); u.stats.rankedPending=null; u.stats.plays=u.stats.plays||{}; u.stats.plays.ranked=(u.stats.plays.ranked||0)+1; accSave(); renderProfile(); }
   else if(u){ u.stats.rankedPending=null; accSave(); }
-  state.rankedPlacement=false; } }
+  state.rankedExam=false; state.rankedPlacement=false; } }
 
 /* ================= Falling Flags (type before it lands) ================= */
 function stopFall(){ if(state.fallRAF){ cancelAnimationFrame(state.fallRAF); state.fallRAF=0; }
@@ -10954,8 +10983,8 @@ function renderAdmin(){
     +'<div class="adm-note">'+LT('“초기화”는 이 계정 기록을 모두 지워요(클라우드 포함). “기기 삭제”는 세션·캐시를 지우고 새로고침해요.','“Reset” wipes this account’s stats (cloud included). “Wipe device” clears the session/cache and reloads.')+'</div></div>';
   body.innerHTML=h;
   const re=()=>{ accSave(); renderProfile(); renderAdmin(); };
-  $('adm-setelo').onclick=()=>{ u.stats.elo=Math.max(0,Math.round(+$('adm-elo').value||0)); u.stats.placed=true; unlockTierCosmetics(); re(); };
-  body.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{ u.stats.elo=Math.max(0,(u.stats.elo!=null?u.stats.elo:1000)+(+b.dataset.d)); u.stats.placed=true; re(); });
+  $('adm-setelo').onclick=()=>{ u.stats.rankElo=u.stats.rankElo||{}; u.stats.rankElo.quiz=Math.max(0,Math.round(+$('adm-elo').value||0)); u.stats.placed=true; u.stats.rank=Math.max(rankMain(u),highestNameRank(u)); u.stats.elo=rankPower(u); unlockTierCosmetics(); re(); };
+  body.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{ u.stats.rankElo=u.stats.rankElo||{}; u.stats.rankElo.quiz=Math.max(0,(rmElo(u,'quiz')||0)+(+b.dataset.d)); u.stats.placed=true; u.stats.rank=Math.max(rankMain(u),highestNameRank(u)); u.stats.elo=rankPower(u); re(); });
   $('adm-setlvl').onclick=()=>{ u.stats.xp=xpForLevel(Math.max(0,Math.round(+$('adm-lvl').value||0))); re(); };
   $('adm-addxp').onclick=()=>{ addXP(u,500); re(); };
   $('adm-setbest').onclick=()=>{ const m=$('adm-mode').value, v=Math.max(0,Math.round(+$('adm-best').value||0)); u.stats.best=u.stats.best||{}; u.stats.best[m]=v; re(); };
@@ -10968,14 +10997,14 @@ function renderAdmin(){
     u.stats.cos=u.stats.cos||{}; Object.keys(HL_COSMETICS).forEach(k=>u.stats.cos[k]=true);
     u.stats.ach=u.stats.ach||{}; ACHIEVEMENTS.forEach(a=>u.stats.ach[a.id]=Date.now());
     u.stats.best=u.stats.best||{}; Object.keys(TIER_MAX).forEach(m=>u.stats.best[m]=Math.max(u.stats.best[m]||0, TIER_MAX[m]));
-    u.stats.modeRP=u.stats.modeRP||{}; RANK_MODES.forEach(m=>u.stats.modeRP[m.k]=Math.max(u.stats.modeRP[m.k]||0, modeReq(RANK_TIERS.length-1)));   // certify all modes so rank isn't gated
-    u.stats.elo=2900; u.stats.placed=true; u.stats.games=Math.max(u.stats.games||0,200); u.stats.points=Math.max(u.stats.points||0,9999);
+    u.stats.rankElo={quiz:MODE_ELO_MAX,flag:MODE_ELO_MAX,silhouette:MODE_ELO_MAX,capcountry:MODE_ELO_MAX,clue:MODE_ELO_MAX}; u.stats.rank=RANK_MAIN.length-1; u.stats.placed=true;
+    u.stats.games=Math.max(u.stats.games||0,200); u.stats.points=Math.max(u.stats.points||0,9999); u.stats.elo=rankPower(u);
     u.stats.xp=Math.max(u.stats.xp||0, xpForLevel(30)); unlockTierCosmetics(); re(); };
   $('adm-csGame').onclick=()=>{ closeAdmin(); playTierCutscene('game', modeName('quiz'), 10); };
-  $('adm-csRank').onclick=()=>{ closeAdmin(); const t=rankTierOf(u.stats.elo!=null?u.stats.elo:1500); playTierCutscene('rank', LT(t.ko,t.en), LT('승급!','Promoted!'), t.ic); };
-  $('adm-fun').onclick=()=>{ closeAdmin(); state.rankedBase='quiz'; state.rankedPlacement=false; setMode('ranked'); setTimeout(()=>{ if(state.mode==='ranked'&&state.rankedQueue){ state.rankedQueue[state.rankedIdx]={fun:FUN_ROUNDS[Math.floor(Math.random()*FUN_ROUNDS.length)]}; rankedShowQuestion(); } },160); };
+  $('adm-csRank').onclick=()=>{ closeAdmin(); const t=rankMainTier(u); playTierCutscene('rank', LT(t.ko,t.en), LT('승급!','Promoted!'), t.ic); };
+  $('adm-fun').onclick=()=>{ closeAdmin(); state.rankedExam=false; state.rankedPlacement=false; state.rankedMode='quiz'; setMode('ranked'); setTimeout(()=>{ if(state.mode==='ranked'&&state.rankedQueue){ state.rankedQueue[state.rankedIdx]={fun:FUN_ROUNDS[Math.floor(Math.random()*FUN_ROUNDS.length)]}; rankedShowQuestion(); } },160); };
   $('adm-go').onclick=()=>{ const m=$('adm-jump').value; closeAdmin(); if(m==='ranked'){ openRankHub(); } else { el.home.classList.remove('show'); el.homebtn.classList.remove('hidden'); setMode(m); } };
-  $('adm-certify').onclick=()=>{ u.stats.modeRP=u.stats.modeRP||{}; RANK_MODES.forEach(m=>u.stats.modeRP[m.k]=Math.max(u.stats.modeRP[m.k]||0, modeReq(RANK_TIERS.length-1))); unlockTierCosmetics(); re(); };
+  $('adm-certify').onclick=()=>{ u.stats.rankElo={quiz:MODE_ELO_MAX,flag:MODE_ELO_MAX,silhouette:MODE_ELO_MAX,capcountry:MODE_ELO_MAX,clue:MODE_ELO_MAX}; u.stats.placed=true; u.stats.rank=RANK_MAIN.length-1; u.stats.elo=rankPower(u); unlockTierCosmetics(); re(); };
   $('adm-reset').onclick=()=>{ if(!confirm(LT('이 계정의 모든 기록을 지울까요? (되돌릴 수 없어요)','Wipe ALL stats for this account? (cannot be undone)'))) return; u.stats={games:0,best:{},plays:{},points:0,xp:0,xpMig:XP_MIG_VER}; re(); };
   $('adm-hardreset').onclick=()=>{ if(!confirm(LT('이 기기의 세션·캐시를 지우고 새로고침할까요?','Clear this device’s session/cache and reload?'))) return; try{ localStorage.removeItem('gr_session'); localStorage.removeItem(AKEY); }catch(e){} location.reload(); };
 }
@@ -11011,17 +11040,19 @@ document.addEventListener('keydown',e=>{
 /* ================= Ranked hub (the "page" for Ranked) + anti-cheat ================= */
 function renderRankBanner(){
   const u=curUser();
-  if(!u){ el.rankBanner.innerHTML='<span class="rb-ic">🏆</span><span class="rb-main"><span class="rb-t">'+LT('랭크전','Ranked')+'</span><span class="rb-s">'+LT('로그인하고 ELO·티어에 도전하세요','Log in to compete for ELO & tiers')+'</span></span><span class="rb-go">'+LT('시작 ›','Start ›')+'</span>'; return; }
-  const elo=myElo(), t=rankTierEff(u), placed=isPlaced();
-  el.rankBanner.innerHTML='<span class="rb-ic">'+t.ic+'</span><span class="rb-main"><span class="rb-t">'+LT('랭크전','Ranked')+' · '+LT(t.ko,t.en)+'</span><span class="rb-s">'+(placed?('ELO '+Math.round(elo)+(rankGated(u)?' · 🔒':'')+' · ✨ '+shinyCount()):LT('배치고사가 필요해요','Placement needed'))+'</span></span><span class="rb-go">'+LT('입장 ›','Enter ›')+'</span>';
+  if(!u){ el.rankBanner.innerHTML='<span class="rb-ic">🏆</span><span class="rb-main"><span class="rb-t">'+LT('랭크전','Ranked')+'</span><span class="rb-s">'+LT('로그인하고 랭크에 도전하세요','Log in to compete for rank')+'</span></span><span class="rb-go">'+LT('시작 ›','Start ›')+'</span>'; return; }
+  const t=rankMainTier(u), placed=isPlaced();
+  el.rankBanner.innerHTML='<span class="rb-ic">'+t.ic+'</span><span class="rb-main"><span class="rb-t">'+LT('랭크전','Ranked')+' · '+LT(t.ko,t.en)+'</span><span class="rb-s">'+(placed?(LT('국가 이름 ','Name ')+(rmElo(u,'quiz')||0)+(canPromote(u)?LT(' · ⭐ 승급 시험 가능',' · ⭐ promo exam ready'):'')):LT('배치고사가 필요해요','Placement needed'))+'</span></span><span class="rb-go">'+LT('입장 ›','Enter ›')+'</span>';
 }
-function resolvePendingRanked(u){ if(u&&u.stats&&u.stats.rankedPending){ if(u.stats.placed&&u.stats.elo!=null) u.stats.elo=Math.max(0,u.stats.elo-20); u.stats.rankedPending=null; accSave(); } }
+function resolvePendingRanked(u){ const pd=u&&u.stats&&u.stats.rankedPending; if(!pd) return;
+  if(!pd.exam && !pd.placement && pd.mode){ const m=pd.mode, old=(rmElo(u,m)!=null?rmElo(u,m):0); u.stats.rankElo=u.stats.rankElo||{}; u.stats.rankElo[m]=Math.max(0,old-20); u.stats.elo=rankPower(u); }
+  u.stats.rankedPending=null; accSave(); }
 function lbHTML(){ const rows=state.lbRows;
   if(rows===undefined) return '<div class="rh-lb-empty">'+LT('불러오는 중…','Loading…')+'</div>';
   if(!rows||!rows.length) return '<div class="rh-lb-empty">'+LT('아직 순위가 없어요 — 배치고사를 마치면 여기에 올라요!','No ranks yet — finish placement to appear here!')+'</div>';
   const meName=((curUser()||{}).name||'').toLowerCase();
-  return rows.map(r=>{ const t=rankTierOf(r.elo), mine=meName&&(''+r.username).toLowerCase()===meName;
-    return '<div class="rh-lb-row'+(mine?' me':'')+'"><span class="rh-lb-rk">'+r.rank+'</span><span class="rh-lb-ic">'+t.ic+'</span><span class="rh-lb-nm">'+esc(r.username)+'</span><span class="rh-lb-lv">Lv '+(r.level||0)+'</span><span class="rh-lb-elo">'+r.elo+'</span></div>'; }).join('');
+  return rows.map(r=>{ const ri=Math.floor((r.elo||0)/100000), t=RANK_MAIN[Math.max(0,Math.min(RANK_MAIN.length-1,ri))], mine=meName&&(''+r.username).toLowerCase()===meName;
+    return '<div class="rh-lb-row'+(mine?' me':'')+'"><span class="rh-lb-rk">'+r.rank+'</span><span class="rh-lb-ic">'+t.ic+'</span><span class="rh-lb-nm">'+esc(r.username)+'</span><span class="rh-lb-lv">Lv '+(r.level||0)+'</span><span class="rh-lb-elo">'+LT(t.ko,t.en)+'</span></div>'; }).join('');
 }
 async function refreshLeaderboard(){ state.lbRows=undefined; const paint=()=>{ const b=el.rhBody&&el.rhBody.querySelector('#rh-lb'); if(b) b.innerHTML=lbHTML(); }; paint();
   const rows=await sbLeaderboard(50); state.lbRows=Array.isArray(rows)?rows:[]; paint(); }
@@ -11033,12 +11064,15 @@ function renderRankHub(){
       +'<p class="rh-note">'+LT('랭크전은 정확한 이름만 인정하고 ELO·티어·샤이니·코스메틱이 계정에 저장돼요.','Ranked uses exact names; ELO, tiers, shinies and cosmetics save to your account.')+'</p>'
       +'<button class="btn solid rh-play" id="rh-login">'+LT('로그인 / 회원가입','Log in / Sign up')+'</button>';
     el.rhBody.querySelector('#rh-login').onclick=()=>{ closeRankHub(); openAuth(); }; return; }
-  const elo=myElo(), t=rankTierOf(elo), te=rankTierEff(u), nt=rankNextTier(elo), placed=isPlaced();
-  if(placed){ unlockTierCosmetics(); accSave(); }   // reflect cosmetics already earned by current ELO
-  const prog=nt?Math.max(0,Math.min(100,Math.round((elo-t.elo)/(nt.elo-t.elo)*100))):100;
-  const cidx=certTierIndex(u), reqNext=modeReq(cidx+1), rp=(u.stats&&u.stats.modeRP)||{};
-  const modeBars=(placed && tierIndexOf(elo)>=RANK_GATE_FROM-3 && cidx+1<RANK_TIERS.length)? RANK_MODES.map(m=>{ const have=rp[m.k]||0, pct=Math.round(Math.min(have,reqNext)/Math.max(1,reqNext)*100), full=have>=reqNext;
-    return '<div class="rh-mp"><span class="rh-mp-n">'+LT(m.ko,m.en)+(full?' ✓':'')+'</span><span class="rh-mp-bar"><i style="width:'+pct+'%"></i></span><span class="rh-mp-v">'+have+'/'+reqNext+'</span></div>'; }).join('') : '';
+  const placed=isPlaced(), r=rankMain(u), t=rankMainTier(u), nextR=(r+1<RANK_MAIN.length)?r+1:null;
+  if(placed){ unlockTierCosmetics(); accSave(); }
+  const req = nextR!=null? RANK_REQ[nextR] : {};
+  const reqBars = nextR!=null? Object.keys(req).map(m=>{ const cur=rmElo(u,m)||0, need=req[m], pct=Math.round(Math.min(cur,need)/Math.max(1,need)*100), ok=cur>=need;
+    return '<div class="rh-mp"><span class="rh-mp-n">'+LT(RM_LABEL[m].ko,RM_LABEL[m].en)+(ok?' ✓':'')+'</span><span class="rh-mp-bar"><i style="width:'+pct+'%"></i></span><span class="rh-mp-v">'+cur+'/'+need+'</span></div>'; }).join('') : '';
+  const modeRows = RM.map(m=>{ const unlocked=modeUnlocked(u,m.k), cur=rmElo(u,m.k);
+    if(!unlocked){ let atR=null; for(let R=1;R<RANK_REQ.length;R++){ if(RANK_REQ[R][m.k]!=null){ atR=R; break; } } const uAt=atR!=null?RANK_MAIN[Math.max(0,atR-1)]:RANK_MAIN[0];
+      return '<div class="rh-mrow locked"><span class="rh-mrow-n">🔒 '+LT(m.ko,m.en)+'</span><span class="rh-mrow-x">'+LT(uAt.ko+' 부근 해금',uAt.en+'+ unlocks')+'</span></div>'; }
+    return '<div class="rh-mrow"><span class="rh-mrow-n">'+LT(m.ko,m.en)+'</span><span class="rh-mrow-e">ELO '+(cur!=null?cur:0)+'</span><button class="btn rh-mrow-go" data-m="'+m.k+'">'+LT('플레이','Play')+'</button></div>'; }).join('');
   const cos=(u.stats&&u.stats.cos)||{}, equip=(u.stats&&u.stats.cosEquip)||'';
   let cosHtml='<button class="rh-chip'+(equip?'':' on')+'" data-hl="">'+LT('기본','Default')+'</button>';
   Object.keys(HL_COSMETICS).forEach(k=>{ const owned=cos[k], c=HL_COSMETICS[k];
@@ -11048,23 +11082,21 @@ function renderRankHub(){
       + myThemes.map(k=>{ const th=HIDDEN_THEMES[k]; return th?('<button class="rh-theme'+(eqTheme===k?' on':'')+'" data-th="'+k+'" title="'+esc(LT(th.ko,th.en))+'">'+th.ic+'</button>'):''; }).join(''))
     : ('<span style="font-size:13px;color:var(--faint)">'+LT('아직 없어요 — 랭크전 등에서 아주 낮은 확률로 해금','none yet — very small chance to unlock in Ranked and elsewhere')+'</span>');
   el.rhBody.innerHTML=
-    '<div class="rh-hero"><span class="rh-badge">'+te.ic+'</span><div><h2>'+LT(te.ko,te.en)+(rankGated(u)?' 🔒':'')+'</h2>'
-    +'<div class="rh-elo">ELO '+Math.round(elo)+(nt?(' · '+LT('다음 티어까지 ','to next ')+(nt.elo-Math.round(elo))):' · '+LT('최고 티어','top tier'))+'</div>'
-    +'<div class="rh-bar"><i style="width:'+prog+'%"></i></div></div></div>'
-    +'<div class="rh-sec">'+LT('문제 유형 (혼합)','Question types (mixed)')+'</div><div class="rh-mixed">'
-    +['🗺️ '+LT('이름','Name'),'🏴 '+LT('국기','Flag'),'✏️ '+LT('실루엣','Outline'),'🏙️ '+LT('수도','Capital'),'📜 '+LT('히스토리','History')].map(x=>'<span class="rh-mix">'+x+'</span>').join('')
-    +'</div><div class="rh-note2">'+LT('매 문제마다 유형이 무작위로 섞여 나와요 — 여러 종목을 다 잘해야 랭크가 올라요.','Each question is a random type — you must be good at several modes to climb.')+'</div>'
-    +(modeBars?('<div class="rh-sec">'+LT('종목별 랭크 진행 (다음 등급)','Per-mode progress (next tier)')+'</div><div class="rh-modes">'+modeBars+'</div>'
-        +(rankGated(u)?('<div class="rh-note2">'+LT('🔒 ELO는 더 높지만, 모든 종목의 막대를 채워야 실제 등급이 올라가요.','🔒 Your ELO is higher, but every mode’s bar must fill before your real rank rises.')+'</div>'):'')):'')
-    +(placed?'<button class="btn solid rh-play" id="rh-play">'+LT('랭크 매치 시작 · '+RANKED_N+'문제','Start ranked · '+RANKED_N+'Q')+'</button>'
-            :'<button class="btn solid rh-play" id="rh-place">'+LT('배치고사 보기 · '+RANKED_N+'문제','Take placement · '+RANKED_N+'Q')+'</button>')
-    +'<button class="btn rh-play" id="rh-duel" style="margin-top:8px">⚔️ '+LT('실시간 1v1 (베타)','Live 1v1 (beta)')+'</button>'
-    +'<div class="rh-sec">'+LT('하이라이트 코스메틱 (티어 보상)','Highlight cosmetics (tier rewards)')+'</div><div class="rh-row" id="rh-cos">'+cosHtml+'</div>'
+    '<div class="rh-hero"><span class="rh-badge">'+t.ic+'</span><div><h2>'+LT(t.ko,t.en)+'</h2>'
+    +'<div class="rh-elo">'+(placed?(LT('국가 이름 ELO ','Name ELO ')+(rmElo(u,'quiz')||0)):LT('아직 미배치','Unplaced'))+'</div></div></div>'
+    +(!placed?'<button class="btn solid rh-play" id="rh-place">'+LT('배치고사 보기 · 국가 이름 '+RANKED_N+'문제','Take placement · '+RANKED_N+' name questions')+'</button>':'')
+    +(placed && nextR!=null?('<div class="rh-sec">'+LT('다음 등급 ','Next rank ')+RANK_MAIN[nextR].ic+' '+LT(RANK_MAIN[nextR].ko,RANK_MAIN[nextR].en)+LT(' 승급 조건',' requirements')+'</div><div class="rh-modes">'+reqBars+'</div>'
+        +(canPromote(u)?('<button class="btn solid rh-play" id="rh-exam" style="margin-top:10px">⭐ '+LT('승급 시험 보기','Take promotion exam')+'</button>')
+                       :('<div class="rh-note2">'+LT('조건을 모두 채우면 승급 시험을 볼 수 있어요.','Fill every bar to unlock the promotion exam.')+'</div>'))):'')
+    +(placed?('<div class="rh-sec">'+LT('종목별 랭크 (플레이해서 ELO 올리기)','Play a mode to raise its ELO')+'</div><div class="rh-mrows" id="rh-mrows">'+modeRows+'</div>'):'')
+    +'<button class="btn rh-play" id="rh-duel" style="margin-top:10px">⚔️ '+LT('실시간 1v1 (베타)','Live 1v1 (beta)')+'</button>'
+    +'<div class="rh-sec">'+LT('하이라이트 코스메틱 (등급 보상)','Highlight cosmetics (rank rewards)')+'</div><div class="rh-row" id="rh-cos">'+cosHtml+'</div>'
     +'<div class="rh-sec">✨ '+LT('특별 테마 컬렉션','Special themes')+' ('+myThemes.length+'/'+Object.keys(HIDDEN_THEMES).length+')</div><div class="rh-shiny" id="rh-themes">'+themeHtml+'</div>'
     +(SUPA_ON?('<div class="rh-sec">🏆 '+LT('리더보드','Leaderboard')+' <button class="rh-lb-refresh" id="rh-lb-refresh" aria-label="'+LT('새로고침','Refresh')+'">↻</button></div><div id="rh-lb" class="rh-lb">'+lbHTML()+'</div>'):'')
-    +'<p class="rh-note">'+LT('· 정확한 이름만 · 문제당 '+RANKED_QTIME+'초 · 문제당 기회 2번 · 건너뛰기 없음<br>· 중도 포기 시 ELO를 잃어요 · 붙여넣기 차단·탭 이탈 감지(부정행위 방지)<br>· ELO가 오를수록 더 어렵고 낯선 나라가 나와요','· Exact names · '+RANKED_QTIME+'s/question · 2 tries per question · no skips<br>· Quitting mid-match loses ELO · paste blocked & tab-switch forfeits (anti-cheat)<br>· Higher ELO = harder, more obscure countries')+'</p>';
-  const play=el.rhBody.querySelector('#rh-play'); if(play) play.onclick=()=>{ state.rankedPlacement=false; playRanked(); };
-  const place=el.rhBody.querySelector('#rh-place'); if(place) place.onclick=()=>{ state.rankedPlacement=true; playRanked(); };
+    +'<p class="rh-note">'+LT('· 종목마다 ELO가 따로 올라요 · 어려운 유형은 상위 등급에서 열려요<br>· 승급하려면 필요한 종목 ELO를 채우고 승급 시험에 합격해야 해요<br>· 정확한 이름만 · 문제당 '+RANKED_QTIME+'초 · 기회 2번 · 중도 포기·탭 이탈 시 손해','· Each mode has its own ELO · harder types unlock at higher ranks<br>· To promote, meet the required mode ELOs and pass the promotion exam<br>· Exact names · '+RANKED_QTIME+'s/question · 2 tries · quitting or leaving the tab costs you')+'</p>';
+  const place=el.rhBody.querySelector('#rh-place'); if(place) place.onclick=()=>{ state.rankedExam=false; state.rankedMode='quiz'; state.rankedPlacement=true; playRanked(); };
+  const exam=el.rhBody.querySelector('#rh-exam'); if(exam) exam.onclick=()=>{ state.rankedExam=true; state.rankedPlacement=false; playRanked(); };
+  el.rhBody.querySelectorAll('#rh-mrows .rh-mrow-go').forEach(b=>b.onclick=()=>{ state.rankedExam=false; state.rankedPlacement=false; state.rankedMode=b.dataset.m; playRanked(); });
   el.rhBody.querySelectorAll('#rh-cos .rh-chip').forEach(b=>b.onclick=()=>{ if(b.classList.contains('lock')) return; u.stats.cosEquip=b.dataset.hl||''; accSave(); applyCosmetics(); renderRankHub(); });
   el.rhBody.querySelectorAll('#rh-themes .rh-theme').forEach(b=>b.onclick=()=>{ u.stats.themeEquip=b.dataset.th||''; accSave(); applyCosmetics(); renderRankHub(); });
   const lbr=el.rhBody.querySelector('#rh-lb-refresh'); if(lbr) lbr.onclick=refreshLeaderboard;
@@ -11072,9 +11104,9 @@ function renderRankHub(){
 }
 let rloadT=null;
 function playRanked(){ // brief matchmaking screen with a Cancel, then start (so you can back out)
-  const placement=state.rankedPlacement;
-  $('rl-txt').textContent=placement?LT('배치고사 준비 중…','Preparing your placement…'):LT('랭크 매치 찾는 중…','Finding your ranked match…');
-  $('rl-sub').textContent=placement?LT('실력을 측정할 문제를 고르고 있어요','Selecting calibration questions'):LT('상대 난이도를 맞추는 중','Matching difficulty to your rank');
+  const txt = state.rankedExam?LT('승급 시험 준비 중…','Preparing your promotion exam…'):(state.rankedPlacement?LT('배치고사 준비 중…','Preparing your placement…'):LT('랭크 매치 찾는 중…','Finding your ranked match…'));
+  $('rl-txt').textContent=txt;
+  $('rl-sub').textContent=state.rankedExam?LT('필요한 종목의 문제를 모으는 중','Assembling questions from required modes'):(state.rankedPlacement?LT('실력을 측정할 문제를 고르고 있어요','Selecting calibration questions'):LT('난이도를 맞추는 중','Matching difficulty to your ELO'));
   $('rload').classList.add('show'); $('rload').setAttribute('aria-hidden','false');
   clearTimeout(rloadT); rloadT=setTimeout(()=>{ $('rload').classList.remove('show'); $('rload').setAttribute('aria-hidden','true');
     el.rankhub.classList.remove('show'); el.home.classList.remove('show'); el.homebtn.classList.remove('hidden'); setMode('ranked'); }, 1500+Math.floor(Math.random()*1300));
@@ -11293,13 +11325,16 @@ function xpFromHistory(u){ let g=0; const b=(u.stats&&u.stats.best)||{};
 function migrateXP(u){ if(!u||!u.stats) return; if(u.stats.xpMig>=XP_MIG_VER) return;
   u.stats.xp=Math.max(u.stats.xp||0, xpFromHistory(u)); u.stats.xpMig=XP_MIG_VER; accSave(); }
 
+// modes that can be played on a single region — their tier only counts when the WHOLE WORLD is played
+const REGION_TIER_MODES=new Set(['quiz','findmap','flag','capital','silhouette','capcountry','countdown','region','place','locate','conquer','ladder','compare','estimate','oddone','landmark','rank','hint','clue']);
 function recordResult(key,score){
   const u=curUser(); if(!u||key==null||state.vs) return null;
   u.stats=u.stats||{games:0,best:{},plays:{},points:0};
   u.stats.games++; u.stats.plays[key]=(u.stats.plays[key]||0)+1;
   u.stats.points=(u.stats.points||0)+Math.max(0,score||0);
+  const wholeWorld = !REGION_TIER_MODES.has(key) || state.region==='전세계' || !state.region;   // tiers only from whole-world play
   const prevTier=categoryTier(key,u.stats.best[key]||0);
-  const prev=u.stats.best[key]||0, isBest=(score||0)>prev;
+  const prev=u.stats.best[key]||0, isBest=wholeWorld && (score||0)>prev;
   if(isBest) u.stats.best[key]=score;
   const lvUp=addXP(u, Math.max(1,Math.round((score||0)/2)) + (isBest?15:0));
   const newTier=categoryTier(key,u.stats.best[key]||0);
@@ -11630,7 +11665,7 @@ function renderProfile(){
   el.profilecard.innerHTML='<div class="pc-head">'
     +'<div class="pc-avatar">'+esc(u.name.charAt(0).toUpperCase())+'</div>'
     +'<div><div class="pc-name">'+esc(u.name)+'</div><div class="pc-sub">'+LT('플레이 ','Games ')+(st.games||0)+' · '+LT('누적 점수 ','Total points ')+(st.points||0)
-      +(st.elo!=null?(' · '+(function(t){return t.ic+' '+LT(t.ko,t.en)+' '+Math.round(st.elo);})(rankTierEff(u))+(rankGated(u)?' 🔒':'')+(shinyCount()?(' · ✨'+shinyCount()):'')):'')+'</div></div>'
+      +(isPlaced()?(' · '+(function(t){return t.ic+' '+LT(t.ko,t.en);})(rankMainTier(u))+(shinyCount()?(' · ✨'+shinyCount()):'')):'')+'</div></div>'
     +'<button class="btn pc-logout" id="pc-logout"><span data-icon="logout"></span> <span>'+LT('로그아웃','Log out')+'</span></button>'
     +'</div>'
     +(bh?('<div class="pc-stats">'+bh+'</div>'):('<div class="pc-sub" style="margin-top:11px">'+LT('게임을 하면 최고 기록이 여기에 쌓여요.','Play a game and your best scores show up here.')+'</div>'))
