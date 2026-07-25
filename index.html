@@ -201,6 +201,16 @@ select#region:focus{outline:none;border-color:var(--border2)}
 .sp-hint b{color:var(--text);font-weight:700}
 .sp-hint.fever{border-color:var(--fever);background:linear-gradient(180deg,rgba(255,90,138,.14),rgba(255,90,138,.05))}
 .sp-hint.fever .hn{background:var(--fever);color:#fff}
+/* 스무고개 clue-shop buttons */
+.clue-buy{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;
+  background:var(--surface2);border:1px solid var(--border2);border-radius:11px;padding:11px 13px;
+  cursor:pointer;font:inherit;color:var(--text);transition:.13s;text-align:left}
+.clue-buy:hover{background:var(--surface3);border-color:var(--muted)}
+.clue-buy:active{transform:scale(.99)}
+.clue-buy .cl-t{font-weight:700;font-size:13.5px}
+.clue-buy .cl-c{flex:0 0 auto;font-weight:800;font-size:12px;color:var(--bad);background:var(--bad-dim);
+  padding:3px 9px;border-radius:999px}
+.sp-potential{font-variant-numeric:tabular-nums;color:var(--target);font-weight:800}
 #feverbtn{border-color:rgba(255,90,138,.55)}
 #feverbtn .fv{filter:saturate(1.2)}
 #micbtn.rec{border-color:var(--bad);background:var(--bad-dim);animation:micPulse 1s ease-in-out infinite}
@@ -767,6 +777,7 @@ const ICONS={
   calendar:svg('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/>'),
   medal:svg('<circle cx="12" cy="14" r="6"/><path d="M9 8 6 2M15 8l3-6M12 12l1 2h-2z"/>'),
   landmark:svg('<path d="M12 3l8 4v2H4V7zM6 9v8M10 9v8M14 9v8M18 9v8M4 20h16M3 17h18"/>'),
+  question:svg('<circle cx="12" cy="12" r="9"/><path d="M9.2 9.3a3 3 0 0 1 5.6 1.2c0 2-2.8 2.5-2.8 4M12 17h.01"/>'),
 };
 document.querySelectorAll('[data-icon]').forEach(e=>e.insertAdjacentHTML('afterbegin', ICONS[e.dataset.icon]||''));
 
@@ -2001,7 +2012,7 @@ function updateScore(){
   const m=state.mode;
   if(state.vs && ['quiz','flag','findmap','hint','capital','oddone','compare','landmark'].includes(m)){ el.scoreval.innerHTML=vsScoreChip(); return; }
   if(m==='free') el.scoreval.textContent=state.found.size;
-  else if(m==='quiz'||m==='findmap'||m==='flag'||m==='capital'||m==='compare'||m==='estimate'||m==='oddone'||m==='review'||m==='landmark') el.scoreval.textContent=state.score;
+  else if(m==='quiz'||m==='findmap'||m==='flag'||m==='capital'||m==='compare'||m==='estimate'||m==='oddone'||m==='review'||m==='landmark'||m==='clue') el.scoreval.textContent=state.score;
   else if(m==='daily') el.scoreval.textContent=state.score+' / '+(state.dailyTotal||10);
   else if(m==='ladder') el.scoreval.textContent=state.ladderStreak;
   else if(m==='chain') el.scoreval.textContent=state.chainLen;
@@ -2080,11 +2091,11 @@ el.region.onchange=()=>{ state.region=el.region.value; resetMode(); };
 /* ================= input layout ================= */
 function setInputMode(kind){ // text | quiz | flag | click | study | place | hint | rank | conquer | trivia | locate
   el.inputrow.classList.toggle('hidden',['place','rank','conquer','trivia','compare','mini','codex','mastery'].includes(kind));
-  const showText=['text','quiz','flag','hint','capital','chain','landmark'].includes(kind);
+  const showText=['text','quiz','flag','hint','capital','chain','landmark','clue'].includes(kind);
   el.q.classList.toggle('hidden',!showText);
   el.go.classList.toggle('hidden',!showText);
   el.micbtn.classList.toggle('hidden',!(showText && voiceSupported()));
-  el.skip.classList.toggle('hidden',!(kind==='quiz'||kind==='flag'||kind==='click'||kind==='hint'||kind==='locate'||kind==='capital'||kind==='chain'||kind==='landmark'));
+  el.skip.classList.toggle('hidden',!(kind==='quiz'||kind==='flag'||kind==='click'||kind==='hint'||kind==='locate'||kind==='capital'||kind==='chain'||kind==='landmark'||kind==='clue'));
   { const st=el.skip.querySelector('.t'); if(st) st.textContent=(kind==='chain')?LT('끝내기','End'):LT('넘기기','Skip'); }
   el.hintbtn.classList.toggle('hidden',kind!=='hint');
   el.feverbtn.classList.toggle('hidden',kind!=='hint' || !(state.hintKinds&&state.hintKinds.has('fever')));
@@ -2096,7 +2107,7 @@ function setInputMode(kind){ // text | quiz | flag | click | study | place | hin
 function setMode(mode){
   state.mode=mode;
   document.querySelectorAll('.mode').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
-  const scoped=['study','place','region','quiz','findmap','flag','hint','rank','conquer','locate','capital','compare','ladder','estimate','oddone','chain','codex'].includes(mode);
+  const scoped=['study','place','region','quiz','findmap','flag','hint','rank','conquer','locate','capital','compare','ladder','estimate','oddone','chain','codex','clue'].includes(mode);
   el.region.classList.toggle('hidden',!scoped);
   el.regquiz.classList.toggle('hidden',mode!=='study');
   el.spToggle.classList.toggle('hidden',mode!=='study');
@@ -2121,6 +2132,7 @@ function setMode(mode){
   else if(mode==='chain'){ state.countUp=true; setInputMode('chain'); el.scorelbl.textContent=LT('사슬','Chain'); }
   else if(mode==='hint'){ state.countUp=true; setInputMode('hint'); el.scorelbl.textContent=LT('점수','Score'); }
   else if(mode==='landmark'){ state.countUp=false; state.duration=90; setInputMode('landmark'); el.scorelbl.textContent=LT('점수','Score'); }
+  else if(mode==='clue'){ state.countUp=true; setInputMode('clue'); el.scorelbl.textContent=LT('점수','Score'); }
   else if(mode==='conquer'){ state.countUp=false; setInputMode('conquer'); el.scorelbl.textContent=LT('정복','Conquered'); }
   else if(mode==='region'){ state.countUp=true; setInputMode('text'); el.scorelbl.textContent=LT('진행','Progress'); }
   else if(mode==='countdown'){ state.countUp=false; state.duration=[60,180,300].includes(state.duration)?state.duration:180; buildDurRow(state.duration); setInputMode('text'); el.scorelbl.textContent=LT('찾은 나라','Found'); }
@@ -2151,6 +2163,7 @@ function resetMode(){
   if(m==='locate'){ startLocate(); updateTimerDisplay(); return; }
   if(m==='place'){ startPlace(); updateTimerDisplay(); return; }
   if(m==='hint'){ startHint(); updateTimerDisplay(); return; }
+  if(m==='clue'){ startClue(); updateTimerDisplay(); return; }
   if(m==='rank'){ startRank(); updateTimerDisplay(); return; }
   if(m==='conquer'){ startConquer(); updateTimerDisplay(); return; }
   if(m==='compare'){ startCompare(); updateTimerDisplay(); return; }
@@ -2530,6 +2543,76 @@ function revealFever(){
 function revealHintAnswer(t){ clearMap(); t.el.classList.add('found'); t.el.parentNode.appendChild(t.el); showStudyLabel(t); focusEntry(t,2); }
 el.hintbtn.onclick=()=>{ if(state.mode==='hint') revealHint(false); };
 el.feverbtn.onclick=()=>{ if(state.mode==='hint') revealFever(); };
+
+/* ================= 스무고개 / Clue Hunt — buy the clues you want, each with a point cost ================= */
+const CLUE_BASE=20;
+function buildClues(e){
+  const s=e.st||{}, en=EN(), nbs=en?(s.nbe||[]):(s.nb||[]), HF=(e.i2&&HISTFACTS[e.i2])||null;
+  const out=[]; const add=(cost,label,html)=>{ if(html) out.push({cost,label,html,bought:false}); };
+  add(1, LT('지역','Region'), en?('In <b>'+regionOf(e)+'</b>.'):('<b>'+regionOf(e)+'</b>에 있어요.'));
+  { const loc=[]; if(s.lat!=null) loc.push(en?(s.lat>=0?'Northern Hemisphere':'Southern Hemisphere'):(s.lat>=0?'북반구':'남반구'));
+    if(s.land!=null) loc.push(en?(s.land?'landlocked':'has a coastline'):(s.land?'내륙국':'바다에 접함'));
+    if(loc.length) add(1, LT('반구·해안','Hemisphere/coast'), '<b>'+loc.join('</b>, <b>')+'</b>'); }
+  { const ar=areaRankClue(e); if(ar) add(1, LT('면적 순위','Area rank'), ar); }
+  if(s.temp!=null) add(1, LT('평균 기온','Avg. temp'), en?('Avg. temperature about <b>'+s.temp+'℃</b>.'):('연평균 기온 약 <b>'+s.temp+'℃</b>.'));
+  if(s.elev!=null) add(1, LT('평균 고도','Avg. elevation'), en?('Avg. elevation about <b>'+fmtInt(s.elev)+' m</b>.'):('평균 고도 약 <b>'+fmtInt(s.elev)+' m</b>.'));
+  if(s.pop) add(2, LT('인구','Population'), en?('Population about <b>'+fmtPop(s.pop)+'</b>.'):('인구 약 <b>'+fmtPop(s.pop)+'</b>.'));
+  if(s.dens) add(2, LT('인구 밀도','Density'), en?('Density about <b>'+fmtInt(s.dens)+' /km²</b>.'):('인구 밀도 약 <b>'+fmtInt(s.dens)+' 명/km²</b>.'));
+  if(en?s.gove:s.gov) add(2, LT('정부 형태','Government'), en?('Government: <b>'+s.gove+'</b>.'):('정부 형태: <b>'+s.gov+'</b>.'));
+  if(s.gdp||s.gpc){ const t=[]; if(s.gdp)t.push(en?('GDP '+fmtUSD(s.gdp)):('GDP '+fmtUSD(s.gdp))); if(s.gpc)t.push(en?('per-capita $'+fmtInt(s.gpc)):('1인당 $'+fmtInt(s.gpc)));
+    add(2, LT('경제','Economy'), '<b>'+t.join('</b>, <b>')+'</b>'); }
+  if(nbs.length) add(2, LT('접경국 수','# of borders'), en?('Shares land borders with <b>'+nbs.length+'</b> countries.'):('접경국이 <b>'+nbs.length+'</b>개국이에요.'));
+  else if(s.land===0) add(2, LT('섬 여부','Island?'), LT('육지 국경이 없는 <b>섬나라</b>예요.','It is an <b>island nation</b> with no land borders.'));
+  if(HF&&HF.hist) add(3, LT('역사','History'), '📜 '+(en?HF.hist.en:HF.hist.ko));
+  if(HF&&HF.dispute) add(3, LT('분쟁·이슈','Dispute'), '⚔️ '+(en?HF.dispute.en:HF.dispute.ko));
+  const firstL = en?(e.en?e.en.charAt(0).toUpperCase():''):(e.ko?e.ko.charAt(0):'');
+  if(firstL) add(4, LT('첫 글자','First letter'), en?('Its name starts with <b>'+firstL+'</b>.'):('이름은 <b>'+firstL+'</b>(으)로 시작해요.'));
+  if(en?s.cape:s.cap) add(5, LT('수도','Capital'), en?('Its capital is <b>'+s.cape+'</b>.'):('수도는 <b>'+s.cap+'</b>이에요.'));
+  if(nbs.length) add(5, LT('국경 나라','Neighbors'), en?('It borders <b>'+nbs.join(', ')+'</b>.'):('<b>'+(s.nb||[]).join('·')+'</b> 와(과) 국경을 맞대요.'));
+  if(e.i2) add(6, LT('국기','Flag'), (en?'Its flag: ':'국기: ')+'<span style="font-size:1.5em;vertical-align:-3px">'+flagEmoji(e.i2)+'</span>');
+  return out;
+}
+function cluePotential(){ let spent=0; (state.clueList||[]).forEach(c=>{ if(c.bought) spent+=c.cost; }); return Math.max(1, CLUE_BASE-spent); }
+function cluePool(){ let p=regionEntries(state.region).filter(e=>e.st&&!e.isMarker); if(p.length<2) p=allEntries.filter(e=>e.sov&&e.st&&!e.isMarker); return p; }
+function startClue(){
+  state.score=0;
+  el.studypanel.classList.remove('hidden','study'); el.spList.classList.remove('hide'); el.spToggle.classList.add('hidden');
+  el.timer.classList.add('hidden');
+  state.cluePoolArr=cluePool();
+  if(state.cluePoolArr.length<2){ el.studypanel.classList.add('hidden'); el.prompt.innerHTML=LT('이 지역은 자료가 부족해요. 다른 지역을 골라 주세요.','Not enough data here — pick another region.'); setFeedback('','info'); updateScore(); return; }
+  state.clueQueue=shuffleArr(state.cluePoolArr.slice());
+  updateScore(); nextClueTarget();
+}
+function nextClueTarget(){
+  clearMap(); clearLabels();
+  if(!state.clueQueue||!state.clueQueue.length) state.clueQueue=shuffleArr(state.cluePoolArr.slice());
+  state.clueTarget=state.clueQueue.pop();
+  state.clueList=buildClues(state.clueTarget);
+  state.studyW=fitRegion(state.cluePoolArr);
+  el.prompt.innerHTML=LT('어느 나라일까요? 원하는 <b>힌트</b>를 골라 여세요 — 적게 열수록 점수가 높아요.','Which country is it? Open only the <b>clues</b> you need — fewer clues = more points.');
+  renderClueMenu();
+  setFeedback(LT('지금 맞히면 +'+cluePotential()+'점','Guess now for +'+cluePotential()+' pts'),'info');
+  el.q.value=''; el.q.focus();
+}
+function renderClueMenu(){
+  el.spTitle.innerHTML=LT('남은 점수 ','Points left ')+'<span class="sp-potential">'+cluePotential()+'</span>';
+  el.spList.innerHTML='';
+  state.clueList.forEach((c,i)=>{
+    if(c.bought){ const d=document.createElement('div'); d.className='sp-hint';
+      d.innerHTML='<span class="hn">'+c.label+'</span><span>'+c.html+'</span>'; el.spList.appendChild(d); }
+    else { const btn=document.createElement('button'); btn.className='clue-buy';
+      btn.innerHTML='<span class="cl-t">'+c.label+'</span><span class="cl-c">−'+c.cost+'</span>';
+      btn.setAttribute('aria-label',c.label+' · −'+c.cost+LT('점','pts'));
+      btn.onclick=()=>buyClue(i); el.spList.appendChild(btn); }
+  });
+}
+function buyClue(i){
+  if(state.ended||state.mode!=='clue') return;
+  const c=state.clueList[i]; if(!c||c.bought) return; c.bought=true;
+  if(!state.running){ state.running=true; }
+  renderClueMenu();
+  setFeedback(LT('지금 맞히면 +'+cluePotential()+'점','Guess now for +'+cluePotential()+' pts'),'info');
+}
 
 /* ================= rankings board ================= */
 function fillMetricOptions(sel){ sel.innerHTML=''; METRICS.forEach(m=>{ const o=document.createElement('option'); o.value=m.k; o.textContent=metricName(m); sel.appendChild(o); }); }
@@ -9221,6 +9304,7 @@ const MODES_META=[
  {m:'capital',t:'수도 퀴즈',te:'Capital Quiz',d:'나라를 보고 수도 이름 입력',de:'Type the capital of the shown country',ic:'star',g:'퀴즈'},
  {m:'hint',t:'힌트 퀴즈',te:'Hint Quiz',d:'인접국·크기·수도 등 힌트로 추리',de:'Guess from neighbors, size, capital…',ic:'bulb',g:'퀴즈'},
  {m:'landmark',t:'랜드마크 퀴즈',te:'Landmark Quiz',d:'유명한 명소 설명을 보고 나라 맞히기',de:'Name the country from a famous landmark',ic:'landmark',g:'퀴즈'},
+ {m:'clue',t:'스무고개',te:'Clue Hunt',d:'원하는 힌트를 골라 열고, 적게 열수록 고득점 (20점에서 시작)',de:'Buy the clues you want — fewer clues = more points (start at 20)',ic:'question',g:'퀴즈'},
  {m:'compare',t:'더 큰 나라?',te:'Bigger?',d:'두 나라 중 더 큰(많은) 쪽 고르기',de:'Pick the bigger of two countries',ic:'scale',g:'비교·순위'},
  {m:'ladder',t:'업다운 사다리',te:'Higher–Lower',d:'다음 나라가 더 높을지 낮을지 이어서 맞히기',de:'Guess if the next country is higher or lower — keep the streak',ic:'bars',g:'비교·순위'},
  {m:'estimate',t:'어림하기',te:'Estimate',d:'인구·면적을 숫자로 어림해서 가까울수록 고득점',de:'Estimate population or area — closer guesses score more',ic:'gauge',g:'비교·순위'},
@@ -9237,7 +9321,7 @@ function modeTitle(x){ return EN()?(x.te||x.t):x.t; }
 function modeDesc(x){ return EN()?(x.de||x.d):x.d; }
 /* ---- pre-game setup (choose place/criteria before the timer starts) ---- */
 const SETUP_CFG={ study:['region'],place:['region'],
-  quiz:['region','vs'],findmap:['region','vs'],flag:['region','vs'],hint:['region','hintkinds','vs'],landmark:['vs'],
+  quiz:['region','vs'],findmap:['region','vs'],flag:['region','vs'],hint:['region','hintkinds','vs'],landmark:['vs'],clue:['region'],
   capital:['region','vs'],compare:['cmpmetric','region','vs'],
   ladder:['cmpmetric','region'],estimate:['estmetric','region'],oddone:['region','vs'],chain:['region'],
   conquer:['region'],region:['region'],countdown:['dur'],rank:['metric','region'],
@@ -9473,6 +9557,16 @@ function submit(){
       if(state.vs){ vsPenalty(); celebrate(false,LT('−1점','−1')); setFeedback(vsWrongMsg(msg),'no','x'); }
       else setFeedback(msg,'no','x'); }
   }
+  else if(m==='clue'){
+    if(!entry){notFound(raw);return;}
+    if(entry.id===state.clueTarget.id){
+      const gain=cluePotential(); state.score+=gain; updateScore(); trackCountry(state.clueTarget,true);
+      revealHintAnswer(entry); celebrate(true,LT('+'+gain+'점','+'+gain+' pts'));
+      setFeedback(LT('정답! ','Correct! ')+entry.ko+' · '+entry.en+LT(' · +'+gain+'점',' · +'+gain+' pts'),'ok','check'); el.q.value='';
+      later(nextClueTarget,1300);
+    } else { shakeInput(); el.q.value='';
+      setFeedback(EN()?('Not '+NM(entry)+'. Buy another clue or guess again.'):(entry.ko+' 이(가) 아니에요. 힌트를 더 열거나 다시 맞혀 보세요.'),'no','x'); }
+  }
   else if(m==='region'){
     if(!entry){notFound(raw);return;}
     if(!state.regionIds.has(entry.id)){ setFeedback(EN()?(NM(entry)+' is not in '+regionName(state.region)+'.'):(entry.ko+' 은(는) '+regionName(state.region)+' 나라가 아니에요.'),'no','x'); shakeInput(); el.q.value=''; return; }
@@ -9502,6 +9596,7 @@ el.skip.onclick=()=>{
   else if(m==='capital'){ const t=state.target; if(!state.vs) trackCountry(t,false); setFeedback(EN()?('The capital of '+NM(t)+' is '+capitalDisplay(t)+'.'):(NM(t)+'의 수도는 '+capitalDisplay(t)+' 예요.'),'info'); el.q.value=''; if(state.vs) vsAfterAnswer(false); else later(nextCapitalTarget,800); }
   else if(m==='hint'){ const t=state.hintTarget; if(!state.vs) trackCountry(t,false); setFeedback(ans(NM(t)),'info'); revealHintAnswer(t); el.q.value=''; if(state.vs) vsAfterAnswer(false); else later(nextHintTarget,1400); }
   else if(m==='landmark'){ const t=state.target, lm=state.landmarkCur; if(!state.vs) trackCountry(t,false); setFeedback(EN()?('It was '+NM(t)+(lm?(' · '+lm.en):'')+'.'):('정답은 '+NM(t)+(lm?(' · '+lm.ko):'')+' 였어요.'),'info'); el.q.value=''; if(state.vs) vsAfterAnswer(false); else later(nextLandmarkTarget,900); }
+  else if(m==='clue'){ const t=state.clueTarget; trackCountry(t,false); setFeedback(ans(NM(t)),'info'); revealHintAnswer(t); el.q.value=''; later(nextClueTarget,1400); }
   else if(m==='locate'){ const t=state.target; if(!t) return; t.el.classList.add('target'); t.el.parentNode.appendChild(t.el); focusEntry(t,2.4);
     setFeedback(EN()?(NM(t)+' is here.'):(NM(t)+' 은(는) 여기예요.'),'info');
     state.findLock=true; later(()=>{ state.findLock=false; t.el.classList.remove('target'); nextLocateTarget(); },1400); }
