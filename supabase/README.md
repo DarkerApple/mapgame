@@ -26,20 +26,20 @@ supabase/
    supabase link --project-ref <YOUR-PROJECT-REF>   # the xxxx in xxxx.supabase.co
    ```
 
-3. **Set the service-role secret** the function needs:
-   ```bash
-   supabase secrets set SUPABASE_SERVICE_ROLE_KEY=<your service_role key>
-   # optional — only if you want real verification emails sent:
-   supabase secrets set RESEND_API_KEY=<your resend key>
-   ```
-   > `SUPABASE_URL` and `SUPABASE_ANON_KEY` are injected automatically — don't set them.
-   > The **service_role** key is a secret: it goes in function secrets only, never in the client.
-
-4. **Deploy the function:**
+3. **Deploy the function:**
    ```bash
    supabase functions deploy auth --no-verify-jwt
    ```
-   Its URL will be `https://<project-ref>.functions.supabase.co/auth`.
+   `SUPABASE_URL`, `SUPABASE_ANON_KEY` **and `SUPABASE_SERVICE_ROLE_KEY` are
+   injected into every Edge Function automatically** — you do NOT need to set
+   them. Its URL is `https://<project-ref>.supabase.co/functions/v1/auth`.
+
+   Optional — only to actually send verification emails:
+   ```bash
+   supabase secrets set RESEND_API_KEY=<your resend key>
+   ```
+   Until a mail provider is set, the optional email field is stored but no
+   verification code is sent (accounts still work fully by username/password).
 
 5. **Auth settings.** Dashboard → Authentication → Providers → Email: leave
    "Confirm email" **off** (username accounts are auto-confirmed; the optional

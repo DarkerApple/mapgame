@@ -482,6 +482,9 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 .auth-tab{flex:1;background:none;border:none;color:var(--muted);font:inherit;font-weight:700;font-size:14px;padding:9px;border-radius:9px;cursor:pointer}
 .auth-tab.on{background:var(--accent);color:var(--accent-ink)}
 .auth-field{display:block;margin-bottom:12px}
+.auth-verify{display:flex;gap:8px;align-items:flex-end;margin-top:8px}
+.auth-verify .auth-field{flex:1;margin-bottom:0}
+.auth-verify .auth-mini{white-space:nowrap}
 .auth-field span{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px;font-weight:700}
 .auth-field input{width:100%;background:var(--surface2);border:1px solid var(--border2);color:var(--text);font:inherit;font-size:15px;padding:11px 13px;border-radius:11px}
 .auth-field input:focus{outline:none;border-color:var(--accent)}
@@ -10681,8 +10684,53 @@ document.addEventListener('visibilitychange',()=>{ if(document.hidden && state.r
 /* ================= local profiles (saved in THIS browser only — no server) ================= */
 const AKEY='wmh_accounts_v1';
 let ACC=(function(){ try{ return JSON.parse(localStorage.getItem(AKEY))||{users:{},current:null}; }catch(e){ return {users:{},current:null}; } })();
-function accSave(){ try{ localStorage.setItem(AKEY,JSON.stringify(ACC)); }catch(e){} }
+function accSave(){ try{ localStorage.setItem(AKEY,JSON.stringify(ACC)); }catch(e){} if(SUPA_ON) sbQueueSave(); }
 function curUser(){ return (ACC.current && ACC.users[ACC.current]) ? ACC.users[ACC.current] : null; }
+
+/* ================= Supabase cloud accounts (username + password via Edge Function) ================= */
+const SUPA={ url:'https://gygkbuyigapidgrhestn.supabase.co',
+  anon:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z2tidXlpZ2FwaWRncmhlc3RuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ5ODIxMDgsImV4cCI6MjEwMDU1ODEwOH0.qRw9ifQVT_bBoA5t2MtdW4ppOsoa4AzZ8MnCbmz4KeY' };
+const SUPA_ON=!!(SUPA.url && SUPA.anon);
+const SB={ url:SUPA.url, anon:SUPA.anon, fn:SUPA.url+'/functions/v1/auth', rest:SUPA.url+'/rest/v1', tok:null, uid:null,
+  loadTok(){ try{ const t=JSON.parse(localStorage.getItem('gr_session')||'null'); if(t&&t.access_token){ this.tok=t; this.uid=jwtSub(t.access_token); } }catch(e){} },
+  saveTok(t){ this.tok=t; this.uid=t?jwtSub(t.access_token):null; try{ localStorage.setItem('gr_session',JSON.stringify(t)); }catch(e){} },
+  clearTok(){ this.tok=null; this.uid=null; try{ localStorage.removeItem('gr_session'); }catch(e){} },
+  hdr(auth){ const h={apikey:this.anon,'content-type':'application/json'}; if(auth&&this.tok) h.Authorization='Bearer '+this.tok.access_token; return h; } };
+function b64urlDecode(s){ s=String(s).replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s+='='; try{ return decodeURIComponent(escape(atob(s))); }catch(e){ try{ return atob(s); }catch(e2){ return ''; } } }
+function jwtDecode(t){ try{ return JSON.parse(b64urlDecode(String(t).split('.')[1])); }catch(e){ return null; } }
+function jwtSub(t){ const d=jwtDecode(t); return d?d.sub:null; }
+function jwtExpired(t){ const d=jwtDecode(t); return !d || (d.exp*1000 < Date.now()+30000); }
+async function sbFn(action,payload){ const r=await fetch(SB.fn,{method:'POST',headers:{apikey:SB.anon,'content-type':'application/json'},body:JSON.stringify(Object.assign({action},payload||{}))});
+  let j={}; try{ j=await r.json(); }catch(e){} if(!r.ok||j.error){ const e=new Error(j.error||('http_'+r.status)); e.code=j.error||('http_'+r.status); throw e; } return j; }
+async function sbRefresh(){ if(!SB.tok||!SB.tok.refresh_token) return false;
+  try{ const r=await fetch(SB.url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:SB.anon,'content-type':'application/json'},body:JSON.stringify({refresh_token:SB.tok.refresh_token})});
+    if(!r.ok) return false; const j=await r.json(); if(!j.access_token) return false; SB.saveTok({access_token:j.access_token,refresh_token:j.refresh_token||SB.tok.refresh_token}); return true; }catch(e){ return false; } }
+async function sbFresh(){ if(!SB.tok) return false; if(jwtExpired(SB.tok.access_token)) return await sbRefresh(); return true; }
+async function sbLoadProfile(){ if(!await sbFresh()) return null;
+  try{ const r=await fetch(SB.rest+'/profiles?id=eq.'+SB.uid+'&select=username,email,email_verified,stats',{headers:SB.hdr(true)});
+    if(!r.ok) return null; const rows=await r.json(); return (rows&&rows[0])||null; }catch(e){ return null; } }
+let sbSaveT=null;
+async function sbSaveStatsNow(){ if(!SUPA_ON||!SB.tok) return; if(!await sbFresh()) return; const u=curUser(); if(!u) return;
+  try{ await fetch(SB.rest+'/profiles?id=eq.'+SB.uid,{method:'PATCH',headers:Object.assign(SB.hdr(true),{Prefer:'return=minimal'}),body:JSON.stringify({stats:u.stats||{}})}); }catch(e){} }
+function sbQueueSave(){ if(!SUPA_ON||!SB.tok) return; clearTimeout(sbSaveT); sbSaveT=setTimeout(sbSaveStatsNow,1200); }
+function applyCloudProfile(p){ if(!p) return null; const key=((p.username||'me').toLowerCase())||'me';
+  const st=(p.stats&&typeof p.stats==='object')?p.stats:{};
+  ACC.users={}; ACC.users[key]={name:p.username||'me', stats:st, email:p.email||null, email_verified:!!p.email_verified, cloud:true}; ACC.current=key; return key; }
+async function sbBootstrap(){ if(!SUPA_ON) return; SB.loadTok(); if(!SB.tok) return;
+  const p=await sbLoadProfile(); if(p){ applyCloudProfile(p); renderProfile(); } else if(!await sbFresh()){ SB.clearTok(); } }
+function doLogout(){ if(SUPA_ON){ SB.clearTok(); if(ACC.current) delete ACC.users[ACC.current]; } ACC.current=null; accSave(); }
+if(SUPA_ON){ ACC={users:{},current:null}; }   // cloud replaces local: identity comes from the Supabase session, not localStorage
+function cloudAuthError(err){ const c=(err&&err.code)||''; const m={
+  username_taken:LT('이미 있는 이름이에요 — 로그인하세요.','That name is taken — log in instead.'),
+  no_such_user:LT('그런 이름이 없어요 — 회원가입하세요.','No such name — sign up instead.'),
+  bad_credentials:LT('비밀번호가 틀렸어요.','Wrong password.'),
+  invalid_username:LT('이름은 2–24자, 공백·@ 없이 입력하세요.','Name must be 2–24 chars, no spaces or @.'),
+  invalid_password:LT('비밀번호는 6자 이상이어야 해요.','Password must be at least 6 characters.'),
+  missing:LT('이름과 비밀번호를 입력하세요.','Enter a name and password.')
+};
+  if(m[c]) return m[c];
+  if(/^http_|network|Failed to fetch|TypeError/.test(c)||/fetch/i.test(String(err&&err.message))) return LT('서버에 연결하지 못했어요 — 잠시 후 다시 시도하세요.','Couldn’t reach the server — try again shortly.');
+  return LT('문제가 생겼어요: ','Something went wrong: ')+(c||'error'); }
 function savedUsernames(){ try{ return Object.values(ACC.users||{}).map(u=>u.name).slice(0,8); }catch(e){ return []; } }
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 const MODE_LABEL={}; MODES_META.forEach(x=>MODE_LABEL[x.m]=x);
@@ -10808,6 +10856,26 @@ function renderAuth(){
   if(authView==='share'){ renderShare(); return; }
   const u=curUser();
   if(u){
+    if(SUPA_ON){
+      const needVerify=u.email && !u.email_verified;
+      el.authBody.innerHTML='<div class="auth-signedin">'
+        +'<h2 class="auth-title" id="auth-title">'+LT('내 프로필','My profile')+'</h2>'
+        +'<div class="pc-avatar">'+esc(u.name.charAt(0).toUpperCase())+'</div>'
+        +'<div class="pc-name">'+esc(u.name)+'</div>'
+        +'<div class="pc-sub">'+LT('플레이 ','Games ')+((u.stats&&u.stats.games)||0)+' · '+LT('누적 점수 ','Total ')+((u.stats&&u.stats.points)||0)+'</div>'
+        +(u.email?('<div class="pc-sub">'+esc(u.email)+' · '+(u.email_verified?LT('✅ 인증됨','✅ verified'):LT('미인증','unverified'))+'</div>'):'')
+        +(needVerify?('<div class="auth-verify"><label class="auth-field"><span>'+LT('이메일 인증 코드','Email code')+'</span><input id="auth-code" inputmode="numeric" maxlength="6" placeholder="000000"></label>'
+            +'<button class="btn auth-mini" id="auth-doverify">'+LT('인증','Verify')+'</button></div>'):'')
+        +'<button class="btn solid auth-submit" id="auth-logout" style="margin-top:16px">'+LT('로그아웃','Log out')+'</button>'
+        +'<div class="auth-msg" id="auth-msg" role="status" aria-live="polite"></div>'
+        +'<p class="auth-note">'+LT('클라우드 계정이에요 — 어느 기기에서든 로그인하면 기록이 이어져요.','A cloud account — log in on any device and your progress follows you.')+'</p></div>';
+      el.authBody.querySelector('#auth-logout').onclick=()=>{ doLogout(); closeAuth(); renderProfile(); };
+      const vb=el.authBody.querySelector('#auth-doverify'); if(vb) vb.onclick=async()=>{ const code=(el.authBody.querySelector('#auth-code').value||'').trim();
+        if(!await sbFresh()){ authMsg(LT('세션이 만료됐어요 — 다시 로그인하세요.','Session expired — log in again.'),'err'); return; }
+        try{ await sbFn('verify',{access_token:SB.tok.access_token,code}); u.email_verified=true; authMsg(LT('인증됐어요!','Verified!'),'ok'); renderAuth(); }
+        catch(err){ authMsg(cloudAuthError(err),'err'); } };
+      return;
+    }
     el.authBody.innerHTML='<div class="auth-signedin">'
       +'<h2 class="auth-title" id="auth-title">'+LT('내 프로필','My profile')+'</h2>'
       +'<div class="pc-avatar">'+esc(u.name.charAt(0).toUpperCase())+'</div>'
@@ -10830,21 +10898,22 @@ function renderAuth(){
       +'<button class="auth-tab'+(login?'':' on')+'" id="tab-signup" role="tab" aria-selected="'+(!login)+'">'+LT('회원가입','Sign up')+'</button>'
     +'</div>'
     +'<form id="auth-form" autocomplete="on">'
-      +'<label class="auth-field"><span>'+LT('이름','Name')+'</span><input id="auth-name" name="username" autocomplete="username" maxlength="20" required></label>'
-      +((login&&savedUsernames().length)?('<div class="auth-users">'+LT('이 기기의 계정: ','On this device: ')+savedUsernames().map(n=>'<button type="button" class="auth-userchip" data-u="'+esc(n)+'">'+esc(n)+'</button>').join('')+'</div>'):'')
+      +'<label class="auth-field"><span>'+LT('이름','Name')+'</span><input id="auth-name" name="username" autocomplete="username" maxlength="'+(SUPA_ON?24:20)+'" required></label>'
+      +((!SUPA_ON&&login&&savedUsernames().length)?('<div class="auth-users">'+LT('이 기기의 계정: ','On this device: ')+savedUsernames().map(n=>'<button type="button" class="auth-userchip" data-u="'+esc(n)+'">'+esc(n)+'</button>').join('')+'</div>'):'')
       +'<label class="auth-field"><span>'+LT('비밀번호','Password')+'</span><input id="auth-pass" name="password" type="password" autocomplete="'+(login?'current-password':'new-password')+'" required></label>'
+      +((SUPA_ON&&!login)?('<label class="auth-field"><span>'+LT('이메일 (선택)','Email (optional)')+'</span><input id="auth-email" name="email" type="email" autocomplete="email" placeholder="'+LT('복구·인증용 · 선택','recovery / verify · optional')+'"></label>'):'')
       +'<div class="auth-msg" id="auth-msg" role="alert" aria-live="assertive"></div>'
       +'<button class="btn solid auth-submit" type="submit">'+(login?LT('로그인','Log in'):LT('가입하고 시작','Sign up & start'))+'</button>'
     +'</form>'
-    +(login?('<button class="auth-link" id="auth-forgot">'+LT('비밀번호를 잊으셨나요?','Forgot your password?')+'</button>'):'')
-    +'<button class="auth-link" id="auth-import-link">'+LT('다른 기기의 데이터 가져오기','Import data from another device')+'</button>'
-    +'<p class="auth-note">'+authNote()+'</p>';
+    +((login&&!SUPA_ON)?('<button class="auth-link" id="auth-forgot">'+LT('비밀번호를 잊으셨나요?','Forgot your password?')+'</button>'):'')
+    +(SUPA_ON?'':'<button class="auth-link" id="auth-import-link">'+LT('다른 기기의 데이터 가져오기','Import data from another device')+'</button>')
+    +'<p class="auth-note">'+(SUPA_ON?LT('클라우드 계정 — 어느 기기에서든 이 이름·비밀번호로 로그인하면 기록이 이어져요.','A cloud account — log in with this name & password on any device and your progress follows.'):authNote())+'</p>';
   el.authBody.querySelectorAll('.auth-userchip').forEach(b=>b.onclick=()=>{ el.authBody.querySelector('#auth-name').value=b.dataset.u; el.authBody.querySelector('#auth-pass').focus(); });
   const fg=el.authBody.querySelector('#auth-forgot'); if(fg) fg.onclick=()=>authMsg(LT('비밀번호는 이 기기에만 암호화 저장돼서 복구할 수 없어요. 백업 코드가 있으면 “가져오기”로 복원하거나, 새 이름으로 다시 시작하세요.','Passwords are encrypted on this device only and can’t be recovered. Restore from a backup code via Import, or start again with a new name.'),'err');
   el.authBody.querySelector('#tab-login').onclick=()=>{ authTab='login'; renderAuth(); el.authBody.querySelector('#auth-name').focus(); };
   el.authBody.querySelector('#tab-signup').onclick=()=>{ authTab='signup'; renderAuth(); el.authBody.querySelector('#auth-name').focus(); };
   el.authBody.querySelector('#auth-form').onsubmit=onAuthSubmit;
-  el.authBody.querySelector('#auth-import-link').onclick=()=>{ authView='import'; renderAuth(); };
+  const imp=el.authBody.querySelector('#auth-import-link'); if(imp) imp.onclick=()=>{ authView='import'; renderAuth(); };
 }
 function renderExport(){
   const u=curUser(); if(!u){ authView='main'; renderAuth(); return; }
@@ -10900,6 +10969,21 @@ async function onAuthSubmit(e){
   e.preventDefault();
   const name=el.authBody.querySelector('#auth-name').value.trim();
   const pw=el.authBody.querySelector('#auth-pass').value;
+  if(SUPA_ON){
+    const emailEl=el.authBody.querySelector('#auth-email'); const email=emailEl?emailEl.value.trim():'';
+    if(name.length<2||/[@\s]/.test(name)){ authMsg(LT('이름은 2–24자, 공백·@ 없이 입력하세요.','Name must be 2–24 chars, no spaces or @.'),'err'); return; }
+    if(pw.length<6){ authMsg(LT('비밀번호는 6자 이상이어야 해요.','Password must be at least 6 characters.'),'err'); return; }
+    const btn=el.authBody.querySelector('.auth-submit'); if(btn) btn.disabled=true;
+    authMsg(LT('처리 중…','Working…'),'');
+    try{
+      const j=authTab==='signup' ? await sbFn('signup',{username:name,password:pw,email:email||undefined})
+                                  : await sbFn('login',{username:name,password:pw});
+      SB.saveTok(j.session);
+      const p=await sbLoadProfile(); applyCloudProfile(p||{username:name,stats:{}});
+      closeAuth(); renderProfile();
+    }catch(err){ if(btn) btn.disabled=false; authMsg(cloudAuthError(err),'err'); }
+    return;
+  }
   if(name.length<1){ authMsg(LT('이름을 입력하세요.','Enter a name.'),'err'); return; }
   if(pw.length<4){ authMsg(LT('비밀번호는 4자 이상이어야 해요.','Password must be at least 4 characters.'),'err'); return; }
   const key=name.toLowerCase();
@@ -11017,7 +11101,7 @@ function renderProfile(){
     +'<div class="pc-actions"><button class="btn pc-share" id="pc-share">🎉 '+LT('공유 카드 만들기','Make a share card')+'</button></div>';
   const lg=el.profilecard.querySelector('#pc-logout');
   lg.querySelector('[data-icon]').insertAdjacentHTML('afterbegin',ICONS.logout);
-  lg.onclick=()=>{ ACC.current=null; accSave(); renderProfile(); };
+  lg.onclick=()=>{ doLogout(); renderProfile(); };
   const sh=el.profilecard.querySelector('#pc-share'); if(sh) sh.onclick=openShare;
 }
 function progressionHTML(st){
@@ -11046,6 +11130,7 @@ buildHome();
 showHome();
 applyLang();
 renderProfile();
+if(SUPA_ON){ sbBootstrap(); document.addEventListener('visibilitychange',()=>{ if(document.hidden) sbSaveStatsNow(); }); window.addEventListener('pagehide',()=>{ sbSaveStatsNow(); }); }
 </script>
 </body>
 </html>
