@@ -444,7 +444,10 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 .rh-theme{font-size:21px;line-height:1;background:var(--surface2);border:1px solid var(--border2);border-radius:11px;padding:6px 9px;cursor:pointer;transition:.13s}
 .rh-theme.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 22%,var(--surface2))}
 .rh-theme:hover{border-color:var(--accent)}
-.rh-lb-refresh{background:var(--surface2);border:1px solid var(--border2);border-radius:7px;color:var(--muted);cursor:pointer;font-size:13px;padding:1px 8px;vertical-align:2px}
+.rh-lb-refresh{background:var(--surface2);border:1px solid var(--border2);border-radius:7px;color:var(--muted);cursor:pointer;font-size:13px;padding:1px 8px;vertical-align:2px;display:inline-block}
+.rh-lb-refresh.spin{animation:lbspin .8s linear infinite;color:var(--accent)}
+@keyframes lbspin{to{transform:rotate(360deg)}}
+.rh-lb-live{font-size:10.5px;color:var(--faint);font-weight:700;margin-left:4px;vertical-align:2px}
 .rh-lb-refresh:hover{color:var(--accent);border-color:var(--accent)}
 .rh-lb{display:flex;flex-direction:column;gap:3px;max-height:340px;overflow-y:auto}
 .rh-lb-empty{font-size:13px;color:var(--faint);padding:6px 2px}
@@ -11237,8 +11240,14 @@ function lbHTML(rowsArg){ const rows=(rowsArg!==undefined)?rowsArg:state.lbRows;
     const score=Math.max(0,Math.round(raw%100000));   // composite = rank*100000 + total mode ELO
     return '<div class="rh-lb-row'+(mine?' me':'')+'"><span class="rh-lb-rk">'+r.rank+'</span><span class="rh-lb-ic">'+t.ic+'</span><span class="rh-lb-nm">'+esc(r.username)+'</span><span class="rh-lb-lv">Lv '+(r.level||0)+'</span><span class="rh-lb-elo"><span class="rh-lb-pts">'+score.toLocaleString()+'</span><span class="rh-lb-tier">'+LT(t.ko,t.en)+'</span></span></div>'; }).join('');
 }
-async function refreshLeaderboard(){ state.lbRows=undefined; const paint=()=>{ const b=el.rhBody&&el.rhBody.querySelector('#rh-lb'); if(b) b.innerHTML=lbHTML(); }; paint();
-  const rows=await sbLeaderboard(50); state.lbRows=Array.isArray(rows)?rows:((rows&&rows.error)?rows:[]); paint(); }
+let lbBusy=false;
+async function refreshLeaderboard(silent){ if(lbBusy) return; lbBusy=true;
+  const hasRows=Array.isArray(state.lbRows)&&state.lbRows.length;
+  const btn=el.rhBody&&el.rhBody.querySelector('#rh-lb-refresh'); if(btn) btn.classList.add('spin');
+  const paint=()=>{ const b=el.rhBody&&el.rhBody.querySelector('#rh-lb'); if(b) b.innerHTML=lbHTML(); };
+  if(!silent && !hasRows){ state.lbRows=undefined; paint(); }   // only blank on a cold open; otherwise keep old rows during refresh
+  const rows=await sbLeaderboard(50); state.lbRows=Array.isArray(rows)?rows:((rows&&rows.error)?rows:[]); state.lbAt=Date.now();
+  paint(); const b2=el.rhBody&&el.rhBody.querySelector('#rh-lb-refresh'); if(b2) b2.classList.remove('spin'); lbBusy=false; }
 function openRankHub(){ const u=curUser(); if(u) resolvePendingRanked(u); renderRankHub(); el.home.classList.remove('show'); el.rankhub.classList.add('show'); el.rankhub.scrollTop=0; if(SUPA_ON) refreshLeaderboard(); }
 function closeRankHub(){ el.rankhub.classList.remove('show'); el.home.classList.add('show'); renderRankBanner(); }
 
@@ -11248,8 +11257,13 @@ let lbPageRows=undefined;   // undefined=loading · {error,missing} · array of 
 function openLeaderboardPage(){ el.rankhub.classList.remove('show'); el.home.classList.remove('show'); el.lbpage.classList.add('show'); el.lbpage.scrollTop=0;
   lbPageRows=(Array.isArray(state.lbRows)&&state.lbRows.length)?state.lbRows:undefined; renderLeaderboardPage(); refreshLeaderboardPage(); }
 function closeLeaderboardPage(){ el.lbpage.classList.remove('show'); openRankHub(); }
-async function refreshLeaderboardPage(){ if(!SUPA_ON){ lbPageRows=[]; renderLeaderboardPage(); return; }
-  const rows=await sbLeaderboard(100); lbPageRows=Array.isArray(rows)?rows:((rows&&rows.error)?rows:[]); renderLeaderboardPage(); }
+let lbPageBusy=false;
+async function refreshLeaderboardPage(silent){ if(!SUPA_ON){ lbPageRows=[]; renderLeaderboardPage(); return; }
+  if(lbPageBusy) return; lbPageBusy=true;
+  const hasRows=Array.isArray(lbPageRows)&&lbPageRows.length;
+  const btn=el.lbBody&&el.lbBody.querySelector('#lb-refresh'); if(btn) btn.classList.add('spin');
+  if(!silent && !hasRows){ lbPageRows=undefined; renderLeaderboardPage(); }   // keep current rows during a silent/warm refresh
+  const rows=await sbLeaderboard(100); lbPageRows=Array.isArray(rows)?rows:((rows&&rows.error)?rows:[]); renderLeaderboardPage(); lbPageBusy=false; }
 function podiumFor(modeKey, rows){ return (rows||[]).filter(r=>r&&r.modes&&+(r.modes[modeKey]||0)>0)
     .map(r=>({name:''+r.username, elo:Math.round(+r.modes[modeKey])})).sort((a,b)=>b.elo-a.elo).slice(0,3); }
 function renderLeaderboardPage(){
@@ -11262,7 +11276,7 @@ function renderLeaderboardPage(){
       ?LT('리더보드 설정이 아직 안 됐어요 — 서버에 <code>leaderboard_top</code> 함수를 설치해야 해요.','Leaderboard isn\'t set up yet — the <code>leaderboard_top</code> function needs to be installed on the server.')
       :LT('리더보드를 불러올 수 없어요','Couldn\'t load the leaderboard'))+' <span class="rh-lb-code">('+esc(rows.error)+')</span></div>'; el.lbBody.innerHTML=h; return; }
   // overall standings (reuse the row renderer)
-  h+='<div class="rh-sec">'+LT('종합 순위 (전체 ELO)','Overall (total ELO)')+' <button class="rh-lb-refresh" id="lb-refresh" aria-label="'+LT('새로고침','Refresh')+'">↻</button></div><div class="rh-lb">'+lbHTML(rows)+'</div>';
+  h+='<div class="rh-sec">'+LT('종합 순위 (전체 ELO)','Overall (total ELO)')+' <button class="rh-lb-refresh" id="lb-refresh" aria-label="'+LT('새로고침','Refresh')+'">↻</button><span class="rh-lb-live">● '+LT('실시간','LIVE')+'</span></div><div class="rh-lb">'+lbHTML(rows)+'</div>';
   // per-mode podiums
   const medals=['🥇','🥈','🥉'], mcls=['pod-gold','pod-silver','pod-bronze'];
   const hasModes=Array.isArray(rows)&&rows.some(r=>r&&r.modes);
@@ -11274,7 +11288,7 @@ function renderLeaderboardPage(){
     +(hasModes?'':'<div class="pod-empty" style="margin-bottom:8px">'+LT('종목별 데이터가 아직 없어요 — 서버 함수를 업데이트하면 표시돼요.','No per-mode data yet — update the server function to show podiums.')+'</div>')
     +'<div class="pod-wrap">'+podHtml+'</div>';
   el.lbBody.innerHTML=h;
-  const rb=el.lbBody.querySelector('#lb-refresh'); if(rb) rb.onclick=()=>{ lbPageRows=undefined; renderLeaderboardPage(); refreshLeaderboardPage(); };
+  const rb=el.lbBody.querySelector('#lb-refresh'); if(rb) rb.onclick=()=>refreshLeaderboardPage();
 }
 function renderRankHub(){
   const u=curUser();
@@ -11315,7 +11329,7 @@ function renderRankHub(){
     +'<button class="btn rh-play" id="rh-duel" style="margin-top:10px">⚔️ '+LT('실시간 1v1 (베타)','Live 1v1 (beta)')+'</button>'
     +'<div class="rh-sec">'+LT('하이라이트 코스메틱 (등급 보상)','Highlight cosmetics (rank rewards)')+'</div><div class="rh-row" id="rh-cos">'+cosHtml+'</div>'
     +'<div class="rh-sec">✨ '+LT('특별 테마 컬렉션','Special themes')+' ('+myThemes.length+'/'+Object.keys(HIDDEN_THEMES).length+')</div><div class="rh-shiny" id="rh-themes">'+themeHtml+'</div>'
-    +(SUPA_ON?('<div class="rh-sec">🏆 '+LT('리더보드','Leaderboard')+' · '+LT(SEASON.ko,SEASON.en)+' <button class="rh-lb-refresh" id="rh-lb-refresh" aria-label="'+LT('새로고침','Refresh')+'">↻</button></div><div id="rh-lb" class="rh-lb">'+lbHTML()+'</div>'
+    +(SUPA_ON?('<div class="rh-sec">🏆 '+LT('리더보드','Leaderboard')+' · '+LT(SEASON.ko,SEASON.en)+' <button class="rh-lb-refresh" id="rh-lb-refresh" aria-label="'+LT('새로고침','Refresh')+'">↻</button><span class="rh-lb-live">● '+LT('실시간','LIVE')+'</span></div><div id="rh-lb" class="rh-lb">'+lbHTML()+'</div>'
         +'<button class="lb-full-btn" id="rh-lb-full">🏆 '+LT('전체 순위 · 종목별 시상대','Full standings · per-mode podiums')+' ›</button>'):'')
     +'<p class="rh-note">'+LT('· 종목마다 ELO가 따로 올라요 · 어려운 유형은 상위 등급에서 열려요<br>· 승급하려면 필요한 종목 ELO를 채우고 승급 시험에 합격해야 해요<br>· 정확한 이름만 · 문제당 '+RANKED_QTIME+'초 · 기회 2번 · 중도 포기·탭 이탈 시 손해','· Each mode has its own ELO · harder types unlock at higher ranks<br>· To promote, meet the required mode ELOs and pass the promotion exam<br>· Exact names · '+RANKED_QTIME+'s/question · 2 tries · quitting or leaving the tab costs you')+'</p>';
   const place=el.rhBody.querySelector('#rh-place'); if(place) place.onclick=()=>{ state.rankedExam=false; state.rankedMode='quiz'; state.rankedPlacement=true; playRanked(); };
@@ -11323,7 +11337,7 @@ function renderRankHub(){
   el.rhBody.querySelectorAll('#rh-mrows .rh-mrow-go').forEach(b=>b.onclick=()=>{ state.rankedExam=false; state.rankedPlacement=false; state.rankedMode=b.dataset.m; playRanked(); });
   el.rhBody.querySelectorAll('#rh-cos .rh-chip').forEach(b=>b.onclick=()=>{ if(b.classList.contains('lock')) return; u.stats.cosEquip=b.dataset.hl||''; accSave(); applyCosmetics(); renderRankHub(); });
   el.rhBody.querySelectorAll('#rh-themes .rh-theme').forEach(b=>b.onclick=()=>{ u.stats.themeEquip=b.dataset.th||''; accSave(); applyCosmetics(); renderRankHub(); });
-  const lbr=el.rhBody.querySelector('#rh-lb-refresh'); if(lbr) lbr.onclick=refreshLeaderboard;
+  const lbr=el.rhBody.querySelector('#rh-lb-refresh'); if(lbr) lbr.onclick=()=>refreshLeaderboard();
   const lbf=el.rhBody.querySelector('#rh-lb-full'); if(lbf) lbf.onclick=openLeaderboardPage;
   const dbtn=el.rhBody.querySelector('#rh-duel'); if(dbtn) dbtn.onclick=openDuel;
 }
@@ -11489,10 +11503,25 @@ async function sbFresh(){ if(!SB.tok) return false; if(jwtExpired(SB.tok.access_
 async function sbLoadProfile(){ if(!await sbFresh()) return null;
   try{ const r=await fetch(SB.rest+'/profiles?id=eq.'+SB.uid+'&select=username,email,email_verified,stats',{headers:SB.hdr(true)});
     if(!r.ok) return null; const rows=await r.json(); return (rows&&rows[0])||null; }catch(e){ return null; } }
-let sbSaveT=null;
+let sbSaveT=null, sbDirty=false, sbPulling=false, sbHeartbeat=null;
 async function sbSaveStatsNow(){ if(!SUPA_ON||!SB.tok) return; if(!await sbFresh()) return; const u=curUser(); if(!u) return;
-  try{ await fetch(SB.rest+'/profiles?id=eq.'+SB.uid,{method:'PATCH',headers:Object.assign(SB.hdr(true),{Prefer:'return=minimal'}),body:JSON.stringify({stats:u.stats||{}})}); }catch(e){} }
-function sbQueueSave(){ if(!SUPA_ON||!SB.tok) return; clearTimeout(sbSaveT); sbSaveT=setTimeout(sbSaveStatsNow,1200); }
+  u.stats=u.stats||{}; u.stats.savedAt=Date.now();   // last-write-wins clock for cross-device sync
+  try{ await fetch(SB.rest+'/profiles?id=eq.'+SB.uid,{method:'PATCH',headers:Object.assign(SB.hdr(true),{Prefer:'return=minimal'}),body:JSON.stringify({stats:u.stats})}); sbDirty=false; }catch(e){} }
+function sbQueueSave(){ if(!SUPA_ON||!SB.tok) return; sbDirty=true; clearTimeout(sbSaveT); sbSaveT=setTimeout(sbSaveStatsNow,1200); }
+// Pull the latest profile from the cloud and adopt it if another device saved more recently.
+// Never clobbers unsaved local progress (sbDirty) or an in-progress ranked match.
+async function sbSyncPull(){ if(!SUPA_ON||!SB.tok||sbPulling||sbDirty) return; if(state.rankedActive) return;
+  sbPulling=true;
+  try{ const p=await sbLoadProfile(); if(p&&p.stats){ const u=curUser();
+      const localAt=(u&&u.stats&&u.stats.savedAt)||0, cloudAt=p.stats.savedAt||0;
+      if(!u || cloudAt>localAt){ applyCloudProfile(p); renderProfile(); if(typeof renderRankBanner==='function') renderRankBanner();
+        if(el.rankhub&&el.rankhub.classList.contains('show')) renderRankHub(); } } }
+  catch(e){} sbPulling=false; }
+// heartbeat: while the tab is visible, keep the profile + any open leaderboard fresh
+function sbHeartbeatTick(){ if(document.hidden||!SUPA_ON) return;
+  sbSyncPull();
+  if(el.rankhub&&el.rankhub.classList.contains('show')) refreshLeaderboard(true);
+  if(el.lbpage&&el.lbpage.classList.contains('show')) refreshLeaderboardPage(true); }
 // public leaderboard (anon-readable RPC — one indexed query, no auth needed)
 async function sbLeaderboard(lim){ if(!SUPA_ON) return null;
   try{ const r=await fetch(SB.rest+'/rpc/leaderboard_top',{method:'POST',headers:{apikey:SB.anon,'content-type':'application/json'},body:JSON.stringify({lim:lim||50})});
@@ -12187,7 +12216,12 @@ buildHome();
 showHome();
 applyLang();
 renderProfile();
-if(SUPA_ON){ sbBootstrap(); document.addEventListener('visibilitychange',()=>{ if(document.hidden) sbSaveStatsNow(); }); window.addEventListener('pagehide',()=>{ sbSaveStatsNow(); }); }
+if(SUPA_ON){ sbBootstrap();
+  // continuous sync: flush on leave, pull on return, and a light heartbeat while visible → seamless device switching
+  document.addEventListener('visibilitychange',()=>{ if(document.hidden) sbSaveStatsNow(); else sbHeartbeatTick(); });
+  window.addEventListener('pagehide',()=>{ sbSaveStatsNow(); });
+  window.addEventListener('focus',()=>{ sbHeartbeatTick(); });
+  sbHeartbeat=setInterval(sbHeartbeatTick, 30000); }
 </script>
 </body>
 </html>
