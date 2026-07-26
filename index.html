@@ -420,6 +420,7 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 .rh-mixed{display:flex;flex-wrap:wrap;gap:7px}
 .rh-mix{background:var(--surface2);border:1px solid var(--border2);border-radius:999px;padding:7px 13px;font-weight:700;font-size:13px}
 .rh-note2{font-size:12.5px;color:var(--muted);margin-top:8px;line-height:1.5}
+.rh-spec{color:var(--target);background:color-mix(in srgb,var(--target) 10%,transparent);border:1px solid color-mix(in srgb,var(--target) 26%,transparent);border-radius:10px;padding:8px 11px}
 .rh-modes{display:flex;flex-direction:column;gap:7px}
 .rh-mp{display:flex;align-items:center;gap:9px}
 .rh-mp-n{min-width:74px;font-size:13px;font-weight:700}
@@ -3710,7 +3711,17 @@ function rankMainTier(u){ return RANK_MAIN[rankMain(u)]; }
 function modeUnlocked(u,m){ if(rmElo(u,m)!=null) return true; const nxt=RANK_REQ[Math.min(rankMain(u)+1,RANK_REQ.length-1)]||{}; return Object.prototype.hasOwnProperty.call(nxt,m); }
 function unlockedModes(u){ return RM.filter(x=>modeUnlocked(u,x.k)); }
 function reqMet(u,R){ const req=RANK_REQ[R]||{}; return Object.keys(req).every(m=>(rmElo(u,m)||0)>=req[m]); }
-function canPromote(u){ const r=rankMain(u); return r<RANK_MAIN.length-1 && reqMet(u,r+1); }
+// ── Specialist route: be *ridiculously* good at ONE mode to skip the breadth
+// requirement — but only up to Diamond. Master+ still demands a full spread.
+const SPEC_CAP=4;   // highest rank reachable via specialty (Diamond)
+const SPEC_ELO=[null,null,null,1000,1500,null,null,null];   // single-mode ELO to specialty-promote INTO rank R
+function specMode(u,R){ if(R>SPEC_CAP) return null; const need=SPEC_ELO[R]; if(need==null) return null;
+  let best=null,bv=-1; RM.forEach(x=>{ const e=rmElo(u,x.k)||0; if(e>=need && e>bv){ bv=e; best=x.k; } }); return best; }
+function specMet(u,R){ return !!specMode(u,R); }
+function canPromote(u){ const r=rankMain(u); const R=r+1; return r<RANK_MAIN.length-1 && (reqMet(u,R) || specMet(u,R)); }
+// which route unlocked the pending promotion (balanced preferred; specialty shown as bonus)
+function promoPath(u){ const R=rankMain(u)+1; if(R>=RANK_MAIN.length) return null;
+  if(reqMet(u,R)) return {path:'balanced'}; const m=specMode(u,R); return m?{path:'specialty',mode:m}:null; }
 // difficulty (~0..2100) of a country as a per-mode ELO opponent
 function diffScale(e){ if(e._d==null) e._d=countryDifficulty(e); return Math.max(0, e._d-700); }
 function rankPower(u){ return rankMain(u)*100000 + RM.reduce((s,x)=>s+(rmElo(u,x.k)||0),0); }   // leaderboard sort key
@@ -3800,8 +3811,14 @@ function buildModeMatch(m, elo){ const pool=rankModePool(m); let picks;
   if(!state.rankedPlacement && FUN_ROUNDS.length && Math.random()<0.12){ out[Math.floor(Math.random()*out.length)]={fun:FUN_ROUNDS[Math.floor(Math.random()*FUN_ROUNDS.length)]}; }
   return out;
 }
-// a promotion exam: questions from every required mode, each at that mode's REQUIRED difficulty
-function buildExamMatch(u, R){ const req=RANK_REQ[R]||{}, modes=Object.keys(req); if(!modes.length) return [];
+// a promotion exam. Balanced route: questions from every required mode at its required
+// difficulty. Specialist route: a harder, concentrated gauntlet in the one strong mode.
+function buildExamMatch(u, R, path){
+  if(path && path.path==='specialty' && path.mode){ const m=path.mode, pool=rankModePool(m), out=[], used=new Set();
+    const target=SPEC_ELO[R]||1000;   // exam sits at the specialist threshold difficulty
+    pickNear(pool, target, RANKED_N, used).forEach(e=>{ used.add(e.id); out.push({entry:e, base:m, targetD:target, exam:true}); });
+    return shuffleArr(out); }
+  const req=RANK_REQ[R]||{}, modes=Object.keys(req); if(!modes.length) return [];
   const per=Math.max(2, Math.ceil(RANKED_N/modes.length)), out=[], used=new Set();
   modes.forEach(m=>{ const pool=rankModePool(m); pickNear(pool, req[m], per, used).forEach(e=>{ used.add(e.id); out.push({entry:e, base:m, targetD:req[m], exam:true}); }); });
   return shuffleArr(out);
@@ -3834,7 +3851,7 @@ function startRanked(){
   const u=curUser(); state.ranked=true; state.countUp=false; state.mode='ranked'; resetView(); clearMap();
   state.rankedIdx=0; state.rankedDelta=0; state.rankedHit=0; state.rankedActive=true; state.rankedCheated=false; state.score=0;
   state.rankedTabWarned=false; state.rankedTabWarnPending=false;
-  if(state.rankedExam){ state.rankedExamR=rankMain(u)+1; state.rankedElo0=0; state.rankedQueue=buildExamMatch(u, state.rankedExamR); }
+  if(state.rankedExam){ state.rankedExamR=rankMain(u)+1; state.rankedElo0=0; state.rankedExamPath=promoPath(u)||{path:'balanced'}; state.rankedQueue=buildExamMatch(u, state.rankedExamR, state.rankedExamPath); }
   else { const m=state.rankedMode||'quiz'; state.rankedMode=m; state.rankedElo0=(rmElo(u,m)!=null?rmElo(u,m):0); state.rankedQueue=buildModeMatch(m, state.rankedElo0); }
   if(u){ u.stats=u.stats||{}; u.stats.rankedPending={t:Date.now(),mode:state.rankedMode,exam:!!state.rankedExam,placement:!!state.rankedPlacement}; accSave(); }
   el.timer.classList.remove('hidden'); el.q.disabled=false; updateScore();
@@ -3894,8 +3911,9 @@ function endRanked(quit){
 
   if(exam){
     title=LT('승급 시험','Promotion exam'); const R=state.rankedExamR, pass=!quit && (state.rankedHit/Math.max(1,total))>=EXAM_PASS;
-    if(pass){ u.stats.rank=Math.max(rankMain(u), R); const t=rankMainTier(u); cut={ic:t.ic,label:LT(t.ko,t.en),sub:LT('승급 시험 합격!','Promotion passed!')};
-      sub=LT('🎉 합격! ','🎉 Passed! ')+t.ic+' '+LT(t.ko,t.en)+LT('(으)로 승급!',' — promoted!'); }
+    const spec=state.rankedExamPath&&state.rankedExamPath.path==='specialty';
+    if(pass){ u.stats.rank=Math.max(rankMain(u), R); const t=rankMainTier(u); cut={ic:t.ic,label:LT(t.ko,t.en),sub:spec?LT('스페셜리스트 승급!','Specialist promotion!'):LT('승급 시험 합격!','Promotion passed!')};
+      sub=(spec?LT('⚡ 스페셜리스트 ','⚡ Specialist '):'')+LT('🎉 합격! ','🎉 Passed! ')+t.ic+' '+LT(t.ko,t.en)+LT('(으)로 승급!',' — promoted!'); }
     else sub=LT('불합격 — 70% 이상 필요해요. 다시 도전하세요!','Failed — you need 70%+. Try again!');
   } else {
     // single-mode match: update that mode's ELO (chess-style)
@@ -11181,6 +11199,10 @@ function renderRankHub(){
   const req = nextR!=null? RANK_REQ[nextR] : {};
   const reqBars = nextR!=null? Object.keys(req).map(m=>{ const cur=rmElo(u,m)||0, need=req[m], pct=Math.round(Math.min(cur,need)/Math.max(1,need)*100), ok=cur>=need;
     return '<div class="rh-mp"><span class="rh-mp-n">'+LT(RM_LABEL[m].ko,RM_LABEL[m].en)+(ok?' ✓':'')+'</span><span class="rh-mp-bar"><i style="width:'+pct+'%"></i></span><span class="rh-mp-v">'+cur+'/'+need+'</span></div>'; }).join('') : '';
+  const pp = (placed && canPromote(u))? promoPath(u) : null;
+  const specNeed = (nextR!=null && nextR<=SPEC_CAP)? SPEC_ELO[nextR] : null;
+  const specNote = specNeed!=null? ('<div class="rh-note2 rh-spec">'+LT('🎯 스페셜리스트 루트: 아무 종목이나 ELO '+specNeed+'+ 면 조건을 건너뛰고 바로 승급 시험! (다이아까지)','🎯 Specialist route: reach '+specNeed+'+ ELO in any one mode to skip the spread and jump straight to the exam! (up to Diamond)')+'</div>') : '';
+  const examLabel = (pp&&pp.path==='specialty')? ('⚡ '+LT('스페셜리스트 승급 시험 ('+LT(RM_LABEL[pp.mode].ko,RM_LABEL[pp.mode].en)+')','Specialist exam ('+LT(RM_LABEL[pp.mode].ko,RM_LABEL[pp.mode].en)+')')) : ('⭐ '+LT('승급 시험 보기','Take promotion exam'));
   const modeRows = RM.map(m=>{ const unlocked=modeUnlocked(u,m.k), cur=rmElo(u,m.k);
     if(!unlocked){ let atR=null; for(let R=1;R<RANK_REQ.length;R++){ if(RANK_REQ[R][m.k]!=null){ atR=R; break; } } const uAt=atR!=null?RANK_MAIN[Math.max(0,atR-1)]:RANK_MAIN[0];
       return '<div class="rh-mrow locked"><span class="rh-mrow-n">🔒 '+LT(m.ko,m.en)+'</span><span class="rh-mrow-x">'+LT(uAt.ko+' 부근 해금',uAt.en+'+ unlocks')+'</span></div>'; }
@@ -11198,9 +11220,9 @@ function renderRankHub(){
     +'<div style="margin:5px 0 3px"><span class="season-badge">🏅 '+LT(SEASON.ko,SEASON.en)+'</span></div>'
     +'<div class="rh-elo">'+(placed?(LT('국가 이름 ELO ','Name ELO ')+(rmElo(u,'quiz')||0)):LT('아직 미배치','Unplaced'))+'</div></div></div>'
     +(!placed?'<button class="btn solid rh-play" id="rh-place">'+LT('배치고사 보기 · 국가 이름 '+RANKED_N+'문제','Take placement · '+RANKED_N+' name questions')+'</button>':'')
-    +(placed && nextR!=null?('<div class="rh-sec">'+LT('다음 등급 ','Next rank ')+RANK_MAIN[nextR].ic+' '+LT(RANK_MAIN[nextR].ko,RANK_MAIN[nextR].en)+LT(' 승급 조건',' requirements')+'</div><div class="rh-modes">'+reqBars+'</div>'
-        +(canPromote(u)?('<button class="btn solid rh-play" id="rh-exam" style="margin-top:10px">⭐ '+LT('승급 시험 보기','Take promotion exam')+'</button>')
-                       :('<div class="rh-note2">'+LT('조건을 모두 채우면 승급 시험을 볼 수 있어요.','Fill every bar to unlock the promotion exam.')+'</div>'))):'')
+    +(placed && nextR!=null?('<div class="rh-sec">'+LT('다음 등급 ','Next rank ')+RANK_MAIN[nextR].ic+' '+LT(RANK_MAIN[nextR].ko,RANK_MAIN[nextR].en)+LT(' 승급 조건',' requirements')+'</div><div class="rh-modes">'+reqBars+'</div>'+specNote
+        +(canPromote(u)?('<button class="btn solid rh-play" id="rh-exam" style="margin-top:10px">'+examLabel+'</button>')
+                       :('<div class="rh-note2">'+LT('조건을 모두 채우거나 스페셜리스트 조건을 달성하면 승급 시험이 열려요.','Meet the spread — or the specialist threshold — to unlock the exam.')+'</div>'))):'')
     +(placed?('<div class="rh-sec">'+LT('종목별 랭크 (플레이해서 ELO 올리기)','Play a mode to raise its ELO')+'</div><div class="rh-mrows" id="rh-mrows">'+modeRows+'</div>'):'')
     +'<button class="btn rh-play" id="rh-duel" style="margin-top:10px">⚔️ '+LT('실시간 1v1 (베타)','Live 1v1 (beta)')+'</button>'
     +'<div class="rh-sec">'+LT('하이라이트 코스메틱 (등급 보상)','Highlight cosmetics (rank rewards)')+'</div><div class="rh-row" id="rh-cos">'+cosHtml+'</div>'
