@@ -1027,6 +1027,12 @@ body.pokemode .wf-globe{display:block}
 .pk-mrow.locked{opacity:.55}
 .pk-mrow-go{flex:0 0 auto;background:var(--accent);color:var(--accent-ink,#0b0b0d);border:none;border-radius:9px;padding:6px 14px;font:inherit;font-weight:800;font-size:12.5px;cursor:pointer;transition:transform .12s,filter .15s}
 .pk-mrow-go:hover{filter:brightness(1.08)}.pk-mrow-go:active{transform:scale(.94)}
+/* easter eggs: MissingNo glitch + shiny sparkle */
+@keyframes pk-glitch{0%{filter:none;transform:none}18%{filter:hue-rotate(90deg) saturate(2.2);transform:translateX(-4px)}36%{filter:invert(.18);transform:translateX(4px) skewX(1.2deg)}54%{filter:hue-rotate(-70deg) contrast(1.5);transform:translateX(-3px)}72%{filter:saturate(3)}100%{filter:none;transform:none}}
+body.pk-glitch{animation:pk-glitch .5s steps(2) 2}
+.pk-silbox .pk-shiny-badge{position:absolute;top:-8px;right:-8px;font-size:24px;animation:pk-bob 1.3s ease-in-out infinite;filter:drop-shadow(0 0 8px #ffd54a);z-index:2}
+.pk-sprite.shiny{filter:drop-shadow(0 0 14px #ffe07a) drop-shadow(0 0 4px #fff) saturate(1.25)}
+.home-title .wf-ball{cursor:pointer}
 @media (prefers-reduced-motion:reduce){.pk-sprite,.pk-tierbadge,.pk-card2,#poke .gcard,#poke .rank-banner,#poke .home-sec,#pk-rankbanner::after{animation:none!important}}
 /* ===== mobile: keep everything inside the screen ===== */
 .pk-sprite{max-width:100%;height:auto;aspect-ratio:1/1}
@@ -3928,6 +3934,7 @@ const HIDDEN_THEMES={
   arctic:{ko:'아틱',en:'Arctic',ic:'❄️',vars:{bg:'#0a1520',ocean1:'#112433',ocean2:'#0a1520',ocean3:'#060e16',surface:'#112433',surface2:'#173246',surface3:'#1e4159',border:'#275a76',border2:'#31728f',land:'#1e4159','land-stroke':'#4a86a6',hover:'#5aa0c0',found:'#6fe3ff','found-stroke':'#c8f6ff',target:'#ffffff',text:'#e6f4fb',muted:'#9cc0d3',accent:'#38c6ff','accent-ink':'#0a1520','home-grad1':'#12293b','home-grad2':'#0a1520','card-grad':'#0d1e2c'}},
   vapor:{ko:'베이퍼웨이브',en:'Vaporwave',ic:'🌴',vars:{bg:'#140a24',ocean1:'#221040',ocean2:'#140a24',ocean3:'#0c0618',surface:'#221040',surface2:'#301653',surface3:'#3f1e6a',border:'#522a82',border2:'#6a37a0',land:'#3f1e6a','land-stroke':'#7a4bb0',hover:'#9158c8',found:'#ff77e1','found-stroke':'#ffcaf3',target:'#6ff3ff',text:'#f3e9ff',muted:'#c3a8e0',accent:'#ff5ed6','accent-ink':'#140a24','home-grad1':'#271148','home-grad2':'#140a24','card-grad':'#1c0d33'}},
   midas:{ko:'미다스',en:'Midas',ic:'🪙',vars:{bg:'#161206',ocean1:'#241d0b',ocean2:'#161206',ocean3:'#0e0b04',surface:'#241d0b',surface2:'#332810',surface3:'#433516',border:'#57451d',border2:'#6f5926',land:'#433516','land-stroke':'#7a6330',hover:'#96793a',found:'#ffcf3a','found-stroke':'#fff0b0',target:'#fff7d6',text:'#fbf3dd',muted:'#cdb984',accent:'#f5c421','accent-ink':'#161206','home-grad1':'#2b220c','home-grad2':'#161206','card-grad':'#1f1908'}},
+  glitch:{ko:'글리치',en:'Glitch',ic:'👾',vars:{bg:'#050008',ocean1:'#0e0016',ocean2:'#050008',ocean3:'#020004',surface:'#12001e',surface2:'#1c0030',surface3:'#280044',border:'#3a0060',border2:'#52008a',land:'#24003c','land-stroke':'#ff00d4',hover:'#ff2ae0',found:'#00ffc3','found-stroke':'#aefff0',target:'#ff00d4',text:'#e8ffe8',muted:'#a08ac0',accent:'#00ffc3','accent-ink':'#050008','home-grad1':'#1a0030','home-grad2':'#050008','card-grad':'#0e0018'}},
 };
 const HIDDEN_VARS=['bg','ocean1','ocean2','ocean3','surface','surface2','surface3','border','border2','land','land-stroke','hover','found','found-stroke','target','text','muted','accent','accent-ink','home-grad1','home-grad2','card-grad'];
 function equippedHiddenTheme(){ const u=curUser(); const id=u&&u.stats&&u.stats.themeEquip; return (id&&HIDDEN_THEMES[id]&&u.stats.themes&&u.stats.themes[id])?id:null; }
@@ -11957,6 +11964,10 @@ const ACHIEVEMENTS=[
   {id:'lvl10', ic:'⭐', ko:'레벨 10', en:'Level 10', dko:'계정 레벨 10 달성', den:'Reached account level 10', test:st=>levelForXp(st.xp||0)>=10},
   {id:'tierx', ic:'🔟', ko:'종목 마스터', en:'Category Master', dko:'한 종목 티어 X 달성', den:'Reached Tier X in a category', test:st=>{const b=st.best||{};return Object.keys(b).some(k=>categoryTier(k,b[k])>=10);}},
   {id:'sec_leejun', ic:'👑', ko:'이준', en:'Yi Jun', dko:'숨겨진 비밀을 발견했어요', den:'You found a hidden secret', secret:true, test:st=>!!(st.ach&&st.ach.sec_leejun)},
+  {id:'pk_shiny', ic:'🌟', ko:'샤이니 헌터', en:'Shiny Hunter', dko:'샤이니 포켓몬을 발견했어요', den:'Found a shiny Pokémon', secret:true, test:st=>!!(st.ach&&st.ach.pk_shiny)},
+  {id:'pk_missingno', ic:'👾', ko:'미싱노', en:'MissingNo.', dko:'존재하지 않는 포켓몬을 만났어요', den:'Met a Pokémon that shouldn’t exist', secret:true, test:st=>!!(st.ach&&st.ach.pk_missingno)},
+  {id:'pk_diamond', ic:'💠', ko:'포켓몬 마스터', en:'Pokémon Master', dko:'포켓몬 랭크전 다이아몬드+ 달성', den:'Reached Diamond+ in Pokémon Ranked', test:st=>((st.pk&&st.pk.rank)||0)>=4},
+  {id:'pk_name100', ic:'📕', ko:'도감 완성가', en:'Dex Filler', dko:'5분 이름 대기에서 100마리+', den:'Named 100+ in Name-in-5', test:st=>((st.pk&&st.pk.name5best)||0)>=100},
 ];
 function achTitle(a){ return EN()?a.en:a.ko; }
 function achDesc(a){ return EN()?a.den:a.dko; }
@@ -12131,6 +12142,7 @@ function pkHome(){ $('poke').classList.remove('playing'); const byV={}; PK_GAMES
   $('pk-body').innerHTML=h;
   const rb=$('pk-rankbanner'); if(rb) rb.onclick=()=>pokeGo('rank');
   $('pk-body').querySelectorAll('.gcard').forEach(b=>b.onclick=()=>pokeGo(b.dataset.v));
+  const ball=$('pk-body').querySelector('.home-title .wf-ball'); if(ball) ball.onclick=()=>{ pkBallTaps++; clearTimeout(pkBallT); pkBallT=setTimeout(()=>{pkBallTaps=0;},1600); if(pkBallTaps>=6){ pkBallTaps=0; pkWildEncounter(); } };
 }
 function pkFrame(title,playHtml,opts){ opts=opts||{}; $('poke').classList.add('playing');
   $('pk-body').innerHTML='<div class="pk-wrap"><div class="pk-top"><button class="pk-back" id="pk-back">‹ '+LT('게임','Games')+'</button><div class="pk-gt">'+title+'</div>'
@@ -12143,23 +12155,40 @@ function pkBind(handler){ const i=$('pk-in'),g=$('pk-go'); if(!i) return; const 
 function pkFeed(msg,cls){ const f=$('pk-feed'); if(f){ f.className='pk-feed '+(cls||''); f.innerHTML=msg; } }
 function pkHud(items){ return '<div class="pk-hud">'+items.map(x=>x[0]+' <b>'+x[1]+'</b>').join(' · ')+'</div>'; }
 function pkImg(id,cls){ return '<img class="'+cls+'" src="'+PART(id)+'" onerror="this.onerror=null;this.src=\''+PSPRITE(id)+'\'">'; }
+/* ---- Pokémon easter eggs ---- */
+const MISSINGNO_ALIASES=new Set(['missingno','미싱노','켓방','けつばん','けつぶん','glitch','글리치','에러','error'].map(norm));
+function pkMissingNo(){ const u=curUser(); document.body.classList.add('pk-glitch'); setTimeout(()=>document.body.classList.remove('pk-glitch'),1100); celebrate(true,'👾 MissingNo.');
+  if(u){ u.stats.themes=u.stats.themes||{}; const fresh=!u.stats.themes.glitch; u.stats.themes.glitch=Date.now(); unlockAch('pk_missingno'); accSave(); renderProfile();
+    setFeedback(fresh?LT('👾 미싱노 발견! ‘글리치’ 테마 해금 · 설정에서 적용!','👾 MissingNo.! ‘Glitch’ theme unlocked — equip in Settings!'):LT('👾 …ERROR… 이미 만난 글리치.','👾 …ERROR… already met.'),'ok','check'); }
+  else setFeedback(LT('👾 미싱노를 만났어요! 로그인하면 보상이 저장돼요.','👾 You met MissingNo.! Log in to keep the reward.'),'ok','check'); }
+// returns true if the raw input triggered a Pokémon secret
+function pkSecretInput(raw){ const k=norm(raw); if(!k) return false;
+  if(MISSINGNO_ALIASES.has(k)){ pkMissingNo(); return true; }
+  if(k==='leejun'||k==='이준'||k==='yijun'){ if(typeof secretLeejun==='function') secretLeejun(); return true; }
+  return false; }
+let pkBallTaps=0, pkBallT=null;
+function pkWildEncounter(){ const p=prand(POKE), shiny=Math.random()<0.12; celebrate(true, (shiny?'✨ ':'🌿 ')+PNM(p));
+  if(shiny){ const u=curUser(); if(u&&unlockAch('pk_shiny')){} }
+  setFeedback((shiny?'✨ ':'🌿 ')+LT('야생의 '+p.ko+'이(가) 나타났다!','A wild '+p.en+' appeared!')+(shiny?LT(' 색이 다르다…!',' It’s a different color…!'):''),'ok','check'); }
 
 /* — Who's That Pokémon — */
 function pkSilhStart(){ PK.s={score:0,seen:0}; pkSilhNext(); }
-function pkSilhNext(){ const p=prand(POKE); PK.s.cur=p; PK.s.tries=0;
+function pkSilhNext(){ const p=prand(POKE); PK.s.cur=p; PK.s.tries=0; PK.s.shiny=Math.random()<0.03;   // ✨ rare shiny encounter
   pkFrame(LT('누구야! 실루엣',"Who's That Pokémon?"),
     pkHud([[LT('점수','Score'),PK.s.score],[LT('문제','Q'),PK.s.seen+1]])
-    +'<div class="pk-stage"><div class="pk-silbox"><img id="pk-img" class="pk-sprite is-silh" alt="?" src="'+PART(p.id)+'" onerror="this.onerror=null;this.src=\''+PSPRITE(p.id)+'\'"></div></div>'+pkGuessBox(),
+    +'<div class="pk-stage"><div class="pk-silbox">'+(PK.s.shiny?'<span class="pk-shiny-badge">✨</span>':'')+'<img id="pk-img" class="pk-sprite is-silh" alt="?" src="'+PART(p.id)+'" onerror="this.onerror=null;this.src=\''+PSPRITE(p.id)+'\'"></div></div>'+pkGuessBox(),
     {skip:()=>{ PK.s.seen++; pkSilhReveal(false); }});
   pkBind(pkSilhGuess);
 }
-function pkSilhGuess(v){ if(!v.trim()) return; const g=pokeResolve(v),p=PK.s.cur;
+function pkSilhGuess(v){ if(!v.trim()) return; if(pkSecretInput(v)){ const i=$('pk-in'); if(i) i.value=''; return; } const g=pokeResolve(v),p=PK.s.cur;
   if(g&&g.id===p.id){ PK.s.score++; PK.s.seen++; pkSilhReveal(true); }
   else { PK.s.tries++; if(PK.s.tries>=2){ PK.s.seen++; pkSilhReveal(false); } else { const i=$('pk-in'); if(i) i.value=''; pkFeed(LT('아니에요 — 한 번 더!','Not it — one more!'),'no'); } }
 }
-function pkSilhReveal(good){ const p=PK.s.cur, img=$('pk-img'); if(img) img.classList.remove('is-silh');
-  pkFeed((good?'✅ ':'➡️ ')+'#'+p.id+' <b>'+PNM(p)+'</b> '+typeChips(p),good?'ok':'no'); celebrate(good,PNM(p));
-  const i=$('pk-in'); if(i) i.disabled=true; PK.timer=setTimeout(pkSilhNext,1300); }
+function pkSilhReveal(good){ const p=PK.s.cur, img=$('pk-img'); if(img){ img.classList.remove('is-silh'); if(PK.s.shiny) img.classList.add('shiny'); }
+  const sh=PK.s.shiny?LT(' ✨샤이니!',' ✨Shiny!'):'';
+  pkFeed((good?'✅ ':'➡️ ')+'#'+p.id+' <b>'+PNM(p)+'</b>'+sh+' '+typeChips(p),good?'ok':'no'); celebrate(good,(PK.s.shiny?'✨ ':'')+PNM(p));
+  if(good&&PK.s.shiny){ const u=curUser(); if(u){ if(unlockAch('pk_shiny')) setFeedback(LT('🌟 샤이니 헌터 뱃지 획득!','🌟 Shiny Hunter badge earned!'),'ok','check'); } }
+  const i=$('pk-in'); if(i) i.disabled=true; PK.timer=setTimeout(pkSilhNext,PK.s.shiny?1700:1300); }
 
 /* — Hint Quiz — */
 function pkHintClues(p){ return [
@@ -12195,12 +12224,13 @@ function pkName5Start(){ PK.n={got:new Set(),left:300,done:false}; pkName5Render
 function pkName5Render(){ pkFrame(LT('5분 이름 대기','Name in 5:00'),
     '<div class="pk-hud"><span>⏱️ <b id="pk-timer">'+pkClock(PK.n.left)+'</b></span> · <span>'+LT('맞힘','Got')+' <b id="pk-cnt">'+PK.n.got.size+'</b> / '+POKE.length+'</span></div>'
     +pkGuessBox(LT('포켓몬 이름을 계속 입력…','keep typing names…'))+'<div class="pk-list" id="pk-got"></div>', {}); pkBind(pkName5Guess); pkName5List(); }
-function pkName5Guess(v){ if(PK.n.done) return; const g=pokeResolve(v),i=$('pk-in'); if(i) i.value='';
+function pkName5Guess(v){ if(PK.n.done) return; const i=$('pk-in'); if(i) i.value=''; if(pkSecretInput(v)) return; const g=pokeResolve(v);
   if(!g){ pkFeed(LT('그런 포켓몬이 없어요','no such Pokémon'),'no'); return; }
   if(PK.n.got.has(g.id)){ pkFeed(LT('이미 입력함: ','already: ')+PNM(g),''); return; }
   PK.n.got.add(g.id); const c=$('pk-cnt'); if(c) c.textContent=PK.n.got.size; pkFeed('✅ '+PNM(g),'ok'); pkName5List(); }
 function pkName5List(){ const w=$('pk-got'); if(!w) return; w.innerHTML=[...PK.n.got].slice(-44).map(id=>'<span class="pk-pill">'+PNM(POKE_BY_ID[id])+'</span>').join(''); }
 function pkName5End(){ PK.n.done=true; pkClearTimers();
+  const st=pkStat(); if(st){ const before=(st.name5best||0); st.name5best=Math.max(before,PK.n.got.size); accSave(); if(st.name5best>=100&&before<100&&typeof renderProfile==='function') renderProfile(); }
   pkFrame(LT('시간 종료!','Time!'), '<div class="pk-stage"><div style="font-size:52px">⏱️</div><div class="pk-feed ok" style="font-size:20px">'+LT('총 ','You named ')+'<b>'+PK.n.got.size+'</b>'+LT('마리!',' Pokémon!')+'</div>'
     +'<div class="pk-list">'+[...PK.n.got].map(id=>'<span class="pk-pill">'+PNM(POKE_BY_ID[id])+'</span>').join('')+'</div><button class="pk-morebtn" id="pk-again">'+LT('다시하기','Play again')+'</button></div>',{});
   $('pk-again').onclick=()=>pokeGo('name5'); }
@@ -12262,7 +12292,7 @@ function pkDexRender(){ const list=pkDexFilter();
   $('pk-play').querySelectorAll('[data-ft]').forEach(b=>b.onclick=()=>{ PK.d.type=PK.d.type===b.dataset.ft?null:b.dataset.ft; pkDexRender(); });
   $('pk-play').querySelectorAll('[data-fg]').forEach(b=>b.onclick=()=>{ const g=+b.dataset.fg; PK.d.gen=PK.d.gen===g?null:g; pkDexRender(); });
   $('pk-dclear').onclick=()=>{ PK.d={type:null,gen:null,q:''}; pkDexRender(); };
-  const dq=$('pk-dq'); if(dq) dq.oninput=()=>{ PK.d.q=dq.value; clearTimeout(PK._dqt); PK._dqt=setTimeout(()=>{ const grid=$('pk-dexgrid'),l=pkDexFilter(); if(grid){ grid.innerHTML=l.slice(0,120).map(pkDexCell).join(''); bindCells(); } const cnt=$('pk-play').querySelector('.pk-dexcount'); },160); };
+  const dq=$('pk-dq'); if(dq) dq.oninput=()=>{ if(pkSecretInput(dq.value)){ dq.value=''; PK.d.q=''; return; } PK.d.q=dq.value; clearTimeout(PK._dqt); PK._dqt=setTimeout(()=>{ const grid=$('pk-dexgrid'),l=pkDexFilter(); if(grid){ grid.innerHTML=l.slice(0,120).map(pkDexCell).join(''); bindCells(); } const cnt=$('pk-play').querySelector('.pk-dexcount'); },160); };
   $('pk-dquiz').onclick=()=>pkDexQuiz(pkDexFilter());
   bindCells();
 }
