@@ -12042,19 +12042,25 @@ function pokeGo(v,arg){ pkClearTimers(); PK.view=v; PK.arg=arg;
 }
 const PK_ICON={rank:'trophy',silh:'question',hint:'bulb',name5:'clock',type:'tag',evo:'gauge',chain:'chain',dex:'book',map:'globe',bst:'scale'};
 const PK_SECTIONS=[
-  {ko:'랭크',en:'Ranked',ac:'#ff8a4c',items:['rank']},
   {ko:'맞히기',en:'Guess',ac:'#ffb454',items:['silh','hint','name5','type']},
   {ko:'진화',en:'Evolution',ac:'#34c777',items:['evo','chain']},
   {ko:'도감 · 지도',en:'Dex & Map',ac:'#4ea1ff',items:['dex','map','bst']},
 ];
+function pkRankBannerHTML(){ const u=curUser();
+  if(!u) return '<span class="rb-ic">🏆</span><span class="rb-main"><span class="rb-t">'+LT('포켓몬 랭크전','Pokémon Ranked')+'</span><span class="rb-s">'+LT('로그인하고 랭크에 도전하세요','Log in to compete for rank')+'</span></span><span class="rb-go">'+LT('시작 ›','Start ›')+'</span>';
+  const st=pkStat(), placed=!!st.placed, t=pokeTier(st.elo||1200);
+  return '<span class="rb-ic">'+(placed?t.ic:'🏆')+'</span><span class="rb-main"><span class="rb-t">'+LT('포켓몬 랭크전','Pokémon Ranked')+(placed?(' · '+LT(t.ko,t.en)):'')+'</span><span class="rb-s">'+(placed?('ELO '+st.elo+' · '+LT('최고 ','best ')+(st.best||0)+'/'+POKE_RANKED_N):LT('배치고사가 필요해요','Placement needed'))+'</span></span><span class="rb-go">'+LT('입장 ›','Enter ›')+'</span>';
+}
 function pkHome(){ const byV={}; PK_GAMES.forEach(g=>byV[g.v]=g);
   let h='<div class="home-title"><span class="wf-ball" style="width:30px;height:30px;flex:0 0 auto"></span>'+LT('포켓몬','Pokémon')+'</div>'
-    +'<div class="home-sub">'+LT(POKE.length+'마리 · 9세대 · 오른쪽 아래 지구본으로 지도 게임으로 돌아가기','9 generations · '+POKE.length+' Pokémon · the globe button returns to the map game')+'</div>';
+    +'<div class="home-sub">'+LT(POKE.length+'마리 · 9세대 · 오른쪽 아래 지구본으로 지도 게임으로 돌아가기','9 generations · '+POKE.length+' Pokémon · the globe button returns to the map game')+'</div>'
+    +'<button class="rank-banner" id="pk-rankbanner" aria-label="'+LT('포켓몬 랭크전','Pokémon Ranked')+'">'+pkRankBannerHTML()+'</button>';
   PK_SECTIONS.forEach(sec=>{ h+='<h2 class="home-sec">'+LT(sec.ko,sec.en)+'</h2><div class="home-grid" role="list">';
     sec.items.forEach(v=>{ const g=byV[v]; if(!g) return;
       h+='<button class="gcard" role="listitem" data-v="'+v+'" style="--gc:'+sec.ac+'"><span class="gicon">'+(ICONS[PK_ICON[v]]||ICONS.question)+'</span><span class="gtext"><span class="ctitle">'+esc(LT(g.ko,g.en))+'</span><span class="cdesc">'+esc(LT(g.dk,g.de))+'</span></span></button>'; });
     h+='</div>'; });
   $('pk-body').innerHTML=h;
+  const rb=$('pk-rankbanner'); if(rb) rb.onclick=()=>pokeGo('rank');
   $('pk-body').querySelectorAll('.gcard').forEach(b=>b.onclick=()=>pokeGo(b.dataset.v));
 }
 function pkFrame(title,playHtml,opts){ opts=opts||{};
