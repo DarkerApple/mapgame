@@ -875,10 +875,15 @@ select#warsel:focus{outline:none;border-color:var(--border2)}
   .modetitle{font-size:14px}
 }
 /* ============ Pokémon mode — matches the map game theme (uses the app's CSS vars) ============ */
-.worldfab{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:71;width:52px;height:52px;border-radius:50%;
-  border:none;background:var(--surface);box-shadow:0 6px 20px rgba(0,0,0,.35),0 0 0 1px var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s}
-.worldfab:hover{transform:scale(1.08)}
-.worldfab:active{transform:scale(.94)}
+.worldfab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:71;width:54px;height:54px;border-radius:50%;
+  border:none;background:var(--surface);box-shadow:0 8px 24px rgba(0,0,0,.4),0 0 0 1px var(--border2);cursor:pointer;display:none;align-items:center;justify-content:center;
+  transition:transform .18s cubic-bezier(.2,.9,.3,1.3),box-shadow .18s;animation:fab-pop .3s cubic-bezier(.2,.9,.3,1.4)}
+/* the map/pokémon toggle only appears on a home screen */
+body:has(#home.show) .worldfab{display:flex}
+body.pokemode:not(:has(#poke.playing)) .worldfab{display:flex}
+.worldfab:hover{transform:translateY(-3px) scale(1.06);box-shadow:0 12px 30px rgba(0,0,0,.5),0 0 0 1px var(--accent)}
+.worldfab:active{transform:scale(.92)}
+@keyframes fab-pop{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}
 .wf-ball{width:30px;height:30px;border-radius:50%;background:linear-gradient(#ee1515 0 50%,#f4f4f4 50% 100%);border:2px solid #141414;position:relative;box-shadow:inset 0 -3px 5px rgba(0,0,0,.18)}
 .wf-ball::before{content:'';position:absolute;left:-2px;right:-2px;top:50%;transform:translateY(-50%);height:3px;background:#141414}
 .wf-ball::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid #141414;box-shadow:0 0 0 1px #fff}
@@ -889,6 +894,10 @@ body.pokemode .wf-globe{display:block}
   background:radial-gradient(130% 90% at 50% -20%,var(--home-grad1,#181b22) 0%,var(--home-grad2,#101216) 42%,var(--bg) 100%)}
 #poke.show{display:block}
 .pk-inner{position:relative;max-width:1120px;margin:0 auto;padding:40px 24px calc(64px + env(safe-area-inset-bottom))}
+/* a running game fills the viewport and is centered vertically */
+#poke.playing .pk-inner{max-width:none;min-height:100dvh;padding:0;display:flex}
+#poke.playing #pk-body{flex:1;min-width:0;display:flex;flex-direction:column;padding:22px 22px calc(22px + env(safe-area-inset-bottom))}
+#poke.playing .pk-wrap{margin:auto;width:100%;max-width:600px}
 .pk-note{font-size:12.5px;color:var(--muted);margin:2px 0 16px;line-height:1.5}
 /* a game runs inside a centered, modern card */
 .pk-wrap{max-width:600px;margin:0 auto}
@@ -974,6 +983,48 @@ body.pokemode .wf-globe{display:block}
 .pk-elo{font-size:15px;color:var(--muted);margin-top:2px}
 .pk-rankbtn{display:block;margin:14px auto 0;background:var(--accent);border:none;color:var(--accent-ink,#0b0b0d);border-radius:12px;padding:12px 22px;font:inherit;font-weight:900;font-size:15px;cursor:pointer}
 .pk-rankbtn.ghost{background:var(--surface2);border:1px solid var(--border2);color:var(--text)}
+/* ===== premium motion + polish ===== */
+@keyframes pk-card-in{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+.pk-card2{animation:pk-card-in .34s cubic-bezier(.2,.85,.3,1.05)}
+@keyframes pk-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.pk-sprite,.pk-tierbadge{animation:pk-bob 3.6s ease-in-out infinite}
+@keyframes pk-rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+#poke:not(.playing) .gcard,#poke:not(.playing) .rank-banner,#poke:not(.playing) .home-sec{animation:pk-rise .42s both cubic-bezier(.2,.8,.3,1.05)}
+#poke .home-grid .gcard:nth-child(2){animation-delay:.05s}
+#poke .home-grid .gcard:nth-child(3){animation-delay:.1s}
+#poke .home-grid .gcard:nth-child(4){animation-delay:.15s}
+.pk-choice{transition:transform .13s cubic-bezier(.2,.8,.3,1.2),border-color .15s,background .15s}
+.pk-choice:hover{transform:translateY(-2px)}.pk-choice:active{transform:scale(.97)}
+.pk-gobtn{transition:transform .12s,filter .15s}.pk-gobtn:hover{filter:brightness(1.08)}.pk-gobtn:active{transform:scale(.9)}
+.pk-rankbtn{transition:transform .14s,filter .15s}.pk-rankbtn:hover{filter:brightness(1.06);transform:translateY(-2px)}.pk-rankbtn:active{transform:scale(.97)}
+.pk-morebtn{transition:transform .13s,background .15s}.pk-morebtn:hover{transform:translateY(-1px)}
+.pk-dexcell{transition:transform .13s,border-color .15s}.pk-dexcell:hover{transform:translateY(-3px)}
+.pk-fchip{transition:transform .1s,background .15s,border-color .15s}.pk-fchip:active{transform:scale(.94)}
+/* 'who's that' screen: soft spotlight + inner vignette */
+.pk-silbox{position:relative;background:radial-gradient(circle at 50% 38%,#f6fbff,#cfe3f5 55%,#9cc4e6);overflow:hidden}
+.pk-silbox::after{content:'';position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 42px rgba(50,100,150,.32);pointer-events:none}
+/* ranked banner: gentle animated sheen */
+#pk-rankbanner{position:relative;overflow:hidden}
+#pk-rankbanner::after{content:'';position:absolute;top:0;bottom:0;width:38%;left:-60%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.22),transparent);transform:skewX(-18deg);animation:pk-sheen 5s ease-in-out infinite}
+@keyframes pk-sheen{0%,62%{left:-60%}100%{left:135%}}
+@keyframes pk-feed-pop{from{transform:scale(.92);opacity:.5}to{transform:scale(1);opacity:1}}
+.pk-feed.ok,.pk-feed.no{animation:pk-feed-pop .2s ease}
+@media (prefers-reduced-motion:reduce){.pk-sprite,.pk-tierbadge,.pk-card2,#poke .gcard,#poke .rank-banner,#poke .home-sec,#pk-rankbanner::after{animation:none!important}}
+/* ===== mobile: keep everything inside the screen ===== */
+.pk-sprite{max-width:100%;height:auto;aspect-ratio:1/1}
+.pk-silbox,.pk-worldmap,.pk-map{max-width:100%}
+@media (max-width:560px){
+  .pk-card2{padding:20px 14px 24px;border-radius:20px}
+  .pk-sprite{width:150px}
+  .pk-sprite.small{width:104px}
+  .pk-tierbadge{font-size:52px}
+  .pk-gt{font-size:15px}
+  .pk-bstcard img{width:104px;height:104px}
+  .pk-dexgrid{grid-template-columns:repeat(auto-fill,minmax(78px,1fr))}
+  #poke.playing #pk-body{padding:16px 12px calc(16px + env(safe-area-inset-bottom))}
+  .worldfab{width:50px;height:50px}
+}
 </style>
 </head>
 <body>
@@ -12023,7 +12074,7 @@ function pokeOpen(){ pkClearTimers(); clearTimeout(pkLoadT); try{ showHome(); }c
   const ld=$('pkload'); if(ld){ const t=$('pkl-txt'); if(t) t.textContent=LT('포켓몬 월드 불러오는 중…','Loading the Pokémon world…'); ld.classList.add('show'); }
   pokePreload(); $('poke').classList.add('show'); $('poke').scrollTop=0; pokeGo('home');
   pkLoadT=setTimeout(()=>{ const l=$('pkload'); if(l) l.classList.remove('show'); }, 1000); }
-function pokeClose(){ pkClearTimers(); clearTimeout(pkLoadT); const l=$('pkload'); if(l) l.classList.remove('show'); document.body.classList.remove('pokemode'); $('poke').classList.remove('show'); try{ showHome(); }catch(e){} }
+function pokeClose(){ pkClearTimers(); clearTimeout(pkLoadT); const l=$('pkload'); if(l) l.classList.remove('show'); document.body.classList.remove('pokemode'); $('poke').classList.remove('show','playing'); try{ showHome(); }catch(e){} }
 
 const PK_GAMES=[
   {v:'rank',ic:'🏆',ko:'랭크전',en:'Ranked',dk:'실루엣 랭크 · 티어와 ELO',de:'Silhouette ranked · tiers & ELO'},
@@ -12051,7 +12102,7 @@ function pkRankBannerHTML(){ const u=curUser();
   const st=pkStat(), placed=!!st.placed, t=pokeTier(st.elo||1200);
   return '<span class="rb-ic">'+(placed?t.ic:'🏆')+'</span><span class="rb-main"><span class="rb-t">'+LT('포켓몬 랭크전','Pokémon Ranked')+(placed?(' · '+LT(t.ko,t.en)):'')+'</span><span class="rb-s">'+(placed?('ELO '+st.elo+' · '+LT('최고 ','best ')+(st.best||0)+'/'+POKE_RANKED_N):LT('배치고사가 필요해요','Placement needed'))+'</span></span><span class="rb-go">'+LT('입장 ›','Enter ›')+'</span>';
 }
-function pkHome(){ const byV={}; PK_GAMES.forEach(g=>byV[g.v]=g);
+function pkHome(){ $('poke').classList.remove('playing'); const byV={}; PK_GAMES.forEach(g=>byV[g.v]=g);
   let h='<div class="home-title"><span class="wf-ball" style="width:30px;height:30px;flex:0 0 auto"></span>'+LT('포켓몬','Pokémon')+'</div>'
     +'<div class="home-sub">'+LT(POKE.length+'마리 · 9세대 · 오른쪽 아래 지구본으로 지도 게임으로 돌아가기','9 generations · '+POKE.length+' Pokémon · the globe button returns to the map game')+'</div>'
     +'<button class="rank-banner" id="pk-rankbanner" aria-label="'+LT('포켓몬 랭크전','Pokémon Ranked')+'">'+pkRankBannerHTML()+'</button>';
@@ -12063,7 +12114,7 @@ function pkHome(){ const byV={}; PK_GAMES.forEach(g=>byV[g.v]=g);
   const rb=$('pk-rankbanner'); if(rb) rb.onclick=()=>pokeGo('rank');
   $('pk-body').querySelectorAll('.gcard').forEach(b=>b.onclick=()=>pokeGo(b.dataset.v));
 }
-function pkFrame(title,playHtml,opts){ opts=opts||{};
+function pkFrame(title,playHtml,opts){ opts=opts||{}; $('poke').classList.add('playing');
   $('pk-body').innerHTML='<div class="pk-wrap"><div class="pk-top"><button class="pk-back" id="pk-back">‹ '+LT('게임','Games')+'</button><div class="pk-gt">'+title+'</div>'
     +(opts.skip?'<button class="pk-skip" id="pk-skip">'+LT('넘기기','Skip')+' ↻</button>':'<span style="width:52px"></span>')+'</div><div class="pk-card2" id="pk-play">'+playHtml+'</div></div>';
   $('pk-back').onclick=()=>pokeGo('home'); if(opts.skip) $('pk-skip').onclick=opts.skip;
