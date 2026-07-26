@@ -924,7 +924,7 @@ body.pokemode .wf-globe{display:block}
 .pk-gobtn{background:var(--accent);border:none;color:var(--accent-ink,#0b0b0d);border-radius:12px;padding:0 18px;font-size:17px;font-weight:900;cursor:pointer}
 .pk-feed{text-align:center;font-size:15px;margin-top:12px;min-height:26px;color:var(--muted)}
 .pk-feed.ok{color:var(--found)}.pk-feed.no{color:#e5533d}
-.pk-type{display:inline-block;color:#fff;font-size:11px;font-weight:800;padding:2px 9px;border-radius:999px;margin:0 2px;text-shadow:0 1px 1px rgba(0,0,0,.35)}
+.pk-type{display:inline-block;color:#fff;font-size:11px;font-weight:800;padding:2px 10px;border-radius:999px;margin:0 2px;letter-spacing:.01em;text-shadow:0 1px 2px rgba(0,0,0,.6);box-shadow:inset 0 0 0 1px rgba(0,0,0,.22),0 1px 3px rgba(0,0,0,.2)}
 .pk-choices{display:grid;grid-template-columns:1fr 1fr;gap:9px;max-width:460px;margin:16px auto 0}
 .pk-choice{background:var(--surface2);border:1.5px solid var(--border2);border-radius:12px;padding:13px;font:inherit;font-size:15px;font-weight:700;color:var(--text);cursor:pointer;transition:border-color .15s}
 .pk-choice:hover{border-color:var(--accent)}
@@ -12044,7 +12044,7 @@ function pokeResolve(raw){ const k=norm(raw); return k?(POKE_LOOK.get(k)||null):
 function PNM(p){ return p?(EN()?p.en:p.ko):''; }
 const PSPRITE=id=>'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+id+'.png';
 const PART=id=>'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/'+id+'.png';
-const TYPE_META={normal:{ko:'노말',c:'#9099a1'},fire:{ko:'불꽃',c:'#ff6b3d'},water:{ko:'물',c:'#4d90d5'},electric:{ko:'전기',c:'#efc531'},grass:{ko:'풀',c:'#5fbb50'},ice:{ko:'얼음',c:'#74cec0'},fighting:{ko:'격투',c:'#cd4069'},poison:{ko:'독',c:'#ab6ac8'},ground:{ko:'땅',c:'#d97845'},flying:{ko:'비행',c:'#8fa8dd'},psychic:{ko:'에스퍼',c:'#f96f71'},bug:{ko:'벌레',c:'#90c12c'},rock:{ko:'바위',c:'#c5b78c'},ghost:{ko:'고스트',c:'#5269ad'},dragon:{ko:'드래곤',c:'#0b6dc3'},dark:{ko:'악',c:'#595366'},steel:{ko:'강철',c:'#5a8ea2'},fairy:{ko:'페어리',c:'#ec8fe6'}};
+const TYPE_META={normal:{ko:'노말',c:'#8b8f9e'},fire:{ko:'불꽃',c:'#ff6a34'},water:{ko:'물',c:'#2f8ce6'},electric:{ko:'전기',c:'#f5c211'},grass:{ko:'풀',c:'#41c247'},ice:{ko:'얼음',c:'#3fcac2'},fighting:{ko:'격투',c:'#e93b5c'},poison:{ko:'독',c:'#bb4fe0'},ground:{ko:'땅',c:'#e6832f'},flying:{ko:'비행',c:'#7aa2f7'},psychic:{ko:'에스퍼',c:'#ff5678'},bug:{ko:'벌레',c:'#9ecb17'},rock:{ko:'바위',c:'#b3944f'},ghost:{ko:'고스트',c:'#6a5cd6'},dragon:{ko:'드래곤',c:'#4166ff'},dark:{ko:'악',c:'#615a72'},steel:{ko:'강철',c:'#4f9dbd'},fairy:{ko:'페어리',c:'#fa74e6'}};
 function typeLabel(t){ return EN()?(t.charAt(0).toUpperCase()+t.slice(1)):((TYPE_META[t]&&TYPE_META[t].ko)||t); }
 function typeColor(t){ return (TYPE_META[t]&&TYPE_META[t].c)||'#888'; }
 function typeChips(p){ return (p.t||[]).map(t=>'<span class="pk-type" style="background:'+typeColor(t)+'">'+typeLabel(t)+'</span>').join(' '); }
@@ -12232,7 +12232,7 @@ function pkDexStart(){ PK.d={type:null,gen:null,q:''}; pkDexRender(); }
 function pkDexFilter(){ return POKE.filter(p=>(!PK.d.type||p.t.includes(PK.d.type))&&(!PK.d.gen||p.g===PK.d.gen)&&(!PK.d.q||norm(p.en).includes(norm(PK.d.q))||norm(p.ko).includes(norm(PK.d.q))||(''+p.id)===PK.d.q.trim())); }
 function pkDexCell(p){ return '<button class="pk-dexcell" data-id="'+p.id+'"><img loading="lazy" src="'+PSPRITE(p.id)+'"><div class="pk-dn">'+PNM(p)+'</div><div class="pk-di">#'+p.id+'</div></button>'; }
 function pkDexRender(){ const list=pkDexFilter();
-  const tf=TYPE_LIST.map(t=>'<button class="pk-fchip'+(PK.d.type===t?' on':'')+'" data-ft="'+t+'"'+(PK.d.type===t?' style="background:'+typeColor(t)+';border-color:'+typeColor(t)+'"':'')+'>'+typeLabel(t)+'</button>').join('');
+  const tf=TYPE_LIST.map(t=>'<button class="pk-fchip'+(PK.d.type===t?' on':'')+'" data-ft="'+t+'" style="'+(PK.d.type===t?'background:'+typeColor(t)+';border-color:'+typeColor(t)+';color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5)':'color:'+typeColor(t)+';border-color:color-mix(in srgb,'+typeColor(t)+' 55%,var(--border2))')+'">'+typeLabel(t)+'</button>').join('');
   const gf=GEN_LIST.map(g=>'<button class="pk-fchip'+(PK.d.gen===g?' on':'')+'" data-fg="'+g+'">'+LT(g+'세대','Gen '+g)+'</button>').join('');
   pkFrame(LT('도감 · 학습','Pokédex · Learn'),
     '<div class="pk-filters">'+tf+'</div><div class="pk-filters">'+gf+'<button class="pk-fchip" id="pk-dclear">✕ '+LT('초기화','Clear')+'</button></div>'
@@ -12384,7 +12384,7 @@ function pkTypeNext(){ const p=prand(POKE); PK.ty.cur=p; const correct=p.t[0], w
   pkFrame(LT('타입 맞히기','Type Match'),
     pkHud([[LT('점수','Score'),PK.ty.score],[LT('문제','Q'),PK.ty.seen+1]])
     +'<div class="pk-stage">'+pkImg(p.id,'pk-sprite small')+'<div style="font-size:18px;font-weight:900;color:#fff">'+PNM(p)+'</div><div class="pk-feed">'+LT('이 포켓몬의 타입은?','Which type does it have?')+'</div></div>'
-    +'<div class="pk-choices">'+opts.map(t=>'<button class="pk-choice" data-t="'+t+'" style="border-left:5px solid '+typeColor(t)+'">'+typeLabel(t)+'</button>').join('')+'</div>',
+    +'<div class="pk-choices">'+opts.map(t=>'<button class="pk-choice" data-t="'+t+'" style="border-left:6px solid '+typeColor(t)+';background:color-mix(in srgb,'+typeColor(t)+' 16%,var(--surface2))">'+typeLabel(t)+'</button>').join('')+'</div>',
     {skip:()=>{ PK.ty.seen++; pkTypeNext(); }});
   $('pk-play').querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{ const ok=p.t.includes(b.dataset.t); b.classList.add(ok?'good':'bad'); if(ok) PK.ty.score++; PK.ty.seen++;
     if(!ok) p.t.forEach(tt=>{ const gc=$('pk-play').querySelector('.pk-choice[data-t="'+tt+'"]'); if(gc) gc.classList.add('good'); });
