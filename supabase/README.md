@@ -11,6 +11,8 @@ Security so each user can only touch their own row.
 ```
 supabase/
   migrations/0001_profiles.sql   -- profiles table + RLS + email_codes
+  migrations/0002_leaderboard.sql-- public leaderboard_top RPC
+  migrations/0003_admin.sql      -- moderation console (admin flag, ban, wipe, edit score)
   functions/auth/index.ts        -- signup / login / verify Edge Function
 ```
 
@@ -60,6 +62,34 @@ The function actions are: `signup`, `login`, `verify`, `resend`.
 5. **Auth settings.** Dashboard → Authentication → Providers → Email: leave
    "Confirm email" **off** (username accounts are auto-confirmed; the optional
    real-email check is handled separately by the `verify` action).
+
+## Admin / moderation console
+
+`migrations/0003_admin.sql` adds a **secure moderation console** — reachable
+from the full leaderboard page (a 🛡️ button that only appears for admins). From
+it you can search players, view anyone's recent matches, **ban / unban**, **wipe
+a player's stats**, and **edit their ELO**.
+
+There is no separate "admin login" — you just flag one of your normal accounts.
+The security model never trusts the client: every action is a Postgres
+`SECURITY DEFINER` function that first checks `is_admin()`, and normal accounts
+are only granted write access to their own `stats` column, so nobody can PATCH
+`is_admin = true` onto their own row.
+
+**Set up your admin account (one time):**
+
+1. **Sign up in the app** with the username + password you want to be the
+   admin (nothing special about the name — any account can be promoted).
+2. Dashboard → **SQL Editor** → paste `migrations/0003_admin.sql` → **Run**.
+3. Promote that account by running the last line of the file with your name:
+   ```sql
+   update public.profiles set is_admin = true where username = 'YOUR_ADMIN_NAME';
+   ```
+4. Log in as that account in the app, open the **full leaderboard page**, and
+   the **🛡️ 관리자 콘솔 열기 / Open admin console** button appears.
+
+Banned players are hidden from the public leaderboard and blocked from entering
+ranked. To add more admins later, just re-run step 3 with another username.
 
 ## The client only needs two public values
 

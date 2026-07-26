@@ -389,8 +389,32 @@ footer kbd{background:var(--surface2);border:1px solid var(--border);border-radi
 .rank-banner .rb-t{font-size:17px;font-weight:800}
 .rank-banner .rb-s{font-size:13px;color:var(--muted);margin-top:2px}
 .rank-banner .rb-go{flex:0 0 auto;font-weight:800;color:#ff8a4c}
-#rankhub,#duel,#lbpage{position:fixed;inset:0;z-index:42;overflow-y:auto;display:none;background:radial-gradient(130% 90% at 50% -20%,var(--home-grad1,#181b22) 0,var(--bg) 60%)}
-#rankhub.show,#duel.show,#lbpage.show{display:block}
+#rankhub,#duel,#lbpage,#admincon{position:fixed;inset:0;z-index:42;overflow-y:auto;display:none;background:radial-gradient(130% 90% at 50% -20%,var(--home-grad1,#181b22) 0,var(--bg) 60%)}
+#rankhub.show,#duel.show,#lbpage.show,#admincon.show{display:block}
+/* admin / moderation console */
+.ac-hero{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.ac-hero h2{font-size:23px;font-weight:800}
+.ac-tools{display:flex;gap:8px;margin:14px 0}
+.ac-search{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:11px;padding:11px 14px;font:inherit;font-size:15px;color:var(--text)}
+.ac-btn{background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 13px;font:inherit;font-weight:700;font-size:13px;color:var(--text);cursor:pointer}
+.ac-btn:hover{border-color:var(--accent);color:var(--accent)}
+.ac-row{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.ac-row.banned{border-color:#e5533d;background:color-mix(in srgb,#e5533d 8%,var(--surface))}
+.ac-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.ac-nm{font-weight:800;font-size:15px}
+.ac-badge{font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;border-radius:5px;padding:2px 6px}
+.ac-badge.ban{background:#e5533d;color:#fff}.ac-badge.adm{background:var(--accent);color:var(--accent-ink,#fff)}
+.ac-elo{margin-left:auto;font-weight:800;font-variant-numeric:tabular-nums;color:var(--target)}
+.ac-sub{font-size:12px;color:var(--muted);margin-top:3px}
+.ac-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.ac-act{background:var(--surface2);border:1px solid var(--border2);border-radius:9px;padding:6px 11px;font:inherit;font-weight:700;font-size:12px;color:var(--text);cursor:pointer}
+.ac-act:hover{border-color:var(--accent);color:var(--accent)}
+.ac-act.danger:hover{border-color:#e5533d;color:#e5533d}
+.ac-matches{margin-top:10px;border-top:1px solid var(--border);padding-top:8px;display:none}
+.ac-matches.show{display:block}
+.ac-mrow{display:flex;gap:8px;font-size:12px;color:var(--muted);padding:3px 0;font-variant-numeric:tabular-nums}
+.ac-mrow .ac-mg{font-weight:800;color:var(--text)}
+.ac-empty{color:var(--faint);font-size:13px;padding:16px 2px}
 .dl-hero{display:flex;align-items:center;gap:10px;margin:6px 0 4px;font-size:22px;font-weight:900}
 .dl-sub{color:var(--muted);font-size:13.5px;margin-bottom:16px;line-height:1.5}
 .dl-beta{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-ink);background:var(--accent);border-radius:5px;padding:2px 6px;vertical-align:4px}
@@ -1207,6 +1231,13 @@ body.pk-glitch{animation:pk-glitch .5s steps(2) 2}
   <div class="rh-inner">
     <button class="home-chip rh-back" id="lb-back">‹ <span id="lb-back-t">랭크전</span></button>
     <div id="lb-body"></div>
+  </div>
+</main>
+
+<main id="admincon" aria-label="관리자 콘솔">
+  <div class="rh-inner">
+    <button class="home-chip rh-back" id="ac-back">‹ <span>리더보드</span></button>
+    <div id="ac-body"></div>
   </div>
 </main>
 
@@ -2601,6 +2632,7 @@ const el={
   fall:$('fall'),fallArea:$('fall-area'),fallHud:$('fall-hud'),
   rankBanner:$('rank-banner'),rankhub:$('rankhub'),rhBody:$('rh-body'),rhBack:$('rh-back'),
   lbpage:$('lbpage'),lbBody:$('lb-body'),lbBack:$('lb-back'),
+  admincon:$('admincon'),acBody:$('ac-body'),acBack:$('ac-back'),
   sym:$('sym'),symQ:$('sym-q'),symGo:$('sym-go'),symGrid:$('sym-grid'),symFact:$('sym-fact'),
   mines:$('mines'),mnTop:$('mn-top'),mnGrid:$('mn-grid'),mnMsg:$('mn-msg'),exam:$('exam'),examBody:$('exam-body'),mbti:$('mbti'),mbtiBody:$('mbti-body'),
   profilebtn:$('profilebtn'),profilebtnT:$('profilebtn-t'),profilecard:$('profilecard'),
@@ -4123,6 +4155,7 @@ function endRanked(quit){
   }
   if(state.rankedHit>(u.stats.best.ranked||0)) u.stats.best.ranked=state.rankedHit;
   u.stats.elo=rankPower(u);   // leaderboard sort key
+  pushRecent(u,{t:Date.now(),g:'geo',m:(exam?'exam':(placement?'place':(mode||'quiz'))),h:state.rankedHit,n:total,e:u.stats.elo});
   unlockTierCosmetics(); accSave(); renderProfile(); if(typeof checkAchievements==='function') checkAchievements(); if(typeof maybeUnlockTheme==='function') maybeUnlockTheme();
   showOverlay(quit?LT('랭크 포기','Match abandoned'):title, big, sub);
   renderOverlayExtras('ranked', state.rankedHit);
@@ -10713,7 +10746,7 @@ function startGame(m){ el.setup.classList.remove('show'); el.home.classList.remo
 function showHome(){
   abandonRankedIfActive();   // quitting a ranked match mid-way costs ELO
   stopTicker(); stopTrivia(); stopRankedTimer(); cancelDrag(); state.gen++; state.ended=true; state.running=false; state.ranked=false;
-  el.trivia.classList.remove('show'); el.compare.classList.remove('show'); el.minigame.classList.remove('show'); el.codex.classList.remove('show'); el.sym.classList.remove('show'); stopFall(); el.fall.classList.remove('show'); el.mines.classList.remove('show'); el.exam.classList.remove('show'); el.mbti.classList.remove('show'); el.rankhub.classList.remove('show'); el.lbpage.classList.remove('show'); el.studypanel.classList.add('hidden'); el.inputrow.classList.add('hidden');
+  el.trivia.classList.remove('show'); el.compare.classList.remove('show'); el.minigame.classList.remove('show'); el.codex.classList.remove('show'); el.sym.classList.remove('show'); stopFall(); el.fall.classList.remove('show'); el.mines.classList.remove('show'); el.exam.classList.remove('show'); el.mbti.classList.remove('show'); el.rankhub.classList.remove('show'); el.lbpage.classList.remove('show'); el.admincon.classList.remove('show'); el.studypanel.classList.add('hidden'); el.inputrow.classList.add('hidden');
   el.setup.classList.remove('show'); hideOverlay(); clearMap(); clearLabels(); resetView();
   el.vsbar.classList.add('hidden'); el.timer.classList.remove('hidden');
   el.modetitle.textContent=''; el.homebtn.classList.add('hidden'); el.home.classList.add('show'); renderRankBanner();
@@ -11358,7 +11391,7 @@ function closeRankHub(){ el.rankhub.classList.remove('show'); el.home.classList.
 /* ===== Full leaderboard page: overall standings + a podium for every gamemode ===== */
 const RM_IC={quiz:'🌍',flag:'🚩',silhouette:'🗺️',capcountry:'🏛️',clue:'📜'};
 let lbPageRows=undefined;   // undefined=loading · {error,missing} · array of rows
-function openLeaderboardPage(){ el.rankhub.classList.remove('show'); el.home.classList.remove('show'); el.lbpage.classList.add('show'); el.lbpage.scrollTop=0;
+function openLeaderboardPage(){ el.rankhub.classList.remove('show'); el.home.classList.remove('show'); el.admincon.classList.remove('show'); el.lbpage.classList.add('show'); el.lbpage.scrollTop=0;
   lbPageRows=(Array.isArray(state.lbRows)&&state.lbRows.length)?state.lbRows:undefined; renderLeaderboardPage(); refreshLeaderboardPage(); }
 function closeLeaderboardPage(){ el.lbpage.classList.remove('show'); openRankHub(); }
 let lbPageBusy=false;
@@ -11375,10 +11408,12 @@ function renderLeaderboardPage(){
   let h='<div class="rh-hero"><span class="rh-badge">🏆</span><div><h2>'+LT('리더보드','Leaderboard')+'</h2>'
     +'<div style="margin:5px 0 3px"><span class="season-badge">🏅 '+LT(SEASON.ko,SEASON.en)+'</span></div>'
     +'<div class="rh-elo">'+LT('종합 순위와 종목별 시상대','Overall standings & per-mode podiums')+'</div></div></div>';
-  if(rows===undefined){ h+='<div class="rh-lb-empty">'+LT('불러오는 중…','Loading…')+'</div>'; el.lbBody.innerHTML=h; return; }
+  if(isAdminUser()) h+='<button class="lb-full-btn" id="lb-admin" style="border-color:var(--accent);color:var(--accent)">🛡️ '+LT('관리자 콘솔 열기','Open Admin Console')+'</button>';
+  const wireAdmin=()=>{ const ab=el.lbBody.querySelector('#lb-admin'); if(ab) ab.onclick=openAdminConsole; };
+  if(rows===undefined){ h+='<div class="rh-lb-empty">'+LT('불러오는 중…','Loading…')+'</div>'; el.lbBody.innerHTML=h; wireAdmin(); return; }
   if(rows&&rows.error){ h+='<div class="rh-lb-empty rh-lb-err">'+(rows.missing
       ?LT('리더보드 설정이 아직 안 됐어요 — 서버에 <code>leaderboard_top</code> 함수를 설치해야 해요.','Leaderboard isn\'t set up yet — the <code>leaderboard_top</code> function needs to be installed on the server.')
-      :LT('리더보드를 불러올 수 없어요','Couldn\'t load the leaderboard'))+' <span class="rh-lb-code">('+esc(rows.error)+')</span></div>'; el.lbBody.innerHTML=h; return; }
+      :LT('리더보드를 불러올 수 없어요','Couldn\'t load the leaderboard'))+' <span class="rh-lb-code">('+esc(rows.error)+')</span></div>'; el.lbBody.innerHTML=h; wireAdmin(); return; }
   // overall standings (reuse the row renderer)
   h+='<div class="rh-sec">'+LT('종합 순위 (전체 ELO)','Overall (total ELO)')+' <button class="rh-lb-refresh" id="lb-refresh" aria-label="'+LT('새로고침','Refresh')+'">↻</button><span class="rh-lb-live">● '+LT('실시간','LIVE')+'</span></div><div class="rh-lb">'+lbHTML(rows)+'</div>';
   // per-mode podiums
@@ -11391,9 +11426,45 @@ function renderLeaderboardPage(){
   h+='<div class="rh-sec">'+LT('종목별 시상대','Per-mode podiums')+'</div>'
     +(hasModes?'':'<div class="pod-empty" style="margin-bottom:8px">'+LT('종목별 데이터가 아직 없어요 — 서버 함수를 업데이트하면 표시돼요.','No per-mode data yet — update the server function to show podiums.')+'</div>')
     +'<div class="pod-wrap">'+podHtml+'</div>';
-  el.lbBody.innerHTML=h;
+  el.lbBody.innerHTML=h; wireAdmin();
   const rb=el.lbBody.querySelector('#lb-refresh'); if(rb) rb.onclick=()=>refreshLeaderboardPage();
 }
+/* ===== Admin / moderation console (server-gated: every action re-checks is_admin) ===== */
+let acRows=null, acT=null;
+function openAdminConsole(){ if(!isAdminUser()) return; el.lbpage.classList.remove('show'); el.rankhub.classList.remove('show'); el.home.classList.remove('show'); el.admincon.classList.add('show'); el.admincon.scrollTop=0; acRows=null; renderAdminConsole(); acLoad(''); }
+function closeAdminConsole(){ el.admincon.classList.remove('show'); openLeaderboardPage(); }
+async function acLoad(q){ const r=await sbAdmin('admin_list_players',{lim:200,q:q||null}); acRows=(r&&r.data)?r.data:(r&&r.error?{error:r.error}:[]); renderAdminConsole(); }
+function acAgo(t){ if(!t) return ''; const s=Math.max(0,Math.floor((Date.now()-t)/1000)); if(s<60) return s+'s'; if(s<3600) return Math.floor(s/60)+'m'; if(s<86400) return Math.floor(s/3600)+'h'; return Math.floor(s/86400)+'d'; }
+function acMatchRow(m){ return '<div class="ac-mrow"><span class="ac-mg">'+(m.g==='pk'?'🔴':'🌍')+' '+esc(m.m||'')+'</span><span>'+m.h+'/'+m.n+'</span><span>ELO '+(m.e||0)+'</span><span style="margin-left:auto">'+acAgo(m.t)+LT(' 전',' ago')+'</span></div>'; }
+function acRowHTML(p){ const st=(p.stats&&typeof p.stats==='object')?p.stats:{}, elo=Math.round(st.elo||0), ri=Math.floor(elo/100000), t=RANK_MAIN[Math.max(0,Math.min(RANK_MAIN.length-1,ri))], recent=Array.isArray(st.recent)?st.recent:[], id=p.id, nm=esc(p.username||'');
+  return '<div class="ac-row'+(p.banned?' banned':'')+'"><div class="ac-top"><span class="ac-nm">'+nm+'</span>'
+    +(p.is_admin?'<span class="ac-badge adm">admin</span>':'')+(p.banned?'<span class="ac-badge ban">banned</span>':'')
+    +'<span class="ac-elo">'+t.ic+' '+(elo%100000).toLocaleString()+'</span></div>'
+    +'<div class="ac-sub">'+LT('경기 ','games ')+(st.games||0)+' · '+LT('가입 ','joined ')+(p.created_at?String(p.created_at).slice(0,10):'—')+(p.email?' · '+esc(p.email):'')+'</div>'
+    +'<div class="ac-acts"><button class="ac-act matches" data-mid="'+id+'">'+LT('최근 경기 ('+recent.length+')','matches ('+recent.length+')')+'</button>'
+    +'<button class="ac-act" data-act="'+(p.banned?'unban':'ban')+'" data-id="'+id+'" data-nm="'+nm+'">'+(p.banned?LT('밴 해제','Unban'):'🚫 '+LT('밴','Ban'))+'</button>'
+    +'<button class="ac-act" data-act="setelo" data-id="'+id+'" data-nm="'+nm+'">'+LT('점수 수정','Set score')+'</button>'
+    +'<button class="ac-act danger" data-act="wipe" data-id="'+id+'" data-nm="'+nm+'">🗑️ '+LT('초기화','Wipe')+'</button></div>'
+    +'<div class="ac-matches" id="acm-'+id+'">'+(recent.length?recent.map(acMatchRow).join(''):'<div class="ac-mrow">'+LT('최근 경기 없음','no recent matches')+'</div>')+'</div></div>'; }
+function renderAdminConsole(){ const q=(el.acBody.querySelector('#ac-search')||{}).value||'';
+  let h='<div class="ac-hero"><span style="font-size:30px">🛡️</span><div><h2>'+LT('관리자 콘솔','Admin Console')+'</h2><div class="ac-sub">'+LT('밴 · 초기화 · 점수 수정 · 최근 경기','ban · wipe · edit score · recent matches')+'</div></div></div>'
+    +'<div class="ac-tools"><input id="ac-search" class="ac-search" placeholder="'+LT('이름 검색','search username')+'" value="'+esc(q)+'"><button class="ac-btn" id="ac-refresh">↻</button></div>';
+  if(acRows===null) h+='<div class="ac-empty">'+LT('불러오는 중…','Loading…')+'</div>';
+  else if(acRows&&acRows.error) h+='<div class="ac-empty">'+(/not authoriz/i.test(acRows.error)?LT('권한 없음 — 이 계정은 관리자가 아니에요.','Not authorized — this account isn’t an admin.'):(/PGRST202|http_404|PGRST100/.test(acRows.error)?LT('관리 함수가 설치 안 됨 — 0003 SQL을 실행하세요.','Admin functions not installed — run the 0003 SQL.'):LT('오류: ','Error: ')+esc(acRows.error)))+'</div>';
+  else if(!acRows.length) h+='<div class="ac-empty">'+LT('플레이어가 없어요.','No players found.')+'</div>';
+  else h+=acRows.map(acRowHTML).join('');
+  el.acBody.innerHTML=h;
+  const s=el.acBody.querySelector('#ac-search'); if(s) s.oninput=()=>{ clearTimeout(acT); acT=setTimeout(()=>acLoad(s.value),300); };
+  const rf=el.acBody.querySelector('#ac-refresh'); if(rf) rf.onclick=()=>{ acRows=null; renderAdminConsole(); acLoad((el.acBody.querySelector('#ac-search')||{}).value||''); };
+  el.acBody.querySelectorAll('.ac-act.matches').forEach(bn=>bn.onclick=()=>{ const box=el.acBody.querySelector('#acm-'+bn.dataset.mid); if(box) box.classList.toggle('show'); });
+  el.acBody.querySelectorAll('[data-act]').forEach(bn=>bn.onclick=()=>acAction(bn.dataset.act,bn.dataset.id,bn.dataset.nm)); }
+async function acAction(act,id,nm){ let r;
+  if(act==='ban'||act==='unban'){ const val=act==='ban'; if(val&&!confirm(LT(nm+' 님을 밴할까요? 리더보드에서 제외돼요.','Ban '+nm+'? They’ll be removed from the leaderboard.'))) return; r=await sbAdmin('admin_set_banned',{target:id,val}); }
+  else if(act==='wipe'){ if(!confirm(LT(nm+' 님의 모든 기록을 초기화할까요? (되돌릴 수 없어요)','Wipe ALL of '+nm+'’s stats? This cannot be undone.'))) return; r=await sbAdmin('admin_wipe',{target:id}); }
+  else if(act==='setelo'){ const v=prompt(LT(nm+' 님의 리더보드 점수(ELO)를 입력','Set '+nm+'’s leaderboard score (ELO)')); if(v==null) return; const num=Math.round(+v); if(isNaN(num)){ alert(LT('숫자를 입력하세요','Enter a number')); return; } r=await sbAdmin('admin_set_stat',{target:id,skey:'elo',val:num}); }
+  else return;
+  if(r&&r.error){ alert(LT('실패: ','Failed: ')+r.error); return; }
+  acLoad((el.acBody.querySelector('#ac-search')||{}).value||''); }
 function renderRankHub(){
   const u=curUser();
   if(!u){ el.rhBody.innerHTML='<div class="rh-hero"><span class="rh-badge">🏆</span><div><h2>'+LT('랭크전','Ranked')+'</h2><div class="rh-elo">'+LT('로그인해야 이용할 수 있어요.','Log in to play ranked.')+'</div></div></div>'
@@ -11447,6 +11518,7 @@ function renderRankHub(){
 }
 let rloadT=null;
 function playRanked(){ // brief matchmaking screen with a Cancel, then start (so you can back out)
+  if(isBannedUser()){ alert(LT('계정이 정지되어 랭크전에 참여할 수 없어요.','Your account is banned from Ranked.')); return; }
   const txt = state.rankedExam?LT('승급 시험 준비 중…','Preparing your promotion exam…'):(state.rankedPlacement?LT('배치고사 준비 중…','Preparing your placement…'):LT('랭크 매치 찾는 중…','Finding your ranked match…'));
   $('rl-txt').textContent=txt;
   $('rl-sub').textContent=state.rankedExam?LT('필요한 종목의 문제를 모으는 중','Assembling questions from required modes'):(state.rankedPlacement?LT('실력을 측정할 문제를 고르고 있어요','Selecting calibration questions'):LT('난이도를 맞추는 중','Matching difficulty to your ELO'));
@@ -11460,6 +11532,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&$('rload').classLi
 el.rankBanner.onclick=openRankHub;
 el.rhBack.onclick=closeRankHub;
 el.lbBack.onclick=closeLeaderboardPage;
+el.acBack.onclick=closeAdminConsole;
 
 /* ================= Live 1v1 (Supabase Realtime — presence matchmaking + broadcast, no DB) ================= */
 const DUEL={sc:null,mm:null,ch:null,myId:null,st:'idle',match:null,host:false,seed:0,n:10,queue:[],idx:0,my:0,opp:0,oppName:'?',t0:0,timer:null,done:false,oppDone:false,myMs:0,oppMs:0};
@@ -11605,8 +11678,14 @@ async function sbRefresh(){ if(!SB.tok||!SB.tok.refresh_token) return false;
     if(!r.ok) return false; const j=await r.json(); if(!j.access_token) return false; SB.saveTok({access_token:j.access_token,refresh_token:j.refresh_token||SB.tok.refresh_token}); return true; }catch(e){ return false; } }
 async function sbFresh(){ if(!SB.tok) return false; if(jwtExpired(SB.tok.access_token)) return await sbRefresh(); return true; }
 async function sbLoadProfile(){ if(!await sbFresh()) return null;
-  try{ const r=await fetch(SB.rest+'/profiles?id=eq.'+SB.uid+'&select=username,email,email_verified,stats',{headers:SB.hdr(true)});
+  try{ const r=await fetch(SB.rest+'/profiles?id=eq.'+SB.uid+'&select=username,email,email_verified,stats,is_admin,banned',{headers:SB.hdr(true)});
     if(!r.ok) return null; const rows=await r.json(); return (rows&&rows[0])||null; }catch(e){ return null; } }
+// authed admin RPC (server enforces is_admin — client is never trusted with moderation)
+async function sbAdmin(fn, body){ if(!SUPA_ON) return {error:'no_cloud'}; if(!await sbFresh()) return {error:'auth'};
+  try{ const r=await fetch(SB.rest+'/rpc/'+fn,{method:'POST',headers:SB.hdr(true),body:JSON.stringify(body||{})});
+    if(!r.ok){ let code='http_'+r.status; try{ const j=await r.json(); if(j&&(j.message||j.code)) code=j.message||j.code; }catch(e){} return {error:code}; }
+    const t=await r.text(); try{ return {data:t?JSON.parse(t):null}; }catch(e){ return {data:null}; } }
+  catch(e){ return {error:'network'}; } }
 let sbSaveT=null, sbDirty=false, sbPulling=false, sbHeartbeat=null;
 async function sbSaveStatsNow(){ if(!SUPA_ON||!SB.tok) return; if(!await sbFresh()) return; const u=curUser(); if(!u) return;
   u.stats=u.stats||{}; u.stats.savedAt=Date.now();   // last-write-wins clock for cross-device sync
@@ -11635,7 +11714,10 @@ async function sbLeaderboard(lim){ if(!SUPA_ON) return null;
     return await r.json(); }catch(e){ return {error:'network', missing:false}; } }
 function applyCloudProfile(p){ if(!p) return null; const key=((p.username||'me').toLowerCase())||'me';
   const st=(p.stats&&typeof p.stats==='object')?p.stats:{};
-  ACC.users={}; ACC.users[key]={name:p.username||'me', stats:st, email:p.email||null, email_verified:!!p.email_verified, cloud:true}; ACC.current=key; return key; }
+  ACC.users={}; ACC.users[key]={name:p.username||'me', stats:st, email:p.email||null, email_verified:!!p.email_verified, is_admin:!!p.is_admin, banned:!!p.banned, cloud:true}; ACC.current=key; return key; }
+function isAdminUser(){ const u=curUser(); return !!(u&&u.is_admin); }
+function isBannedUser(){ const u=curUser(); return !!(u&&u.banned); }
+function pushRecent(u, e){ if(!u||!u.stats) return; u.stats.recent=u.stats.recent||[]; u.stats.recent.unshift(e); if(u.stats.recent.length>12) u.stats.recent.length=12; }
 async function sbBootstrap(){ if(!SUPA_ON) return; SB.loadTok(); if(!SB.tok) return;
   const p=await sbLoadProfile(); if(p){ applyCloudProfile(p); renderProfile(); } else if(!await sbFresh()){ SB.clearTok(); } }
 function doLogout(){ if(SUPA_ON){ SB.clearTok(); if(ACC.current) delete ACC.users[ACC.current]; } ACC.current=null; accSave(); }
@@ -12435,7 +12517,7 @@ function pkRankStart(){ const u=curUser();
   const pl=$('pk-rplace'); if(pl) pl.onclick=()=>pkRankPlay({placement:true});
   const ex=$('pk-rexam'); if(ex) ex.onclick=()=>pkRankPlay({exam:true});
   $('pk-play').querySelectorAll('.pk-mrow-go').forEach(bn=>bn.onclick=()=>pkRankPlay({mode:bn.dataset.m})); }
-function pkRankPlay(opts){ opts=opts||{}; const st=pkStat();
+function pkRankPlay(opts){ if(isBannedUser()){ alert(LT('계정이 정지되어 랭크전에 참여할 수 없어요.','Your account is banned from Ranked.')); return; } opts=opts||{}; const st=pkStat();
   if(opts.exam){ const R=pkRankIdx(st)+1; PK.r={q:buildPokeExam(st,R),i:0,hit:0,exam:true,examR:R}; }
   else if(opts.placement){ PK.r={q:buildPokeMatch('silh',1200,true),i:0,hit:0,delta:0,elo0:1200,placement:true,mode:'silh'}; }
   else { const m=opts.mode||'silh', elo=pkModeElo(st,m)||0; PK.r={q:buildPokeMatch(m,elo),i:0,hit:0,delta:0,elo0:elo,mode:m}; }
@@ -12462,7 +12544,9 @@ function pkRankEnd(){ const R=PK.r, u=curUser(), st=pkStat(); if(!st){ pokeGo('h
   else if(R.placement){ const rate=R.hit/R.q.length; st.modes.silh=Math.round(720+Math.pow(rate,1.25)*1500); st.placed=true; st.rank=pkDeriveRank(st); tierUp=true; sub=LT('배치 완료!','Placed!'); }
   else { const m=R.mode||'silh', old=pkModeElo(st,m)||0, nw=Math.max(700,Math.min(PK_ELO_MAX,Math.round(old+R.delta))); st.modes[m]=nw; const d=nw-old;
     sub=LT(PK_RM_L[m].ko,PK_RM_L[m].en)+' ELO '+nw+' ('+(d>=0?'+'+d:d)+')'+(pkCanPromote(st)?LT(' · ⭐ 승급 시험 가능',' · ⭐ exam ready'):''); }
-  st.best=Math.max(st.best||0,R.hit); st.elo=pkPower(st); u.stats.pk=st; accSave(); if(typeof renderProfile==='function') renderProfile();
+  st.best=Math.max(st.best||0,R.hit); st.elo=pkPower(st); u.stats.pk=st;
+  pushRecent(u,{t:Date.now(),g:'pk',m:(R.exam?'exam':(R.placement?'place':(R.mode||'silh'))),h:R.hit,n:R.q.length,e:st.elo});
+  accSave(); if(typeof renderProfile==='function') renderProfile();
   const t=pkTierOf(st);
   pkFrame(title, '<div class="pk-stage" style="gap:6px">'
     +(tierUp?'<div class="pk-tierup">🎉 '+LT('승급!','RANK UP!')+'</div>':'')
