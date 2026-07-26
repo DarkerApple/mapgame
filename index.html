@@ -11687,10 +11687,18 @@ async function sbAdmin(fn, body){ if(!SUPA_ON) return {error:'no_cloud'}; if(!aw
     const t=await r.text(); try{ return {data:t?JSON.parse(t):null}; }catch(e){ return {data:null}; } }
   catch(e){ return {error:'network'}; } }
 let sbSaveT=null, sbDirty=false, sbPulling=false, sbHeartbeat=null;
-async function sbSaveStatsNow(){ if(!SUPA_ON||!SB.tok) return; if(!await sbFresh()) return; const u=curUser(); if(!u) return;
+// sbHydrated: have we confirmed local stats reflect the cloud (a real load, or a fresh signup)?
+// Until then we NEVER push — otherwise a transient load failure that left us with empty
+// stats would overwrite the real cloud profile on the next save (i.e. wipe the account).
+let sbHydrated=false;
+// Load the profile, retrying a few times so a transient blip isn't mistaken for "no profile".
+async function sbLoadProfileTry(tries){ tries=tries||1; let p=null;
+  for(let i=0;i<tries;i++){ if(i) await new Promise(r=>setTimeout(r,350*i)); if(!SB.tok) break; p=await sbLoadProfile(); if(p) break; }
+  return p; }
+async function sbSaveStatsNow(){ if(!SUPA_ON||!SB.tok||!sbHydrated) return; if(!await sbFresh()) return; const u=curUser(); if(!u) return;
   u.stats=u.stats||{}; u.stats.savedAt=Date.now();   // last-write-wins clock for cross-device sync
   try{ await fetch(SB.rest+'/profiles?id=eq.'+SB.uid,{method:'PATCH',headers:Object.assign(SB.hdr(true),{Prefer:'return=minimal'}),body:JSON.stringify({stats:u.stats})}); sbDirty=false; }catch(e){} }
-function sbQueueSave(){ if(!SUPA_ON||!SB.tok) return; sbDirty=true; clearTimeout(sbSaveT); sbSaveT=setTimeout(sbSaveStatsNow,1200); }
+function sbQueueSave(){ if(!SUPA_ON||!SB.tok||!sbHydrated) return; sbDirty=true; clearTimeout(sbSaveT); sbSaveT=setTimeout(sbSaveStatsNow,1200); }
 // Pull the latest profile from the cloud and adopt it if another device saved more recently.
 // Never clobbers unsaved local progress (sbDirty) or an in-progress ranked match.
 async function sbSyncPull(){ if(!SUPA_ON||!SB.tok||sbPulling||sbDirty) return; if(state.rankedActive) return;
@@ -11714,13 +11722,15 @@ async function sbLeaderboard(lim){ if(!SUPA_ON) return null;
     return await r.json(); }catch(e){ return {error:'network', missing:false}; } }
 function applyCloudProfile(p){ if(!p) return null; const key=((p.username||'me').toLowerCase())||'me';
   const st=(p.stats&&typeof p.stats==='object')?p.stats:{};
-  ACC.users={}; ACC.users[key]={name:p.username||'me', stats:st, email:p.email||null, email_verified:!!p.email_verified, is_admin:!!p.is_admin, banned:!!p.banned, cloud:true}; ACC.current=key; return key; }
+  ACC.users={}; ACC.users[key]={name:p.username||'me', stats:st, email:p.email||null, email_verified:!!p.email_verified, is_admin:!!p.is_admin, banned:!!p.banned, cloud:true}; ACC.current=key;
+  sbHydrated=true;   // local now mirrors the cloud (or a fresh signup) — safe to push from here on
+  return key; }
 function isAdminUser(){ const u=curUser(); return !!(u&&u.is_admin); }
 function isBannedUser(){ const u=curUser(); return !!(u&&u.banned); }
 function pushRecent(u, e){ if(!u||!u.stats) return; u.stats.recent=u.stats.recent||[]; u.stats.recent.unshift(e); if(u.stats.recent.length>12) u.stats.recent.length=12; }
 async function sbBootstrap(){ if(!SUPA_ON) return; SB.loadTok(); if(!SB.tok) return;
-  const p=await sbLoadProfile(); if(p){ applyCloudProfile(p); renderProfile(); } else if(!await sbFresh()){ SB.clearTok(); } }
-function doLogout(){ if(SUPA_ON){ SB.clearTok(); if(ACC.current) delete ACC.users[ACC.current]; } ACC.current=null; accSave(); }
+  const p=await sbLoadProfileTry(3); if(p){ applyCloudProfile(p); renderProfile(); } else if(!await sbFresh()){ SB.clearTok(); } }
+function doLogout(){ if(SUPA_ON){ SB.clearTok(); if(ACC.current) delete ACC.users[ACC.current]; } sbHydrated=false; ACC.current=null; accSave(); }
 if(SUPA_ON){ ACC={users:{},current:null}; }   // cloud replaces local: identity comes from the Supabase session, not localStorage
 function cloudAuthError(err){ const c=(err&&err.code)||''; const m={
   username_taken:LT('이미 있는 이름이에요 — 로그인하세요.','That name is taken — log in instead.'),
@@ -11994,7 +12004,16 @@ async function onAuthSubmit(e){
       const j=wasSignup ? await sbFn('signup',{username:name,password:pw,email:email||undefined})
                         : await sbFn('login',{username:name,password:pw});
       SB.saveTok(j.session);
-      const p=await sbLoadProfile(); applyCloudProfile(p||{username:name,stats:{}});
+      const p=await sbLoadProfileTry(wasSignup?2:4);
+      if(p){ applyCloudProfile(p); }
+      else if(wasSignup){ applyCloudProfile({username:name,stats:{}}); }   // brand-new account — empty stats are correct
+      else{
+        // Existing account, but the profile couldn't be loaded (transient error). Do NOT
+        // adopt empty stats — the next save would overwrite the real cloud data (wipe it).
+        SB.clearTok(); if(btn) btn.disabled=false;
+        authMsg(LT('프로필을 불러오지 못했어요. 연결을 확인하고 다시 시도해 주세요.','Couldn’t load your profile — check your connection and try again.'),'err');
+        return;
+      }
       renderProfile();
       if(wasSignup && email){ const u=curUser(); if(u) u._emailSent=!!j.email_sent; authView='main'; renderAuth(); }   // stay open to show the email-verify step
       else closeAuth();
@@ -12541,7 +12560,7 @@ function pkRankEnd(){ const R=PK.r, u=curUser(), st=pkStat(); if(!st){ pokeGo('h
   let tierUp=false, sub='', title=LT('랭크 결과','Ranked result');
   if(R.exam){ title=LT('승급 시험','Promotion exam'); const pass=(R.hit/Math.max(1,R.q.length))>=PK_EXAM_PASS;
     if(pass){ st.rank=Math.max(pkRankIdx(st),R.examR); tierUp=true; sub=LT('🎉 합격 — 승급!','🎉 Passed — promoted!'); } else sub=LT('불합격 — 70% 이상 필요해요','Failed — need 70%+'); }
-  else if(R.placement){ const rate=R.hit/R.q.length; st.modes.silh=Math.round(720+Math.pow(rate,1.25)*1500); st.placed=true; st.rank=pkDeriveRank(st); tierUp=true; sub=LT('배치 완료!','Placed!'); }
+  else if(R.placement){ const rate=R.hit/R.q.length; st.modes.silh=Math.round(Math.pow(rate,1.4)*950); st.placed=true; st.rank=pkDeriveRank(st); tierUp=true; sub=LT('배치 완료! 시작 등급 ','Placed! Starting rank ')+pkTierOf(st).ic; }
   else { const m=R.mode||'silh', old=pkModeElo(st,m)||0, nw=Math.max(700,Math.min(PK_ELO_MAX,Math.round(old+R.delta))); st.modes[m]=nw; const d=nw-old;
     sub=LT(PK_RM_L[m].ko,PK_RM_L[m].en)+' ELO '+nw+' ('+(d>=0?'+'+d:d)+')'+(pkCanPromote(st)?LT(' · ⭐ 승급 시험 가능',' · ⭐ exam ready'):''); }
   st.best=Math.max(st.best||0,R.hit); st.elo=pkPower(st); u.stats.pk=st;
