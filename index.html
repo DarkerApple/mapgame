@@ -1014,6 +1014,19 @@ body.pokemode .wf-globe{display:block}
 .pk-tier-glow{filter:drop-shadow(0 0 16px color-mix(in srgb,var(--target) 80%,transparent))}
 /* geography + pokémon ranked: X/N question counter */
 .rk-qcount{display:block;width:fit-content;margin:0 auto 10px;font-size:12px;font-weight:800;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:3px 13px;font-variant-numeric:tabular-nums}
+/* pokémon ranked hub: per-discipline progress + play rows */
+.pk-sec{margin:16px 0 8px;font-size:11.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.pk-mp{display:flex;align-items:center;gap:9px;font-size:12.5px;margin:6px 0}
+.pk-mp-n{width:76px;color:var(--text);font-weight:700}
+.pk-mp-bar{flex:1;height:7px;border-radius:99px;background:var(--surface3);overflow:hidden}
+.pk-mp-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--target),var(--accent));border-radius:99px;transition:width .4s}
+.pk-mp-v{font-variant-numeric:tabular-nums;color:var(--muted);min-width:66px;text-align:right}
+.pk-mrow{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:9px 13px;margin:6px 0}
+.pk-mrow-n{flex:1;font-weight:700;color:var(--text)}
+.pk-mrow-e{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.pk-mrow.locked{opacity:.55}
+.pk-mrow-go{flex:0 0 auto;background:var(--accent);color:var(--accent-ink,#0b0b0d);border:none;border-radius:9px;padding:6px 14px;font:inherit;font-weight:800;font-size:12.5px;cursor:pointer;transition:transform .12s,filter .15s}
+.pk-mrow-go:hover{filter:brightness(1.08)}.pk-mrow-go:active{transform:scale(.94)}
 @media (prefers-reduced-motion:reduce){.pk-sprite,.pk-tierbadge,.pk-card2,#poke .gcard,#poke .rank-banner,#poke .home-sec,#pk-rankbanner::after{animation:none!important}}
 /* ===== mobile: keep everything inside the screen ===== */
 .pk-sprite{max-width:100%;height:auto;aspect-ratio:1/1}
@@ -12104,8 +12117,8 @@ const PK_SECTIONS=[
 ];
 function pkRankBannerHTML(){ const u=curUser();
   if(!u) return '<span class="rb-ic">🏆</span><span class="rb-main"><span class="rb-t">'+LT('포켓몬 랭크전','Pokémon Ranked')+'</span><span class="rb-s">'+LT('로그인하고 랭크에 도전하세요','Log in to compete for rank')+'</span></span><span class="rb-go">'+LT('시작 ›','Start ›')+'</span>';
-  const st=pkStat(), placed=!!st.placed, t=pokeTier(st.elo||1200);
-  return '<span class="rb-ic">'+(placed?t.ic:'🏆')+'</span><span class="rb-main"><span class="rb-t">'+LT('포켓몬 랭크전','Pokémon Ranked')+(placed?(' · '+LT(t.ko,t.en)):'')+'</span><span class="rb-s">'+(placed?('ELO '+st.elo+' · '+LT('최고 ','best ')+(st.best||0)+'/'+POKE_RANKED_N):LT('배치고사가 필요해요','Placement needed'))+'</span></span><span class="rb-go">'+LT('입장 ›','Enter ›')+'</span>';
+  const st=pkStat(), placed=!!st.placed, t=pkTierOf(st);
+  return '<span class="rb-ic">'+(placed?t.ic:'🏆')+'</span><span class="rb-main"><span class="rb-t">'+LT('포켓몬 랭크전','Pokémon Ranked')+(placed?(' · '+LT(t.ko,t.en)):'')+'</span><span class="rb-s">'+(placed?(LT('실루엣 ','Silh ')+(pkModeElo(st,'silh')||0)+(pkCanPromote(st)?LT(' · ⭐ 승급 시험 가능',' · ⭐ exam ready'):'')):LT('배치고사가 필요해요','Placement needed'))+'</span></span><span class="rb-go">'+LT('입장 ›','Enter ›')+'</span>';
 }
 function pkHome(){ $('poke').classList.remove('playing'); const byV={}; PK_GAMES.forEach(g=>byV[g.v]=g);
   let h='<div class="home-title"><span class="wf-ball" style="width:30px;height:30px;flex:0 0 auto"></span>'+LT('포켓몬','Pokémon')+'</div>'
@@ -12339,55 +12352,97 @@ function pkWorldRound(){ if(PK.m.i>=PK.m.order.length) return pkWorldEnd(); cons
 }
 function pkWorldEnd(){ pkFrame(LT('전체 지역','World Regions'), '<div class="pk-stage"><div style="font-size:52px">🌍</div><div class="pk-feed ok" style="font-size:19px">'+LT('점수 ','Score ')+'<b>'+PK.m.score+'/'+POKE_REGIONS_MAP.length+'</b></div><button class="pk-morebtn" id="pk-magain">‹ '+LT('지역 선택','Pick a region')+'</button></div>',{}); $('pk-magain').onclick=()=>pokeGo('map'); }
 
-/* — Pokémon Ranked (simple: placement → ELO → RANK_MAIN tiers; saved to cloud) — */
-const POKE_ELO_MAX=2600, POKE_RANKED_N=8, POKE_TIER_TH=[0,1150,1350,1550,1750,1950,2150,2350];
+/* — Pokémon Ranked (sophisticated: per-discipline ELO · tiers · requirements · promotion exams) — */
+const PK_ELO_MAX=2400, PK_RANKED_N=8, PK_EXAM_PASS=0.7;
+const PK_RM=[{k:'silh',ko:'실루엣',en:'Silhouette'},{k:'type',ko:'타입',en:'Type'},{k:'evo',ko:'진화',en:'Evolution'},{k:'trait',ko:'도감 추리',en:'Dex Clue'}];
+const PK_RM_L={}; PK_RM.forEach(x=>PK_RM_L[x.k]=x);
+// per-discipline ELO needed to promote INTO each rank (Silhouette first; harder disciplines join later)
+const PK_RANK_REQ=[{},{silh:200},{silh:400},{silh:800,type:50},{silh:1200,type:400,evo:120},{silh:1500,type:800,evo:450,trait:120},{silh:1800,type:1150,evo:800,trait:450},{silh:2050,type:1450,evo:1100,trait:800}];
+const TYPE_LOOK=new Map(); TYPE_LIST.forEach(k=>{ TYPE_LOOK.set(norm(k),k); TYPE_LOOK.set(norm(TYPE_META[k].ko),k); });
+function pkTypeResolve(v){ return TYPE_LOOK.get(norm(v))||null; }
 function pokeDiff(p){ let d=900+(p.g-1)*95+((p.id*37)%140); if(p.leg||p.myth) d-=110; if(p.id<=151) d-=60; return Math.max(700,Math.min(2450,d)); }
-function pokeTierIdx(elo){ let i=0; for(let k=0;k<POKE_TIER_TH.length;k++) if(elo>=POKE_TIER_TH[k]) i=k; return i; }
-function pokeTier(elo){ return RANK_MAIN[Math.min(RANK_MAIN.length-1,pokeTierIdx(elo))]; }
-function pkStat(){ const u=curUser(); if(!u) return null; u.stats=u.stats||{}; u.stats.pk=u.stats.pk||{elo:0,placed:false,best:0}; return u.stats.pk; }
-function buildPokeMatch(placement){ POKE.forEach(p=>{ if(p._pd==null) p._pd=pokeDiff(p); });
-  if(placement){ const sorted=POKE.slice().sort((a,b)=>a._pd-b._pd), n=sorted.length, out=[];
-    for(let i=0;i<POKE_RANKED_N;i++){ const lo=Math.floor(i/POKE_RANKED_N*n), hi=Math.min(n-1,Math.floor((i+1)/POKE_RANKED_N*n)); out.push(sorted[lo+Math.floor(Math.random()*Math.max(1,hi-lo))]); } return out; }
-  const elo=(pkStat()&&pkStat().elo)||1200, near=POKE.slice().sort((a,b)=>Math.abs(a._pd-elo)-Math.abs(b._pd-elo)).slice(0,44); return psample(near,POKE_RANKED_N); }
+function pkStat(){ const u=curUser(); if(!u) return null; u.stats=u.stats||{}; let pk=u.stats.pk;
+  if(!pk){ pk=u.stats.pk={modes:{},rank:0,placed:false,best:0}; }
+  if(!pk.modes){ pk.modes = (pk.elo? {silh:pk.elo} : {}); }              // migrate old single-ELO ranked
+  if(pk.rank==null) pk.rank = pk.placed? pkDeriveRank(pk) : 0;
+  return pk; }
+function pkModeElo(st,m){ return (st&&st.modes&&st.modes[m]!=null)?st.modes[m]:null; }
+function pkRankIdx(st){ return Math.max(0,Math.min(RANK_MAIN.length-1,(st&&st.rank)||0)); }
+function pkTierOf(st){ return RANK_MAIN[pkRankIdx(st)]; }
+function pkModeUnlocked(st,m){ if(pkModeElo(st,m)!=null) return true; const nxt=PK_RANK_REQ[Math.min(pkRankIdx(st)+1,PK_RANK_REQ.length-1)]||{}; return Object.prototype.hasOwnProperty.call(nxt,m); }
+function pkReqMet(st,R){ const req=PK_RANK_REQ[R]||{}; return Object.keys(req).every(m=>(pkModeElo(st,m)||0)>=req[m]); }
+function pkCanPromote(st){ const r=pkRankIdx(st); return r<RANK_MAIN.length-1 && pkReqMet(st,r+1); }
+function pkDeriveRank(st){ let r=0; for(let R=1;R<PK_RANK_REQ.length;R++){ if(pkReqMet(st,R)) r=R; else break; } return r; }
+function pkPower(st){ return pkRankIdx(st)*100000 + PK_RM.reduce((s,x)=>s+(pkModeElo(st,x.k)||0),0); }
+function pkModePool(m){ if(m==='evo') return POKE_EVOLVERS; return POKE; }
+function buildPokeMatch(mode, elo, placement){ const pool=pkModePool(mode); pool.forEach(p=>{ if(p._pd==null) p._pd=pokeDiff(p); }); let picks;
+  if(placement){ const sorted=pool.slice().sort((a,b)=>a._pd-b._pd), n=sorted.length; picks=[]; for(let i=0;i<PK_RANKED_N;i++){ const lo=Math.floor(i/PK_RANKED_N*n), hi=Math.min(n-1,Math.floor((i+1)/PK_RANKED_N*n)); picks.push(sorted[lo+Math.floor(Math.random()*Math.max(1,hi-lo))]); } }
+  else { const near=pool.slice().sort((a,b)=>Math.abs(a._pd-elo)-Math.abs(b._pd-elo)).slice(0,44); picks=psample(near,PK_RANKED_N); }
+  return picks.map(p=>({p,base:mode})); }
+function buildPokeExam(st,R){ const req=PK_RANK_REQ[R]||{}, modes=Object.keys(req); if(!modes.length) return [];
+  const per=Math.max(2,Math.ceil(PK_RANKED_N/modes.length)), out=[];
+  modes.forEach(m=>{ const pool=pkModePool(m); pool.forEach(p=>{ if(p._pd==null) p._pd=pokeDiff(p); }); const near=pool.slice().sort((a,b)=>Math.abs(a._pd-req[m])-Math.abs(b._pd-req[m])).slice(0,30); psample(near,per).forEach(p=>out.push({p,base:m})); });
+  return psample(out,out.length); }
 function pkRankStart(){ const u=curUser();
   if(!u){ pkFrame(LT('포켓몬 랭크전','Pokémon Ranked'), '<div class="pk-stage"><div style="font-size:48px">🏆</div><div class="pk-feed">'+LT('로그인해야 랭크가 저장돼요.','Log in to save your rank.')+'</div><button class="pk-rankbtn" id="pk-rlogin">'+LT('로그인','Log in')+'</button></div>',{});
     const lg=$('pk-rlogin'); if(lg) lg.onclick=()=>{ pokeClose(); if(typeof openAuth==='function') openAuth(); }; return; }
-  const st=pkStat(), placed=!!st.placed, tier=pokeTier(st.elo||1200), ni=pokeTierIdx(st.elo||1200)+1, next=(placed&&ni<POKE_TIER_TH.length)?POKE_TIER_TH[ni]:null;
-  pkFrame(LT('포켓몬 랭크전','Pokémon Ranked'),
-    '<div class="pk-stage" style="min-height:auto;gap:5px"><div class="pk-tierbadge">'+(placed?tier.ic:'❓')+'</div>'
-    +'<div style="font-size:22px;font-weight:900;color:#fff">'+(placed?LT(tier.ko,tier.en):LT('미배치','Unplaced'))+'</div>'
-    +(placed?'<div class="pk-elo">ELO '+st.elo+(next!=null?(' · '+LT('다음 등급까지 ','next in ')+Math.max(0,next-st.elo)):'')+'</div>':'')
-    +(st.best?'<div class="pk-elo">'+LT('최고 ','Best ')+st.best+'/'+POKE_RANKED_N+'</div>':'')+'</div>'
-    +(placed?'<button class="pk-rankbtn" id="pk-rplay">▶ '+LT('랭크 시작','Play ranked')+'</button>':'<button class="pk-rankbtn" id="pk-rplace">🎯 '+LT('배치고사 보기','Take placement')+'</button>')
-    +'<div class="pk-note" style="text-align:center;margin-top:12px">'+LT('실루엣 '+POKE_RANKED_N+'문제 · 정확한 이름 · 기회 2번 · 결과는 클라우드에 저장돼요','8 silhouettes · exact names · 2 tries · saved to the cloud')+'</div>', {});
-  const a=$('pk-rplay'); if(a) a.onclick=()=>pkRankPlay(false); const b=$('pk-rplace'); if(b) b.onclick=()=>pkRankPlay(true); }
-function pkRankPlay(placement){ PK.r={q:buildPokeMatch(placement),i:0,hit:0,delta:0,elo0:(placement?1200:((pkStat()&&pkStat().elo)||1200)),placement}; pkRankNext(); }
-function pkRankNext(){ const R=PK.r; if(R.i>=R.q.length) return pkRankEnd(); const p=R.q[R.i]; R.cur=p; R.tries=0;
-  pkFrame(LT('포켓몬 랭크전','Pokémon Ranked')+(R.placement?' · '+LT('배치','Placement'):''),
-    pkHud([[LT('문제','Q'),(R.i+1)+'/'+R.q.length],[LT('점수','Score'),R.hit]])
-    +'<div class="pk-stage"><div class="pk-silbox"><img id="pk-img" class="pk-sprite is-silh" src="'+PART(p.id)+'" onerror="this.onerror=null;this.src=\''+PSPRITE(p.id)+'\'"></div></div>'
-    +'<div style="text-align:center;font-size:12px;color:#9fb2cf">'+LT('실루엣의 이름을 정확히 · 기회 2번','type the exact name · 2 tries')+'</div>'+pkGuessBox(), {});
-  pkBind(pkRankGuess); }
-function pkRankGuess(v){ if(!v.trim()) return; const R=PK.r,p=R.cur,g=pokeResolve(v), i=$('pk-in');
-  if(g&&g.id===p.id){ R.hit++; R.delta+=ELO_K*(1-expectedScore(p._pd,R.elo0)); const im=$('pk-img'); if(im) im.classList.remove('is-silh'); celebrate(true, PNM(p)); pkFeed('✅ '+PNM(p),'ok'); if(i) i.disabled=true; R.i++; PK.timer=setTimeout(pkRankNext,950); }
-  else { R.tries++; if(R.tries>=2){ R.delta+=ELO_K*(0-expectedScore(p._pd,R.elo0)); const im=$('pk-img'); if(im) im.classList.remove('is-silh'); celebrate(false, PNM(p)); pkFeed('➡️ '+PNM(p),'no'); if(i) i.disabled=true; R.i++; PK.timer=setTimeout(pkRankNext,1350); } else { if(i) i.value=''; pkFeed(LT('아니에요 — 한 번 더!','Nope — one more!'),'no'); } }
-}
-function pkRankEnd(){ const R=PK.r, u=curUser(), st=pkStat(); if(!st){ pokeGo('home'); return; }
-  const wasPlaced=!!st.placed, oldTierIdx=wasPlaced?pokeTierIdx(st.elo||1200):-1;
-  if(R.placement){ const rate=R.hit/R.q.length; st.elo=Math.round(720+Math.pow(rate,1.25)*1500); st.placed=true; }
-  else { st.elo=Math.max(700,Math.min(POKE_ELO_MAX,Math.round((st.elo||1200)+R.delta))); }
-  st.best=Math.max(st.best||0,R.hit); u.stats.pk=st; accSave(); if(typeof renderProfile==='function') renderProfile();
-  const tier=pokeTier(st.elo), newTierIdx=pokeTierIdx(st.elo), dl=Math.round(R.delta), tierUp=(!wasPlaced)||newTierIdx>oldTierIdx;
-  pkFrame(LT('랭크 결과','Ranked result'),
-    '<div class="pk-stage" style="gap:6px">'
+  const st=pkStat(), placed=!!st.placed, r=pkRankIdx(st), t=pkTierOf(st), nextR=(r+1<RANK_MAIN.length)?r+1:null, req=nextR!=null?(PK_RANK_REQ[nextR]||{}):{};
+  const reqBars = nextR!=null? Object.keys(req).map(m=>{ const cur=pkModeElo(st,m)||0, need=req[m], pct=Math.round(Math.min(cur,need)/Math.max(1,need)*100), ok=cur>=need;
+      return '<div class="pk-mp"><span class="pk-mp-n">'+LT(PK_RM_L[m].ko,PK_RM_L[m].en)+(ok?' ✓':'')+'</span><span class="pk-mp-bar"><i style="width:'+pct+'%"></i></span><span class="pk-mp-v">'+cur+'/'+need+'</span></div>'; }).join('') : '';
+  const modeRows = PK_RM.map(m=>{ const unl=pkModeUnlocked(st,m.k), cur=pkModeElo(st,m.k);
+    if(!unl){ let atR=null; for(let R=1;R<PK_RANK_REQ.length;R++){ if(PK_RANK_REQ[R][m.k]!=null){ atR=R; break; } } const uAt=atR!=null?RANK_MAIN[Math.max(0,atR-1)]:RANK_MAIN[0];
+      return '<div class="pk-mrow locked"><span class="pk-mrow-n">🔒 '+LT(m.ko,m.en)+'</span><span class="pk-mrow-e">'+LT(uAt.ko+' 부근 해금',uAt.en+'+ unlocks')+'</span></div>'; }
+    return '<div class="pk-mrow"><span class="pk-mrow-n">'+LT(m.ko,m.en)+'</span><span class="pk-mrow-e">ELO '+(cur!=null?cur:0)+'</span><button class="pk-mrow-go" data-m="'+m.k+'">'+LT('플레이','Play')+'</button></div>'; }).join('');
+  const body='<div class="pk-stage" style="min-height:auto;gap:4px;margin-bottom:4px"><div class="pk-tierbadge">'+(placed?t.ic:'❓')+'</div>'
+    +'<div style="font-size:22px;font-weight:900;color:var(--text)">'+(placed?LT(t.ko,t.en):LT('미배치','Unplaced'))+'</div>'
+    +'<div class="pk-elo">'+(placed?(LT('실루엣 ELO ','Silhouette ELO ')+(pkModeElo(st,'silh')||0)):LT('배치고사가 필요해요','Placement needed'))+'</div></div>'
+    +(!placed? '<button class="pk-rankbtn" id="pk-rplace">🎯 '+LT('배치고사 보기 · 실루엣 '+PK_RANKED_N+'문제','Placement · '+PK_RANKED_N+' silhouettes')+'</button>'
+      : (nextR!=null? ('<div class="pk-sec">'+LT('다음 등급 ','Next ')+RANK_MAIN[nextR].ic+' '+LT(RANK_MAIN[nextR].ko,RANK_MAIN[nextR].en)+LT(' 승급 조건',' requirements')+'</div>'+reqBars
+          +(pkCanPromote(st)?'<button class="pk-rankbtn" id="pk-rexam" style="margin-top:10px">⭐ '+LT('승급 시험 보기','Take promotion exam')+'</button>':'<div class="pk-note" style="text-align:center;margin:8px 0 0">'+LT('조건을 모두 채우면 승급 시험이 열려요.','Fill every bar to unlock the exam.')+'</div>')) : '<div class="pk-sec">'+LT('최고 등급 달성','Max rank reached')+'</div>'))
+    +(placed? ('<div class="pk-sec">'+LT('종목별 랭크 (플레이해서 ELO 올리기)','Play a discipline to raise its ELO')+'</div>'+modeRows):'')
+    +'<div class="pk-note" style="text-align:center;margin-top:10px">'+LT('· 종목마다 ELO가 따로 올라요 · 어려운 종목은 상위 등급에서 열려요<br>· 승급하려면 필요한 ELO를 채우고 승급 시험에 합격 · 클라우드 저장','· Each discipline has its own ELO · harder ones unlock higher up<br>· Promote by meeting the ELOs and passing the exam · saved to the cloud')+'</div>';
+  pkFrame(LT('포켓몬 랭크전','Pokémon Ranked'), body, {});
+  const pl=$('pk-rplace'); if(pl) pl.onclick=()=>pkRankPlay({placement:true});
+  const ex=$('pk-rexam'); if(ex) ex.onclick=()=>pkRankPlay({exam:true});
+  $('pk-play').querySelectorAll('.pk-mrow-go').forEach(bn=>bn.onclick=()=>pkRankPlay({mode:bn.dataset.m})); }
+function pkRankPlay(opts){ opts=opts||{}; const st=pkStat();
+  if(opts.exam){ const R=pkRankIdx(st)+1; PK.r={q:buildPokeExam(st,R),i:0,hit:0,exam:true,examR:R}; }
+  else if(opts.placement){ PK.r={q:buildPokeMatch('silh',1200,true),i:0,hit:0,delta:0,elo0:1200,placement:true,mode:'silh'}; }
+  else { const m=opts.mode||'silh', elo=pkModeElo(st,m)||0; PK.r={q:buildPokeMatch(m,elo),i:0,hit:0,delta:0,elo0:elo,mode:m}; }
+  pkRankNext(); }
+function pkRankNext(){ const R=PK.r; if(R.i>=R.q.length) return pkRankEnd(); R.cur=R.q[R.i]; R.tries=0; pkRankRenderQ(R.cur.base,R.cur.p); pkBind(pkRankGuess); }
+function pkRankRenderQ(base,p){ const R=PK.r, sub=(ko,en)=>'<div style="text-align:center;font-size:12px;color:var(--muted);margin-top:6px">'+LT(ko,en)+'</div>';
+  const title=LT('포켓몬 랭크전','Pokémon Ranked')+(R.exam?' · '+LT('승급 시험','Promo Exam'):(R.placement?' · '+LT('배치','Placement'):' · '+LT(PK_RM_L[base].ko,PK_RM_L[base].en)));
+  let stage='';
+  if(base==='silh') stage='<div class="pk-silbox"><img id="pk-img" class="pk-sprite is-silh" src="'+PART(p.id)+'" onerror="this.onerror=null;this.src=\''+PSPRITE(p.id)+'\'"></div>'+sub('실루엣의 이름을 정확히 · 기회 2번','name the silhouette exactly · 2 tries');
+  else if(base==='type') stage=pkImg(p.id,'pk-sprite small')+'<div style="font-size:18px;font-weight:900;color:var(--text)">'+PNM(p)+'</div>'+sub('이 포켓몬의 타입을 입력 (예: 불꽃)','type its type (e.g. Fire)');
+  else if(base==='evo') stage=pkImg(p.id,'pk-sprite small')+'<div style="font-size:24px;color:var(--target)">↓ ?</div>'+sub('<b>'+PNM(p)+'</b>의 진화형 이름','name what <b>'+PNM(p)+'</b> evolves into');
+  else stage='<div class="pk-clues">'+pkHintClues(p).slice(0,3).map(c=>'<div class="pk-clue">🔎 '+c+'</div>').join('')+'</div>'+sub('설명에 맞는 포켓몬 이름','name the Pokémon that fits');
+  pkFrame(title, pkHud([[LT('문제','Q'),(R.i+1)+'/'+R.q.length],[LT('점수','Score'),R.hit]])+'<div class="pk-stage">'+stage+'</div>'+pkGuessBox(base==='type'?LT('타입 입력…','type a type…'):undefined), {}); }
+function pkRankCheck(base,p,v){ if(base==='type'){ const k=pkTypeResolve(v); return !!(k&&p.t.indexOf(k)>=0); } const g=pokeResolve(v); if(base==='evo') return !!(g&&p.to&&p.to.indexOf(g.id)>=0); return !!(g&&g.id===p.id); }
+function pkAnsLabel(base,p){ if(base==='type') return PNM(p)+' · '+p.t.map(typeLabel).join('/'); if(base==='evo') return PNM(p)+' → '+(p.to||[]).map(id=>PNM(POKE_BY_ID[id])).filter(Boolean).join(', '); return '#'+p.id+' '+PNM(p); }
+function pkRankGuess(v){ if(!v.trim()) return; const R=PK.r, it=R.cur, p=it.p, base=it.base, i=$('pk-in'); const ok=pkRankCheck(base,p,v);
+  const reveal=()=>{ const im=$('pk-img'); if(im) im.classList.remove('is-silh'); };
+  if(ok){ R.hit++; if(!R.exam) R.delta+=ELO_K*(1-expectedScore(p._pd,R.elo0)); reveal(); celebrate(true,PNM(p)); pkFeed('✅ '+pkAnsLabel(base,p),'ok'); if(i) i.disabled=true; R.i++; PK.timer=setTimeout(pkRankNext,950); }
+  else { R.tries++; if(R.tries>=2){ if(!R.exam) R.delta+=ELO_K*(0-expectedScore(p._pd,R.elo0)); reveal(); celebrate(false,PNM(p)); pkFeed('➡️ '+pkAnsLabel(base,p),'no'); if(i) i.disabled=true; R.i++; PK.timer=setTimeout(pkRankNext,1350); } else { if(i) i.value=''; pkFeed(LT('아니에요 — 한 번 더!','Nope — one more!'),'no'); } } }
+function pkRankEnd(){ const R=PK.r, u=curUser(), st=pkStat(); if(!st){ pokeGo('home'); return; } st.modes=st.modes||{};
+  let tierUp=false, sub='', title=LT('랭크 결과','Ranked result');
+  if(R.exam){ title=LT('승급 시험','Promotion exam'); const pass=(R.hit/Math.max(1,R.q.length))>=PK_EXAM_PASS;
+    if(pass){ st.rank=Math.max(pkRankIdx(st),R.examR); tierUp=true; sub=LT('🎉 합격 — 승급!','🎉 Passed — promoted!'); } else sub=LT('불합격 — 70% 이상 필요해요','Failed — need 70%+'); }
+  else if(R.placement){ const rate=R.hit/R.q.length; st.modes.silh=Math.round(720+Math.pow(rate,1.25)*1500); st.placed=true; st.rank=pkDeriveRank(st); tierUp=true; sub=LT('배치 완료!','Placed!'); }
+  else { const m=R.mode||'silh', old=pkModeElo(st,m)||0, nw=Math.max(700,Math.min(PK_ELO_MAX,Math.round(old+R.delta))); st.modes[m]=nw; const d=nw-old;
+    sub=LT(PK_RM_L[m].ko,PK_RM_L[m].en)+' ELO '+nw+' ('+(d>=0?'+'+d:d)+')'+(pkCanPromote(st)?LT(' · ⭐ 승급 시험 가능',' · ⭐ exam ready'):''); }
+  st.best=Math.max(st.best||0,R.hit); st.elo=pkPower(st); u.stats.pk=st; accSave(); if(typeof renderProfile==='function') renderProfile();
+  const t=pkTierOf(st);
+  pkFrame(title, '<div class="pk-stage" style="gap:6px">'
     +(tierUp?'<div class="pk-tierup">🎉 '+LT('승급!','RANK UP!')+'</div>':'')
-    +'<div class="pk-tierbadge'+(tierUp?' pk-tier-glow':'')+'">'+tier.ic+'</div>'
-    +'<div style="font-size:20px;font-weight:900;color:var(--text)">'+LT(tier.ko,tier.en)+'</div>'
+    +'<div class="pk-tierbadge'+(tierUp?' pk-tier-glow':'')+'">'+t.ic+'</div>'
+    +'<div style="font-size:20px;font-weight:900;color:var(--text)">'+LT(t.ko,t.en)+'</div>'
     +'<div class="pk-feed ok" style="font-size:22px;margin:0">'+R.hit+' / '+R.q.length+'</div>'
-    +'<div class="pk-elo">ELO '+st.elo+(R.placement?(' · '+LT('배치 완료','placed!')):(dl>=0?' (+'+dl+')':' ('+dl+')'))+'</div></div>'
-    +'<button class="pk-rankbtn" id="pk-ragain">'+LT('한 번 더','Play again')+'</button><button class="pk-rankbtn ghost" id="pk-rhub">'+LT('랭크 홈','Ranked home')+'</button>',{});
-  celebrate(true, tierUp?LT(tier.ko,tier.en):(R.hit+' / '+R.q.length));
-  $('pk-ragain').onclick=()=>pkRankPlay(false); $('pk-rhub').onclick=()=>pkRankStart(); }
+    +'<div class="pk-elo">'+sub+'</div></div>'
+    +'<button class="pk-rankbtn" id="pk-rhub">'+LT('랭크 홈','Ranked home')+'</button>', {});
+  celebrate(true, tierUp?LT(t.ko,t.en):(R.hit+' / '+R.q.length));
+  $('pk-rhub').onclick=()=>pkRankStart(); }
 
 /* — Type Match — */
 function pkTypeStart(){ PK.ty={score:0,seen:0}; pkTypeNext(); }
