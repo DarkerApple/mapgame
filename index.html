@@ -11677,8 +11677,15 @@ async function sbRefresh(){ if(!SB.tok||!SB.tok.refresh_token) return false;
   try{ const r=await fetch(SB.url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:SB.anon,'content-type':'application/json'},body:JSON.stringify({refresh_token:SB.tok.refresh_token})});
     if(!r.ok) return false; const j=await r.json(); if(!j.access_token) return false; SB.saveTok({access_token:j.access_token,refresh_token:j.refresh_token||SB.tok.refresh_token}); return true; }catch(e){ return false; } }
 async function sbFresh(){ if(!SB.tok) return false; if(jwtExpired(SB.tok.access_token)) return await sbRefresh(); return true; }
+// The moderation columns (is_admin, banned) only exist once 0003_admin.sql is applied.
+// Login + session restore must NOT depend on them: if the full select 400s because the
+// columns are missing, fall back to the base columns for the rest of the session.
+let sbProfileCols='username,email,email_verified,stats,is_admin,banned';
 async function sbLoadProfile(){ if(!await sbFresh()) return null;
-  try{ const r=await fetch(SB.rest+'/profiles?id=eq.'+SB.uid+'&select=username,email,email_verified,stats,is_admin,banned',{headers:SB.hdr(true)});
+  try{ let r=await fetch(SB.rest+'/profiles?id=eq.'+SB.uid+'&select='+sbProfileCols,{headers:SB.hdr(true)});
+    if(!r.ok && sbProfileCols.indexOf('is_admin')>=0){         // columns absent → drop them and retry
+      sbProfileCols='username,email,email_verified,stats';
+      r=await fetch(SB.rest+'/profiles?id=eq.'+SB.uid+'&select='+sbProfileCols,{headers:SB.hdr(true)}); }
     if(!r.ok) return null; const rows=await r.json(); return (rows&&rows[0])||null; }catch(e){ return null; } }
 // authed admin RPC (server enforces is_admin — client is never trusted with moderation)
 async function sbAdmin(fn, body){ if(!SUPA_ON) return {error:'no_cloud'}; if(!await sbFresh()) return {error:'auth'};
