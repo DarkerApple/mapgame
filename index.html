@@ -158,7 +158,7 @@ select#region:focus{outline:none;border-color:var(--border2)}
 #feedback.no{color:var(--bad)}
 #feedback.info{color:var(--muted);font-weight:500;font-size:13.5px}
 /* big satisfying "correct" burst */
-#burst{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);z-index:24;pointer-events:none;
+#burst{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);z-index:86;pointer-events:none;
   display:none;flex-direction:column;align-items:center;gap:8px}
 #burst.show{display:flex;animation:burstPop .9s cubic-bezier(.2,.9,.3,1.3) forwards}
 #burst .bic{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;
@@ -917,11 +917,11 @@ body.pokemode .wf-globe{display:block}
 .pk-silbox .pk-sprite{filter:drop-shadow(0 4px 8px rgba(0,0,0,.25))}
 .pk-silbox .pk-sprite.is-silh{filter:brightness(0)}
 .pk-sprite.small{width:120px;height:120px}
-.pk-inrow{display:flex;gap:8px;max-width:420px;margin:14px auto 0}
-.pk-in{flex:1;background:var(--surface2);border:1.5px solid var(--border2);border-radius:12px;padding:13px 15px;font:inherit;font-size:16px;color:var(--text)}
+.pk-inrow{display:flex;gap:8px;max-width:420px;width:100%;margin:14px auto 0;box-sizing:border-box}
+.pk-in{flex:1 1 0;min-width:0;background:var(--surface2);border:1.5px solid var(--border2);border-radius:12px;padding:13px 15px;font:inherit;font-size:16px;color:var(--text)}
 .pk-in:focus{outline:none;border-color:var(--accent)}
 .pk-in::placeholder{color:var(--faint)}
-.pk-gobtn{background:var(--accent);border:none;color:var(--accent-ink,#0b0b0d);border-radius:12px;padding:0 18px;font-size:17px;font-weight:900;cursor:pointer}
+.pk-gobtn{flex:0 0 auto;background:var(--accent);border:none;color:var(--accent-ink,#0b0b0d);border-radius:12px;width:52px;font-size:17px;font-weight:900;cursor:pointer}
 .pk-feed{text-align:center;font-size:15px;margin-top:12px;min-height:26px;color:var(--muted)}
 .pk-feed.ok{color:var(--found)}.pk-feed.no{color:#e5533d}
 .pk-type{display:inline-block;color:#fff;font-size:11px;font-weight:800;padding:2px 10px;border-radius:999px;margin:0 2px;letter-spacing:.01em;text-shadow:0 1px 2px rgba(0,0,0,.6);box-shadow:inset 0 0 0 1px rgba(0,0,0,.22),0 1px 3px rgba(0,0,0,.2)}
@@ -1010,6 +1010,10 @@ body.pokemode .wf-globe{display:block}
 @keyframes pk-sheen{0%,62%{left:-60%}100%{left:135%}}
 @keyframes pk-feed-pop{from{transform:scale(.92);opacity:.5}to{transform:scale(1);opacity:1}}
 .pk-feed.ok,.pk-feed.no{animation:pk-feed-pop .2s ease}
+.pk-tierup{font-size:15px;font-weight:900;letter-spacing:.08em;color:var(--target);animation:pk-feed-pop .35s ease}
+.pk-tier-glow{filter:drop-shadow(0 0 16px color-mix(in srgb,var(--target) 80%,transparent))}
+/* geography + pokémon ranked: X/N question counter */
+.rk-qcount{display:block;width:fit-content;margin:0 auto 10px;font-size:12px;font-weight:800;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:3px 13px;font-variant-numeric:tabular-nums}
 @media (prefers-reduced-motion:reduce){.pk-sprite,.pk-tierbadge,.pk-card2,#poke .gcard,#poke .rank-banner,#poke .home-sec,#pk-rankbanner::after{animation:none!important}}
 /* ===== mobile: keep everything inside the screen ===== */
 .pk-sprite{max-width:100%;height:auto;aspect-ratio:1/1}
@@ -4043,6 +4047,7 @@ function rankedShowQuestion(){
   if(state.rankedItem.fun) rankedRenderFun(state.rankedItem.fun);
   else if(state.rankedItem.sym) rankedRenderSym(state.rankedItem.sym);
   else rankedRenderQ(state.rankedItem.base||'quiz', state.rankedItem.entry);
+  if(el.prompt) el.prompt.insertAdjacentHTML('afterbegin','<div class="rk-qcount">'+LT('문제 ','Q ')+(state.rankedIdx+1)+' / '+state.rankedQueue.length+'</div>');
   el.q.value=''; state.rankedTries=0; state.rankedQEnd=perfNow()+RANKED_QTIME*1000; state.rankedAwaiting=true; startRankedTimer();
 }
 const RANKED_MAX_TRIES=2;   // only two chances per ranked question
@@ -12364,18 +12369,24 @@ function pkRankNext(){ const R=PK.r; if(R.i>=R.q.length) return pkRankEnd(); con
     +'<div style="text-align:center;font-size:12px;color:#9fb2cf">'+LT('실루엣의 이름을 정확히 · 기회 2번','type the exact name · 2 tries')+'</div>'+pkGuessBox(), {});
   pkBind(pkRankGuess); }
 function pkRankGuess(v){ if(!v.trim()) return; const R=PK.r,p=R.cur,g=pokeResolve(v), i=$('pk-in');
-  if(g&&g.id===p.id){ R.hit++; R.delta+=ELO_K*(1-expectedScore(p._pd,R.elo0)); const im=$('pk-img'); if(im) im.classList.remove('is-silh'); pkFeed('✅ '+PNM(p),'ok'); if(i) i.disabled=true; R.i++; PK.timer=setTimeout(pkRankNext,900); }
-  else { R.tries++; if(R.tries>=2){ R.delta+=ELO_K*(0-expectedScore(p._pd,R.elo0)); const im=$('pk-img'); if(im) im.classList.remove('is-silh'); pkFeed('➡️ '+PNM(p),'no'); if(i) i.disabled=true; R.i++; PK.timer=setTimeout(pkRankNext,1300); } else { if(i) i.value=''; pkFeed(LT('아니에요 — 한 번 더!','Nope — one more!'),'no'); } }
+  if(g&&g.id===p.id){ R.hit++; R.delta+=ELO_K*(1-expectedScore(p._pd,R.elo0)); const im=$('pk-img'); if(im) im.classList.remove('is-silh'); celebrate(true, PNM(p)); pkFeed('✅ '+PNM(p),'ok'); if(i) i.disabled=true; R.i++; PK.timer=setTimeout(pkRankNext,950); }
+  else { R.tries++; if(R.tries>=2){ R.delta+=ELO_K*(0-expectedScore(p._pd,R.elo0)); const im=$('pk-img'); if(im) im.classList.remove('is-silh'); celebrate(false, PNM(p)); pkFeed('➡️ '+PNM(p),'no'); if(i) i.disabled=true; R.i++; PK.timer=setTimeout(pkRankNext,1350); } else { if(i) i.value=''; pkFeed(LT('아니에요 — 한 번 더!','Nope — one more!'),'no'); } }
 }
 function pkRankEnd(){ const R=PK.r, u=curUser(), st=pkStat(); if(!st){ pokeGo('home'); return; }
+  const wasPlaced=!!st.placed, oldTierIdx=wasPlaced?pokeTierIdx(st.elo||1200):-1;
   if(R.placement){ const rate=R.hit/R.q.length; st.elo=Math.round(720+Math.pow(rate,1.25)*1500); st.placed=true; }
   else { st.elo=Math.max(700,Math.min(POKE_ELO_MAX,Math.round((st.elo||1200)+R.delta))); }
   st.best=Math.max(st.best||0,R.hit); u.stats.pk=st; accSave(); if(typeof renderProfile==='function') renderProfile();
-  const tier=pokeTier(st.elo), dl=Math.round(R.delta);
+  const tier=pokeTier(st.elo), newTierIdx=pokeTierIdx(st.elo), dl=Math.round(R.delta), tierUp=(!wasPlaced)||newTierIdx>oldTierIdx;
   pkFrame(LT('랭크 결과','Ranked result'),
-    '<div class="pk-stage" style="gap:5px"><div class="pk-tierbadge">'+tier.ic+'</div><div class="pk-feed ok" style="font-size:22px">'+R.hit+' / '+R.q.length+'</div>'
-    +'<div style="font-size:18px;font-weight:900;color:#fff">'+LT(tier.ko,tier.en)+'</div><div class="pk-elo">ELO '+st.elo+(R.placement?(' · '+LT('배치 완료','placed!')):(dl>=0?' (+'+dl+')':' ('+dl+')'))+'</div></div>'
+    '<div class="pk-stage" style="gap:6px">'
+    +(tierUp?'<div class="pk-tierup">🎉 '+LT('승급!','RANK UP!')+'</div>':'')
+    +'<div class="pk-tierbadge'+(tierUp?' pk-tier-glow':'')+'">'+tier.ic+'</div>'
+    +'<div style="font-size:20px;font-weight:900;color:var(--text)">'+LT(tier.ko,tier.en)+'</div>'
+    +'<div class="pk-feed ok" style="font-size:22px;margin:0">'+R.hit+' / '+R.q.length+'</div>'
+    +'<div class="pk-elo">ELO '+st.elo+(R.placement?(' · '+LT('배치 완료','placed!')):(dl>=0?' (+'+dl+')':' ('+dl+')'))+'</div></div>'
     +'<button class="pk-rankbtn" id="pk-ragain">'+LT('한 번 더','Play again')+'</button><button class="pk-rankbtn ghost" id="pk-rhub">'+LT('랭크 홈','Ranked home')+'</button>',{});
+  celebrate(true, tierUp?LT(tier.ko,tier.en):(R.hit+' / '+R.q.length));
   $('pk-ragain').onclick=()=>pkRankPlay(false); $('pk-rhub').onclick=()=>pkRankStart(); }
 
 /* — Type Match — */
