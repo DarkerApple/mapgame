@@ -1080,7 +1080,11 @@ html[data-theme="light"]{ --kb-panel:#d1d4db; --kb-key:#ffffff; --kb-key2:#aeb4b
   transform:translateY(115%); transition:transform .22s cubic-bezier(.32,.9,.3,1); user-select:none; -webkit-user-select:none; touch-action:none; -webkit-tap-highlight-color:transparent;
   font-family:var(--font); }
 #kbd.show{ transform:translateY(0); }
+#kbd *{ touch-action:none; -webkit-user-select:none; user-select:none; }   /* stop double-tap-to-zoom on fast taps */
 .kb-bar{ display:flex; align-items:center; height:46px; margin:0 4px 10px; gap:2px; }
+.kb-sugwrap{ flex:1 1 0; min-width:0; display:flex; align-items:center; overflow:hidden; }
+.kb-act{ flex:0 0 auto; margin-left:5px; padding:9px 12px; border-radius:8px; background:var(--kb-key2); color:var(--kb-accent); font-weight:700; font-size:14px; white-space:nowrap; }
+.kb-act.press{ opacity:.55; }
 .kb-sug{ flex:1 1 0; min-width:0; text-align:center; font-size:16px; color:var(--kb-keytext); padding:9px 4px; border-radius:7px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .kb-sug.press{ background:rgba(128,128,128,.28); }
 .kb-sug+.kb-sug{ box-shadow:-1px 0 0 rgba(128,128,128,.3); }
@@ -1090,7 +1094,6 @@ html[data-theme="light"]{ --kb-panel:#d1d4db; --kb-key:#ffffff; --kb-key2:#aeb4b
 .kb-rows{ display:flex; flex-direction:column; gap:11px; }
 .kb-row{ display:flex; gap:6px; justify-content:center; align-items:stretch; }
 .kb-sp{ flex:.5 1 0; }
-.kb-sug.kb-act{ font-weight:700; color:var(--kb-accent); }
 .kb-key{ flex:1 1 0; min-width:0; height:46px; border-radius:6px; background:var(--kb-key); color:var(--kb-keytext);
   font-size:23px; font-weight:400; line-height:1; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 0 var(--kb-keysh); cursor:pointer; }
 .kb-key.press{ background:var(--kb-key2); }
@@ -12668,12 +12671,17 @@ function KB_ON(){ return KB_TOUCH && SET.customKbd!==false; }
 // answer suggestions would be cheating in Ranked → suppress them there
 function kbIsRanked(){ try{ if(typeof state!=='undefined' && state && state.rankedActive) return true; }catch(e){}
   try{ if(typeof PK!=='undefined' && PK && PK.r && PK.r.q && PK.r.i<PK.r.q.length && document.body.classList.contains('pokemode')) return true; }catch(e){} return false; }
-// buttons to host in the top strip (instead of leaving it empty): mirror the on-screen skip
-// when it's available, and give Ranked a big thumb-reachable Submit target.
-function kbActionsFor(){ const acts=[], ranked=kbIsRanked();
-  if(!ranked){ const sk=document.getElementById('pk-skip')||document.getElementById('skip');
-    if(sk && sk.offsetParent!==null && !sk.classList.contains('hidden')){ const t=sk.querySelector('.t'); acts.push({label:'↻ '+((t&&t.textContent)||LT('넘기기','Skip')), fn:()=>{ try{ sk.click(); }catch(e){} }}); } }
-  else acts.push({label:LT('제출 ⏎','Submit ⏎'), fn:()=>kbEnter()});
+// Host the game's own action buttons in the top strip (thumb-reachable) instead of
+// filling it with suggestions — mirrors whatever is on screen: skip / back / mic, plus
+// a Submit in Ranked. Guards against enabling quit-shortcuts during a Ranked match.
+function kbActBtn(id,label,fn){ const b=document.getElementById(id);
+  if(!b || b.offsetParent===null || b.classList.contains('hidden')) return null;
+  return {label, fn:fn||(()=>{ try{ b.click(); }catch(e){} }), _el:b}; }
+function kbActionsFor(){ const acts=[], ranked=kbIsRanked(), push=a=>{ if(a) acts.push(a); };
+  const sk=document.getElementById('pk-skip')||document.getElementById('skip');
+  if(sk && sk.offsetParent!==null && !sk.classList.contains('hidden')){ const t=sk.querySelector('.t'); push({label:'↻ '+((t&&t.textContent)||LT('넘기기','Skip')), fn:()=>{ try{sk.click();}catch(e){} }}); }
+  if(!ranked){ push(kbActBtn('pk-back', LT('‹ 뒤로','‹ Back'))); push(kbActBtn('micbtn','🎤')); }
+  if(ranked) push({label:LT('제출 ⏎','Submit'), fn:()=>kbEnter()});
   return acts; }
 
 /* ---- Hangul (두벌식) composition automaton ---- */
@@ -12782,17 +12790,28 @@ function kbUpdateWeights(){ KB.weights={};
   if(max>0) for(const k in src) KB.weights[k]=src[k]/max; }
 
 /* ---- suggestions bar ---- */
-function kbUpdateSuggest(){ const tok=kbCurrentToken(), nt=norm(tok), pool=KB.provider?KB.provider():null, out=[];
-  if(pool && nt){ const starts=[],contains=[];
+// How helpful suggestions are follows the name-matching setting (SET.lenient):
+//   매우 관대(lenient) → generous · 기본(normal) → minimal · 정확히(exact) → none (same as Ranked).
+function kbSuggestConf(){ if(kbIsRanked()) return {n:0,min:99,contains:false,off:'rank'};
+  const l=(typeof SET!=='undefined'&&SET.lenient)||'normal';
+  if(l==='exact')   return {n:0,min:99,contains:false,off:'exact'};
+  if(l==='lenient') return {n:3,min:2, contains:true };
+  return               {n:1,min:4, contains:false};   // 기본: 짧은 접두어로는 안 뜨고, 하나만
+}
+function kbUpdateSuggest(){ const cf=kbSuggestConf(), tok=kbCurrentToken(), nt=norm(tok),
+    pool=(cf.n>0&&KB.provider)?KB.provider():null, out=[];
+  if(pool && nt && nt.length>=cf.min){ const starts=[],contains=[];
     for(let i=0;i<pool.length && starts.length<20;i++){ const w=pool[i], nw=norm(w); if(!nw||nw===nt) continue;
-      if(nw.indexOf(nt)===0) starts.push(w); else if(nt.length>=2 && nw.indexOf(nt)>=0) contains.push(w); }
-    starts.concat(contains).slice(0,3).forEach(w=>out.push(w)); }
+      if(nw.indexOf(nt)===0) starts.push(w); else if(cf.contains && nt.length>=3 && nw.indexOf(nt)>=0) contains.push(w); }
+    starts.concat(contains).slice(0,cf.n).forEach(w=>out.push(w)); }
   KB.suggest=out; kbRenderBar(); }
-function kbRenderBar(){ if(!KB.bar) return; let h='';
-  if(KB.suggest.length) h=KB.suggest.map(w=>'<div class="kb-sug" data-sug="'+esc(w)+'">'+esc(w)+'</div>').join('');
-  else if(KB.actions && KB.actions.length) h=KB.actions.map((a,i)=>'<div class="kb-sug kb-act" data-act="'+i+'">'+esc(a.label)+'</div>').join('');
-  else h='<div class="kb-sug empty">'+(kbIsRanked()?LT('랭크전 · 추천 없음','Ranked · no hints'):LT('추천','suggestions'))+'</div>';
-  KB.bar.innerHTML=h+'<div class="kb-dismiss" data-fn="dismiss">⌄</div>'; }
+function kbRenderBar(){ if(!KB.bar) return;
+  let sug;
+  if(KB.suggest.length) sug=KB.suggest.map(w=>'<div class="kb-sug" data-sug="'+esc(w)+'">'+esc(w)+'</div>').join('');
+  else { const cf=kbSuggestConf(); const msg = cf.off==='rank'?LT('랭크전','Ranked') : cf.off==='exact'?LT('추천 꺼짐','hints off') : LT('추천','suggestions');
+    sug='<div class="kb-sug empty">'+msg+'</div>'; }
+  const act=(KB.actions&&KB.actions.length)? KB.actions.map((a,i)=>'<div class="kb-act" data-act="'+i+'">'+esc(a.label)+'</div>').join('') : '';
+  KB.bar.innerHTML='<div class="kb-sugwrap">'+sug+'</div>'+act+'<div class="kb-dismiss" data-fn="dismiss">⌄</div>'; }
 function kbPickSuggest(w){ kbCommitComp(); KB.val = KB.val.replace(/(^|\s)([^\s]*)$/, (m,pre)=>pre+w); KB.comp=null; kbSync(); }
 
 /* ---- build / render DOM ---- */
@@ -12856,7 +12875,7 @@ function kbActivate(r){ if(!r) return;
   if(r.key) kbType(r.key); }
 let kbDownKey=null;
 function kbPointerDown(e){ e.preventDefault();   // keep the input focused (don't steal focus)
-  const sug=e.target.closest?e.target.closest('.kb-sug,.kb-dismiss'):null;
+  const sug=e.target.closest?e.target.closest('.kb-sug,.kb-act,.kb-dismiss'):null;
   if(sug){ sug.classList.add('press'); kbDownKey={sugEl:sug}; return; }
   kbMeasure(); const r=kbResolveKey(e.clientX,e.clientY); kbDownKey=r; if(!r) return;
   if(r.key) kbShowPop(r);
