@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Georama · 지오라마 — 지도로 배우는 지리 게임</title>
 <meta name="description" content="나라 이름이나 약자를 입력하면 세계 지도에서 해당 나라가 하이라이트됩니다. 학습 카드, 타이머, 여러 게임 모드 포함.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%228%22%20fill%3D%22%23159a5a%22%2F%3E%3Ccircle%20cx%3D%2214.5%22%20cy%3D%2216.5%22%20r%3D%228.5%22%20fill%3D%22%23ffffff%22%2F%3E%3Cpath%20d%3D%22M6%2016.5h17M14.5%208c2.7%202.9%202.7%2014.1%200%2017M14.5%208c-2.7%202.9-2.7%2014.1%200%2017%22%20fill%3D%22none%22%20stroke%3D%22%23159a5a%22%20stroke-width%3D%221.6%22%2F%3E%3Cpath%20d%3D%22M23%203.5c-2.2%200-4%201.8-4%204%200%203%204%206.2%204%206.2s4-3.2%204-6.2c0-2.2-1.8-4-4-4z%22%20fill%3D%22%23ffd54a%22%20stroke%3D%22%230c6b3c%22%20stroke-width%3D%221.1%22%2F%3E%3Ccircle%20cx%3D%2223%22%20cy%3D%227.5%22%20r%3D%221.7%22%20fill%3D%22%230c6b3c%22%2F%3E%3C%2Fsvg%3E">
@@ -12928,6 +12928,18 @@ if(SUPA_ON){ sbBootstrap();
   window.addEventListener('pagehide',()=>{ sbSaveStatsNow(); });
   window.addEventListener('focus',()=>{ sbHeartbeatTick(); });
   sbHeartbeat=setInterval(sbHeartbeatTick, 30000); }
+// Kill browser zoom-on-double-tap completely. iOS Safari ignores user-scalable=no, so we
+// also cancel the gesture in JS. Position+time gated → only a genuine double-tap in (almost)
+// the same spot is blocked; rapid taps on different keys/answers and two-finger pinch are
+// untouched, and the map keeps its own custom zoom. Runs on every device (no-op without touch).
+(function noDoubleTapZoom(){ let lt=0, lx=0, ly=0;
+  document.addEventListener('touchend', function(e){ const t=(e.changedTouches&&e.changedTouches[0])||null, now=Date.now();
+    const x=t?t.clientX:0, y=t?t.clientY:0;
+    if(now-lt<=350 && Math.abs(x-lx)<40 && Math.abs(y-ly)<40 && e.cancelable) e.preventDefault();
+    lt=now; lx=x; ly=y; }, {passive:false});
+  document.addEventListener('gesturestart', function(e){ if(e.cancelable) e.preventDefault(); }, {passive:false});
+  document.addEventListener('dblclick', function(e){ e.preventDefault(); }, {passive:false});
+})();
 kbInit();   // custom on-screen keyboard (self-guards to phones/tablets only)
 </script>
 </body>
