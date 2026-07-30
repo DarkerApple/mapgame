@@ -1072,6 +1072,43 @@ body.pk-glitch{animation:pk-glitch .5s steps(2) 2}
   #poke.playing #pk-body{padding:16px 12px calc(16px + env(safe-area-inset-bottom))}
   .worldfab{width:50px;height:50px}
 }
+/* ===== custom on-screen keyboard — phones & tablets only, Apple-style, theme-aware ===== */
+:root{ --kb-panel:#26282e; --kb-key:#3a3d45; --kb-key2:#25272d; --kb-keytext:#f3f5f8; --kb-keysh:rgba(0,0,0,.55); --kb-pop:#454951; --kb-accent:#3478f6; }
+html[data-theme="light"]{ --kb-panel:#d1d4db; --kb-key:#ffffff; --kb-key2:#aeb4be; --kb-keytext:#161a20; --kb-keysh:rgba(0,0,0,.3); --kb-pop:#ffffff; }
+#kbd{ position:fixed; left:0; right:0; bottom:0; z-index:2000000; background:var(--kb-panel);
+  padding:8px 7px calc(11px + env(safe-area-inset-bottom,0px)); box-shadow:0 -1px 0 rgba(0,0,0,.12),0 -14px 34px rgba(0,0,0,.24);
+  transform:translateY(115%); transition:transform .22s cubic-bezier(.32,.9,.3,1); user-select:none; -webkit-user-select:none; touch-action:none; -webkit-tap-highlight-color:transparent;
+  font-family:var(--font); }
+#kbd.show{ transform:translateY(0); }
+.kb-bar{ display:flex; align-items:center; height:46px; margin:0 4px 10px; gap:2px; }
+.kb-sug{ flex:1 1 0; min-width:0; text-align:center; font-size:16px; color:var(--kb-keytext); padding:9px 4px; border-radius:7px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.kb-sug.press{ background:rgba(128,128,128,.28); }
+.kb-sug+.kb-sug{ box-shadow:-1px 0 0 rgba(128,128,128,.3); }
+.kb-sug.empty{ color:var(--muted); opacity:.7; }
+.kb-dismiss{ flex:0 0 auto; width:40px; height:36px; margin-left:5px; display:flex; align-items:center; justify-content:center; color:var(--kb-keytext); opacity:.7; font-size:19px; }
+.kb-dismiss.press{ opacity:1; }
+.kb-rows{ display:flex; flex-direction:column; gap:11px; }
+.kb-row{ display:flex; gap:6px; justify-content:center; align-items:stretch; }
+.kb-sp{ flex:.5 1 0; }
+.kb-sug.kb-act{ font-weight:700; color:var(--kb-accent); }
+.kb-key{ flex:1 1 0; min-width:0; height:46px; border-radius:6px; background:var(--kb-key); color:var(--kb-keytext);
+  font-size:23px; font-weight:400; line-height:1; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 0 var(--kb-keysh); cursor:pointer; }
+.kb-key.press{ background:var(--kb-key2); }
+.kb-fn{ background:var(--kb-key2); font-size:15px; font-weight:600; }
+.kb-space{ flex:5 1 0; font-size:15px; font-weight:500; }
+.kb-wide{ flex:1.5 1 0; }
+.kb-enter{ flex:1.7 1 0; background:var(--kb-accent); color:#fff; font-size:15px; font-weight:700; }
+.kb-shift.on{ background:var(--kb-keytext); color:var(--kb-panel); }
+.kb-shift.lock{ background:var(--kb-accent); color:#fff; }
+.kb-pop{ position:fixed; z-index:2000001; background:var(--kb-pop); color:var(--kb-keytext); border-radius:9px; min-width:42px; height:54px; padding:0 9px;
+  display:none; align-items:center; justify-content:center; font-size:27px; box-shadow:0 8px 18px rgba(0,0,0,.32); transform:translateX(-50%); pointer-events:none; }
+.kb-pop.show{ display:flex; }
+@media (min-width:540px){ .kb-rows,.kb-bar{ max-width:600px; margin-left:auto; margin-right:auto; } .kb-key{ height:50px; } }
+/* keep the focused field clear of the keyboard (adequate spacing above it) */
+body.kb-open{ scroll-padding-bottom:calc(var(--kb-h,300px) + 24px); padding-bottom:var(--kb-h,300px); }
+body.kb-open #poke.playing #pk-body{ padding-bottom:calc(var(--kb-h,300px) + 28px) !important; }
+body.kb-open .pk-inner{ padding-bottom:calc(var(--kb-h,300px) + 40px); }
+body.kb-open input:focus, body.kb-open textarea:focus{ scroll-margin-bottom:calc(var(--kb-h,300px) + 24px); }
 </style>
 </head>
 <body>
@@ -2602,7 +2639,7 @@ const state={mode:'free',running:false,found:new Set(),score:0,target:null,pool:
   symBank:[],symSel:null,symAnswer:null,symSymbol:null,symLocked:false,symRound:0,symTotal:10};
 /* ================= persistent settings ================= */
 const SETKEY='wmh_settings_v1';
-const SET_DEFAULT={lenient:'normal',speech:true,effects:true,hidden:[]};
+const SET_DEFAULT={lenient:'normal',speech:true,effects:true,hidden:[],customKbd:true};
 let SET=(function(){ try{ return Object.assign({},SET_DEFAULT,JSON.parse(localStorage.getItem(SETKEY))||{}); }catch(e){ return Object.assign({},SET_DEFAULT); } })();
 function saveSet(){ try{ localStorage.setItem(SETKEY,JSON.stringify(SET)); }catch(e){} }
 // touch (phone/tablet) vs pointer (desktop) — drives instructions & whether keybinds are advertised
@@ -11183,6 +11220,7 @@ function refreshSettingsUI(){
   seg('lenient', SET.lenient||'normal');
   seg('speech', (SET.speech!==false)?'on':'off');
   seg('effects', (SET.effects!==false)?'on':'off');
+  seg('customKbd', (SET.customKbd!==false)?'on':'off');
   el.setBody.querySelectorAll('[data-set="groups"] .set-chip').forEach(b=>{ const hid=SET.hidden.includes(b.dataset.g); b.classList.toggle('off',hid); b.classList.toggle('on',!hid); });
   const themeSeg=el.setBody.querySelector('[data-set="themes"]');
   if(themeSeg){ const u=curUser(), eqT=(u&&u.stats&&u.stats.themeEquip)||''; themeSeg.querySelectorAll('.set-chip').forEach(b=>b.classList.toggle('on',(b.dataset.th||'')===eqT)); }
@@ -11207,6 +11245,9 @@ function renderSettings(){
     +'</div>';
   h+='<div class="set-block"><div class="set-h">'+LT('효과·애니메이션','Effects & motion')+'</div>'
     +'<div class="set-seg" data-set="effects"><button class="set-chip" data-v="on">'+LT('켜기','On')+'</button><button class="set-chip" data-v="off">'+LT('끄기','Off')+'</button></div></div>';
+  if(KB_TOUCH){ h+='<div class="set-block"><div class="set-h">'+LT('전용 키보드','Custom keyboard')+'</div>'
+    +'<div class="set-seg" data-set="customKbd"><button class="set-chip" data-v="on">'+LT('켜기','On')+'</button><button class="set-chip" data-v="off">'+LT('끄기','Off')+'</button></div>'
+    +'<div class="set-desc">'+LT('한/영 자체 키보드 · 게임 단어 추천 · 예측 터치. 끄면 기기 기본 키보드를 써요.','Our own 한/EN keyboard with game-word suggestions & predictive touch. Off = use your device keyboard.')+'</div></div>'; }
   const su=curUser();
   if(su){ const owned=(su.stats&&su.stats.themes)||{}, eqT=(su.stats&&su.stats.themeEquip)||'';
     let th='<button class="set-chip" data-th="">'+LT('기본','Default')+'</button>';
@@ -11224,6 +11265,8 @@ function renderSettings(){
   el.setBody.querySelectorAll('[data-set="lenient"] .set-chip').forEach(b=>b.onclick=()=>{ SET.lenient=b.dataset.v; saveSet(); refreshSettingsUI(); });
   el.setBody.querySelectorAll('[data-set="speech"] .set-chip').forEach(b=>b.onclick=()=>{ SET.speech=(b.dataset.v==='on'); saveSet(); refreshSettingsUI(); refreshMic(); });
   el.setBody.querySelectorAll('[data-set="effects"] .set-chip').forEach(b=>b.onclick=()=>{ SET.effects=(b.dataset.v==='on'); saveSet(); refreshSettingsUI(); });
+  el.setBody.querySelectorAll('[data-set="customKbd"] .set-chip').forEach(b=>b.onclick=()=>{ SET.customKbd=(b.dataset.v==='on'); saveSet(); refreshSettingsUI();
+    if(typeof kbInit==='function'){ if(SET.customKbd){ kbInit(); kbStamp(document.body); } else { kbHide(); kbUnstampAll(); } } });
   el.setBody.querySelectorAll('[data-set="themes"] .set-chip').forEach(b=>b.onclick=()=>{ if(b.classList.contains('lock')) return; const u=curUser(); if(!u) return; u.stats.themeEquip=b.dataset.th||''; accSave(); applyCosmetics(); refreshSettingsUI(); });
   el.setBody.querySelectorAll('[data-set="groups"] .set-chip').forEach(b=>b.onclick=()=>{ const g=b.dataset.g, i=SET.hidden.indexOf(g);
     if(i>=0) SET.hidden.splice(i,1); else if(SET.hidden.length<groups.length-1) SET.hidden.push(g);   // keep at least one section
@@ -12613,6 +12656,249 @@ function pkBstNext(){ let a=prand(POKE),b=prand(POKE),g=0; while((b.id===a.id||b
 }
 $('worldfab').onclick=()=>{ document.body.classList.contains('pokemode')?pokeClose():pokeOpen(); };
 
+/* ================= Custom on-screen keyboard (phones & tablets only) =================
+   Apple-style QWERTY + 두벌식 한글 with real jamo→syllable composition, suggestions
+   drawn from the game's own vocabulary, and adaptive (predictive) key hit-boxes. */
+let KB_TOUCH = !!(window.matchMedia && matchMedia('(hover: none) and (pointer: coarse)').matches);
+const KB_HIT_BIAS = 1.7;   // how strongly a predicted key expands its catch radius in the gutters
+const KB = { el:null, bar:null, rowsEl:null, pop:null, input:null,
+  lang:'en', layer:'abc', shift:0, koShift:false, val:'', comp:null,
+  provider:null, enterLabel:'', suggest:[], actions:[], keyRects:[], weights:{}, repeatT:null, shiftTapAt:0 };
+function KB_ON(){ return KB_TOUCH && SET.customKbd!==false; }
+// answer suggestions would be cheating in Ranked → suppress them there
+function kbIsRanked(){ try{ if(typeof state!=='undefined' && state && state.rankedActive) return true; }catch(e){}
+  try{ if(typeof PK!=='undefined' && PK && PK.r && PK.r.q && PK.r.i<PK.r.q.length && document.body.classList.contains('pokemode')) return true; }catch(e){} return false; }
+// buttons to host in the top strip (instead of leaving it empty): mirror the on-screen skip
+// when it's available, and give Ranked a big thumb-reachable Submit target.
+function kbActionsFor(){ const acts=[], ranked=kbIsRanked();
+  if(!ranked){ const sk=document.getElementById('pk-skip')||document.getElementById('skip');
+    if(sk && sk.offsetParent!==null && !sk.classList.contains('hidden')){ const t=sk.querySelector('.t'); acts.push({label:'↻ '+((t&&t.textContent)||LT('넘기기','Skip')), fn:()=>{ try{ sk.click(); }catch(e){} }}); } }
+  else acts.push({label:LT('제출 ⏎','Submit ⏎'), fn:()=>kbEnter()});
+  return acts; }
+
+/* ---- Hangul (두벌식) composition automaton ---- */
+const HG_CHO=['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+const HG_JUNG=['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
+const HG_JONG=['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+const HG_JUNG_COMB={'ㅗㅏ':'ㅘ','ㅗㅐ':'ㅙ','ㅗㅣ':'ㅚ','ㅜㅓ':'ㅝ','ㅜㅔ':'ㅞ','ㅜㅣ':'ㅟ','ㅡㅣ':'ㅢ'};
+const HG_JONG_COMB={'ㄱㅅ':'ㄳ','ㄴㅈ':'ㄵ','ㄴㅎ':'ㄶ','ㄹㄱ':'ㄺ','ㄹㅁ':'ㄻ','ㄹㅂ':'ㄼ','ㄹㅅ':'ㄽ','ㄹㅌ':'ㄾ','ㄹㅍ':'ㄿ','ㄹㅎ':'ㅀ','ㅂㅅ':'ㅄ'};
+const HG_JONG_SPLIT={'ㄳ':['ㄱ','ㅅ'],'ㄵ':['ㄴ','ㅈ'],'ㄶ':['ㄴ','ㅎ'],'ㄺ':['ㄹ','ㄱ'],'ㄻ':['ㄹ','ㅁ'],'ㄼ':['ㄹ','ㅂ'],'ㄽ':['ㄹ','ㅅ'],'ㄾ':['ㄹ','ㅌ'],'ㄿ':['ㄹ','ㅍ'],'ㅀ':['ㄹ','ㅎ'],'ㅄ':['ㅂ','ㅅ']};
+const HG_JUNG_SPLIT={}; Object.keys(HG_JUNG_COMB).forEach(k=>{ HG_JUNG_SPLIT[HG_JUNG_COMB[k]]=[k[0],k[1]]; });
+function hgIsCons(c){ return HG_CHO.indexOf(c)>=0; }
+function hgIsVowel(c){ return HG_JUNG.indexOf(c)>=0; }
+function hgRender(comp){ if(!comp) return '';
+  if(comp.cho>=0 && comp.jung>=0) return String.fromCharCode(0xAC00 + comp.cho*588 + comp.jung*28 + (comp.jong>0?comp.jong:0));
+  if(comp.cho>=0) return HG_CHO[comp.cho];
+  if(comp.jung>=0) return HG_JUNG[comp.jung];
+  return ''; }
+function kbCommitComp(){ if(KB.comp){ KB.val += hgRender(KB.comp); KB.comp=null; } }
+function hgInput(c){ const comp=KB.comp, cons=hgIsCons(c), vow=hgIsVowel(c);
+  if(!comp){ KB.comp = cons? {cho:HG_CHO.indexOf(c),jung:-1,jong:0} : {cho:-1,jung:HG_JUNG.indexOf(c),jong:0}; return; }
+  if(cons){
+    if(comp.cho>=0 && comp.jung>=0){
+      if(comp.jong===0){ const ji=HG_JONG.indexOf(c);
+        if(ji>0) comp.jong=ji; else { kbCommitComp(); KB.comp={cho:HG_CHO.indexOf(c),jung:-1,jong:0}; } }
+      else { const combo=HG_JONG_COMB[HG_JONG[comp.jong]+c];
+        if(combo) comp.jong=HG_JONG.indexOf(combo); else { kbCommitComp(); KB.comp={cho:HG_CHO.indexOf(c),jung:-1,jong:0}; } }
+    } else { kbCommitComp(); KB.comp={cho:HG_CHO.indexOf(c),jung:-1,jong:0}; }
+    return; }
+  // vowel
+  const vi=HG_JUNG.indexOf(c);
+  if(comp.jung<0){ comp.jung=vi; return; }
+  if(comp.jong===0){ const combo=HG_JUNG_COMB[HG_JUNG[comp.jung]+c];
+    if(combo) comp.jung=HG_JUNG.indexOf(combo); else { kbCommitComp(); KB.comp={cho:-1,jung:vi,jong:0}; } return; }
+  // a jong exists → it starts the next syllable with this vowel
+  const jc=HG_JONG[comp.jong], split=HG_JONG_SPLIT[jc];
+  if(split){ comp.jong=HG_JONG.indexOf(split[0]); kbCommitComp(); KB.comp={cho:HG_CHO.indexOf(split[1]),jung:vi,jong:0}; }
+  else { comp.jong=0; kbCommitComp(); KB.comp={cho:HG_CHO.indexOf(jc),jung:vi,jong:0}; } }
+function hgBackspace(){ const comp=KB.comp; if(!comp) return false;
+  if(comp.jong>0){ const split=HG_JONG_SPLIT[HG_JONG[comp.jong]]; comp.jong = split?HG_JONG.indexOf(split[0]):0; return true; }
+  if(comp.jung>=0){ const parts=HG_JUNG_SPLIT[HG_JUNG[comp.jung]];
+    if(parts) comp.jung=HG_JUNG.indexOf(parts[0]); else { comp.jung=-1; if(comp.cho<0) KB.comp=null; } return true; }
+  if(comp.cho>=0){ KB.comp=null; return true; }
+  return false; }
+
+/* ---- layouts ---- */
+const KB_LAYOUTS={
+  en:[['q','w','e','r','t','y','u','i','o','p'],['{sp}','a','s','d','f','g','h','j','k','l','{sp}'],['{shift}','z','x','c','v','b','n','m','{bs}'],['{123}','{lang}','{space}','{enter}']],
+  ko:[['ㅂ','ㅈ','ㄷ','ㄱ','ㅅ','ㅛ','ㅕ','ㅑ','ㅐ','ㅔ'],['{sp}','ㅁ','ㄴ','ㅇ','ㄹ','ㅎ','ㅗ','ㅓ','ㅏ','ㅣ','{sp}'],['{shift}','ㅋ','ㅌ','ㅊ','ㅍ','ㅠ','ㅜ','ㅡ','{bs}'],['{123}','{lang}','{space}','{enter}']],
+  koS:[['ㅃ','ㅉ','ㄸ','ㄲ','ㅆ','ㅛ','ㅕ','ㅑ','ㅒ','ㅖ'],['{sp}','ㅁ','ㄴ','ㅇ','ㄹ','ㅎ','ㅗ','ㅓ','ㅏ','ㅣ','{sp}'],['{shift}','ㅋ','ㅌ','ㅊ','ㅍ','ㅠ','ㅜ','ㅡ','{bs}'],['{123}','{lang}','{space}','{enter}']],
+  num:[['1','2','3','4','5','6','7','8','9','0'],['-','/',':',';','(',')','$','&','@','"'],['{sym}','.',',','?','!',"'",'{bs}'],['{abc}','{lang}','{space}','{enter}']],
+  sym:[['[',']','{','}','#','%','^','*','+','='],['_','\\','|','~','<','>','€','£','¥','·'],['{123}','.',',','?','!',"'",'{bs}'],['{abc}','{lang}','{space}','{enter}']]
+};
+function kbCurrentLayout(){ if(KB.layer==='num') return KB_LAYOUTS.num; if(KB.layer==='sym') return KB_LAYOUTS.sym;
+  if(KB.lang==='ko') return KB.koShift?KB_LAYOUTS.koS:KB_LAYOUTS.ko; return KB_LAYOUTS.en; }
+
+/* ---- suggestion pools (our own vocabulary) ---- */
+let _kbGeo=null,_kbPoke=null;
+function kbGeoPool(){ if(_kbGeo) return _kbGeo; const seen=new Set(),arr=[];
+  try{ allEntries.forEach(e=>[e.ko,e.en].forEach(n=>{ if(n&&!seen.has(n)){ seen.add(n); arr.push(n); } })); }catch(e){} _kbGeo=arr; return arr; }
+function kbPokePool(){ if(_kbPoke) return _kbPoke; const seen=new Set(),arr=[];
+  try{ POKE.forEach(p=>[p.ko,p.en].forEach(n=>{ if(n&&!seen.has(n)){ seen.add(n); arr.push(n); } })); }catch(e){} _kbPoke=arr; return arr; }
+function kbProviderFor(input){ const id=input.id||'';
+  if(id==='pk-in'||id==='pk-dq') return kbPokePool;
+  if(id==='q'||id==='dl-input'||id==='cx-search') return kbGeoPool;
+  return null; }
+function kbEnterLabelFor(input){ const id=input.id||'';
+  if(/search/i.test(id)||id==='cx-search'||id==='pk-dq'||id==='ac-search') return LT('검색','search');
+  if(id==='auth-name'||id==='auth-pass'||id==='auth-email') return LT('완료','go');
+  return LT('입력','return'); }
+
+/* ---- value + composition sync ---- */
+function kbDisplay(){ return KB.val + hgRender(KB.comp); }
+function kbCurrentToken(){ const v=kbDisplay(); const p=v.split(/\s+/); return p[p.length-1]||''; }
+function kbSync(){ if(!KB.input) return; KB.input.value=kbDisplay();
+  try{ KB.input.dispatchEvent(new Event('input',{bubbles:true})); }catch(e){}
+  kbUpdateSuggest(); kbUpdateWeights(); }
+function kbType(ch){
+  if(KB.lang==='ko' && KB.layer==='abc' && (hgIsCons(ch)||hgIsVowel(ch))){ hgInput(ch); if(KB.koShift){ KB.koShift=false; kbRenderKeys(); } }
+  else { kbCommitComp(); KB.val += (KB.shift && /^[a-z]$/.test(ch)) ? ch.toUpperCase() : ch; if(KB.shift===1) kbSetShift(0); }
+  kbSync(); }
+function kbBackspace(){ if(hgBackspace()){ kbSync(); return; }
+  if(KB.val.length){ const a=Array.from(KB.val); a.pop(); KB.val=a.join(''); kbSync(); } }
+function kbSpace(){ kbCommitComp(); KB.val+=' '; if(KB.shift===1) kbSetShift(0); kbSync(); }
+function kbEnter(){ kbCommitComp(); kbSync(); const inp=KB.input; if(!inp) return;
+  const notPrevented=inp.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',keyCode:13,which:13,bubbles:true,cancelable:true}));
+  if(notPrevented && inp.form){ try{ inp.form.requestSubmit ? inp.form.requestSubmit() : inp.form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})); }catch(e){} }
+  setTimeout(()=>{ if(KB.input===inp){ KB.val=inp.value||''; KB.comp=null; kbUpdateSuggest(); kbUpdateWeights(); } },0); }
+function kbSetShift(s){ KB.shift=s; if(KB.el) KB.el.dataset.shift=s; kbRenderKeys(); }
+function kbShiftTap(){ if(KB.lang==='ko'){ KB.koShift=!KB.koShift; kbRenderKeys(); return; }
+  const t=Date.now();
+  if(KB.shift===2) kbSetShift(0);
+  else if(KB.shift===1) kbSetShift((t-KB.shiftTapAt<320)?2:0);
+  else kbSetShift(1);
+  KB.shiftTapAt=t; }
+
+/* ---- predictive weights (drives the adaptive hit-boxes) ---- */
+function kbNextKeyChar(fc){ const code=fc.charCodeAt(0);
+  if(code>=0xAC00 && code<=0xD7A3){ return HG_CHO[Math.floor((code-0xAC00)/588)]; } return fc; }
+function kbFallbackWeights(prefix){ const w={}; 'aeiou'.split('').forEach(v=>w[v]=0.4);
+  const nx={q:'u',t:'h',s:'t',c:'h',w:'h',i:'n',e:'r',a:'n',o:'n',n:'g',r:'e',h:'e',d:'e',l:'e'}[prefix.slice(-1).toLowerCase()]; if(nx) w[nx]=1; return w; }
+function kbUpdateWeights(){ KB.weights={};
+  const tok=kbCurrentToken(), nt=norm(tok), pool=KB.provider?KB.provider():null; const counts={}; let total=0;
+  if(pool && nt){ for(let i=0;i<pool.length;i++){ const nw=norm(pool[i]); if(nw.length>nt.length && nw.indexOf(nt)===0){ const nc=kbNextKeyChar(nw[nt.length]); counts[nc]=(counts[nc]||0)+1; total++; } } }
+  let src=counts; if(!total) src=kbFallbackWeights(tok);
+  let max=0; for(const k in src) if(src[k]>max) max=src[k];
+  if(max>0) for(const k in src) KB.weights[k]=src[k]/max; }
+
+/* ---- suggestions bar ---- */
+function kbUpdateSuggest(){ const tok=kbCurrentToken(), nt=norm(tok), pool=KB.provider?KB.provider():null, out=[];
+  if(pool && nt){ const starts=[],contains=[];
+    for(let i=0;i<pool.length && starts.length<20;i++){ const w=pool[i], nw=norm(w); if(!nw||nw===nt) continue;
+      if(nw.indexOf(nt)===0) starts.push(w); else if(nt.length>=2 && nw.indexOf(nt)>=0) contains.push(w); }
+    starts.concat(contains).slice(0,3).forEach(w=>out.push(w)); }
+  KB.suggest=out; kbRenderBar(); }
+function kbRenderBar(){ if(!KB.bar) return; let h='';
+  if(KB.suggest.length) h=KB.suggest.map(w=>'<div class="kb-sug" data-sug="'+esc(w)+'">'+esc(w)+'</div>').join('');
+  else if(KB.actions && KB.actions.length) h=KB.actions.map((a,i)=>'<div class="kb-sug kb-act" data-act="'+i+'">'+esc(a.label)+'</div>').join('');
+  else h='<div class="kb-sug empty">'+(kbIsRanked()?LT('랭크전 · 추천 없음','Ranked · no hints'):LT('추천','suggestions'))+'</div>';
+  KB.bar.innerHTML=h+'<div class="kb-dismiss" data-fn="dismiss">⌄</div>'; }
+function kbPickSuggest(w){ kbCommitComp(); KB.val = KB.val.replace(/(^|\s)([^\s]*)$/, (m,pre)=>pre+w); KB.comp=null; kbSync(); }
+
+/* ---- build / render DOM ---- */
+function kbBuild(){ if(KB.el) return;
+  const k=document.createElement('div'); k.id='kbd'; k.setAttribute('role','application'); k.setAttribute('aria-label','keyboard');
+  k.innerHTML='<div class="kb-bar" id="kb-bar"></div><div class="kb-rows" id="kb-rows"></div>';
+  document.body.appendChild(k);
+  const pop=document.createElement('div'); pop.className='kb-pop'; pop.id='kb-pop'; document.body.appendChild(pop);
+  KB.el=k; KB.bar=$('kb-bar'); KB.rowsEl=$('kb-rows'); KB.pop=pop;
+  k.addEventListener('pointerdown', kbPointerDown);
+  k.addEventListener('pointerup', kbPointerUp);
+  k.addEventListener('pointercancel', kbPointerUp);
+  k.addEventListener('contextmenu', e=>e.preventDefault());
+  window.addEventListener('resize', ()=>{ if(KB.el&&KB.el.classList.contains('show')) kbMeasure(); }); }
+function kbKeyEl(tok){ const d=document.createElement('div');
+  if(tok==='{sp}'){ d.className='kb-sp'; d._spacer=true; return d; }
+  d.className='kb-key';
+  if(tok==='{shift}'){ d.className+=' kb-fn kb-wide kb-shift'; if(KB.shift===1||KB.koShift) d.className+=' on'; if(KB.shift===2) d.className+=' lock'; d.dataset.fn='shift'; d.textContent='⇧'; if(KB.shift===2) d.textContent='⇪'; }
+  else if(tok==='{bs}'){ d.className+=' kb-fn kb-wide'; d.dataset.fn='bs'; d.textContent='⌫'; }
+  else if(tok==='{123}'){ d.className+=' kb-fn kb-wide'; d.dataset.fn='123'; d.textContent='123'; }
+  else if(tok==='{abc}'){ d.className+=' kb-fn kb-wide'; d.dataset.fn='abc'; d.textContent=KB.lang==='ko'?'가':'ABC'; }
+  else if(tok==='{sym}'){ d.className+=' kb-fn kb-wide'; d.dataset.fn='sym'; d.textContent='#+='; }
+  else if(tok==='{lang}'){ d.className+=' kb-fn'; d.dataset.fn='lang'; d.textContent='🌐'; }
+  else if(tok==='{space}'){ d.className+=' kb-space'; d.dataset.fn='space'; d.textContent=KB.lang==='ko'?'한국어':'space'; }
+  else if(tok==='{enter}'){ d.className+=' kb-fn kb-enter'; d.dataset.fn='enter'; d.textContent=KB.enterLabel||LT('입력','return'); }
+  else { let label=tok; if(KB.lang!=='ko' && KB.layer==='abc' && KB.shift && /^[a-z]$/.test(tok)) label=tok.toUpperCase();
+    d.dataset.k=tok; d.textContent=label; }
+  return d; }
+function kbRenderKeys(){ if(!KB.rowsEl) return; const lay=kbCurrentLayout(); KB.rowsEl.innerHTML='';
+  lay.forEach(row=>{ const r=document.createElement('div'); r.className='kb-row'; row.forEach(tok=>r.appendChild(kbKeyEl(tok))); KB.rowsEl.appendChild(r); });
+  kbMeasure(); }
+function kbMeasure(){ KB.keyRects=[]; if(!KB.rowsEl) return;
+  KB.rowsEl.querySelectorAll('.kb-key').forEach(el=>{ const b=el.getBoundingClientRect();
+    KB.keyRects.push({el, key:el.dataset.k||'', fn:el.dataset.fn||'', x:b.left, y:b.top, w:b.width, h:b.height, cx:b.left+b.width/2, cy:b.top+b.height/2}); }); }
+
+/* ---- adaptive hit-testing: a direct hit always wins; gutters go to the nearest key,
+        weighted so predicted keys capture more of the surrounding dead-space (Apple-style) ---- */
+function kbResolveKey(x,y){ let inside=null, best=null, bestD=Infinity;
+  for(const r of KB.keyRects){
+    if(x>=r.x && x<=r.x+r.w && y>=r.y && y<=r.y+r.h){ inside=r; break; }
+    const dx=Math.max(r.x-x,0,x-(r.x+r.w)), dy=Math.max(r.y-y,0,y-(r.y+r.h));
+    const d=Math.hypot(dx,dy)/(1+(KB.weights[r.key]||0)*KB_HIT_BIAS);
+    if(d<bestD){ bestD=d; best=r; } }
+  return inside||best; }
+function kbShowPop(r){ if(!KB.pop) return; if(!r.key){ kbHidePop(); return; }
+  let label=r.key; if(KB.lang!=='ko' && KB.layer==='abc' && KB.shift && /^[a-z]$/.test(r.key)) label=r.key.toUpperCase();
+  KB.pop.textContent=label; KB.pop.style.left=r.cx+'px'; KB.pop.style.top=(r.y-60)+'px'; KB.pop.classList.add('show'); }
+function kbHidePop(){ if(KB.pop) KB.pop.classList.remove('show'); }
+function kbActivate(r){ if(!r) return;
+  if(r.el) { r.el.classList.add('press'); setTimeout(()=>r.el&&r.el.classList.remove('press'),110); }
+  if(r.fn){ if(r.fn==='shift') kbShiftTap();
+    else if(r.fn==='bs') kbBackspace();
+    else if(r.fn==='space') kbSpace();
+    else if(r.fn==='enter') kbEnter();
+    else if(r.fn==='123'){ KB.layer='num'; kbRenderKeys(); }
+    else if(r.fn==='abc'){ KB.layer='abc'; kbRenderKeys(); }
+    else if(r.fn==='sym'){ KB.layer='sym'; kbRenderKeys(); }
+    else if(r.fn==='lang'){ KB.lang=(KB.lang==='ko')?'en':'ko'; KB.layer='abc'; KB.koShift=false; kbCommitComp(); kbSync(); kbRenderKeys(); }
+    else if(r.fn==='dismiss') kbDismiss();
+    return; }
+  if(r.key) kbType(r.key); }
+let kbDownKey=null;
+function kbPointerDown(e){ e.preventDefault();   // keep the input focused (don't steal focus)
+  const sug=e.target.closest?e.target.closest('.kb-sug,.kb-dismiss'):null;
+  if(sug){ sug.classList.add('press'); kbDownKey={sugEl:sug}; return; }
+  kbMeasure(); const r=kbResolveKey(e.clientX,e.clientY); kbDownKey=r; if(!r) return;
+  if(r.key) kbShowPop(r);
+  if(r.fn==='bs'){ kbActivate(r); KB.repeatT=setTimeout(function rep(){ kbBackspace(); KB.repeatT=setTimeout(rep,90); },380); return; }
+  kbActivate(r); }
+function kbPointerUp(e){ kbHidePop(); if(KB.repeatT){ clearTimeout(KB.repeatT); KB.repeatT=null; }
+  const d=kbDownKey; kbDownKey=null;
+  if(d&&d.sugEl){ const s=d.sugEl; s.classList.remove('press');
+    if(s.dataset.fn==='dismiss') kbDismiss();
+    else if(s.classList.contains('kb-act')){ const a=KB.actions[+s.dataset.act]; if(a&&a.fn) a.fn(); }
+    else if(s.dataset.sug!=null) kbPickSuggest(s.dataset.sug); } }
+
+/* ---- attach / show / hide ---- */
+function kbManaged(t){ if(!t||!t.tagName) return false;
+  if(t.tagName==='TEXTAREA') return !t.hasAttribute('data-nokbd');
+  if(t.tagName!=='INPUT') return false;
+  const type=(t.getAttribute('type')||'text').toLowerCase();
+  if(['number','tel','date','datetime-local','month','week','time','range','color','file','checkbox','radio','submit','button','image','hidden','reset'].indexOf(type)>=0) return false;
+  return !t.hasAttribute('data-nokbd'); }
+function kbStamp(node){ if(!KB_ON()||!node) return;
+  const list = (node.matches && kbManaged(node)) ? [node] : (node.querySelectorAll? Array.from(node.querySelectorAll('input,textarea')).filter(kbManaged) : []);
+  list.forEach(t=>{ if(t.dataset._kbim===undefined) t.dataset._kbim=(t.getAttribute('inputmode')||''); t.setAttribute('inputmode','none'); }); }
+function kbUnstampAll(){ document.querySelectorAll('input,textarea').forEach(t=>{ if(t.dataset._kbim!==undefined){ if(t.dataset._kbim) t.setAttribute('inputmode',t.dataset._kbim); else t.removeAttribute('inputmode'); delete t.dataset._kbim; } }); }
+function kbAttach(input){ if(!KB_ON()) return; KB.input=input;
+  KB.val=input.value||''; KB.comp=null; KB.lang=EN()?'en':'ko'; KB.layer='abc'; KB.shift=0; KB.koShift=false;
+  const im=(input.getAttribute('data-kbmode')||input.dataset._kbim||'').toLowerCase(); if(im==='numeric'||im==='decimal') KB.layer='num';
+  KB.provider = kbIsRanked() ? null : kbProviderFor(input);   // no answer hints in Ranked
+  KB.actions = kbActionsFor();
+  KB.enterLabel=kbEnterLabelFor(input);
+  kbBuild(); kbRenderKeys(); kbUpdateSuggest(); kbUpdateWeights(); kbShow();
+  setTimeout(()=>{ try{ input.scrollIntoView({block:'center',behavior:'smooth'}); }catch(e){} },70); }
+function kbShow(){ if(!KB.el) return; KB.el.classList.add('show'); document.body.classList.add('kb-open');
+  requestAnimationFrame(()=>{ document.documentElement.style.setProperty('--kb-h', (KB.el.offsetHeight||300)+'px'); kbMeasure();
+    try{ if(KB.input) KB.input.scrollIntoView({block:'center',behavior:'smooth'}); }catch(e){} }); }
+function kbDismiss(){ const i=KB.input; kbHide(); if(i){ try{ i.blur(); }catch(e){} } }
+function kbHide(){ if(KB.el) KB.el.classList.remove('show'); kbHidePop(); document.body.classList.remove('kb-open'); KB.input=null; }
+function kbInit(){ if(!KB_TOUCH || KB._init) return; KB._init=true;
+  if(SET.customKbd!==false) kbStamp(document.body);
+  try{ new MutationObserver(muts=>{ if(!KB_ON()) return; muts.forEach(m=>m.addedNodes&&m.addedNodes.forEach(n=>{ if(n.nodeType===1) kbStamp(n); })); }).observe(document.body,{childList:true,subtree:true}); }catch(e){}
+  document.addEventListener('focusin', e=>{ if(!KB_ON()) return; if(kbManaged(e.target)){ kbStamp(e.target); kbAttach(e.target); } });
+  document.addEventListener('focusout', e=>{ if(!KB_ON()) return; setTimeout(()=>{ const a=document.activeElement; if(!a||!kbManaged(a)) kbHide(); },90); }); }
+
 buildHome();
 showHome();
 applyLang();
@@ -12623,6 +12909,7 @@ if(SUPA_ON){ sbBootstrap();
   window.addEventListener('pagehide',()=>{ sbSaveStatsNow(); });
   window.addEventListener('focus',()=>{ sbHeartbeatTick(); });
   sbHeartbeat=setInterval(sbHeartbeatTick, 30000); }
+kbInit();   // custom on-screen keyboard (self-guards to phones/tablets only)
 </script>
 </body>
 </html>
